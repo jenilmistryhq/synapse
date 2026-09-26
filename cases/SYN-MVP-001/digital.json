@@ -1,0 +1,463 @@
+{
+  "id": "SYN-MVP-001",
+  "number": "01",
+  "title": "The Halvorsen Bequest",
+  "tier": "Medium",
+  "time": "90-120 min",
+  "tagline": "A death in a cold store, filed as an accident. Is it?",
+  "hook": "A conservator is found dead in a refrigerated art vault. He had a heart condition, a written exemption barring him from that room, and he went in anyway without his monitor. The Medical Examiner recorded accidental death and the file closed in eleven days. Six weeks later the insurers refused the claim. You are the review team.",
+  "note": "Start here. This case teaches the whole system.",
+  "sources": {
+    "base": "print/01-base-dossier.html",
+    "play": "print/02-play-materials.html",
+    "results": "print/03-action-results.html",
+    "sealed": "print/04-envelope-s1.html"
+  },
+  "menu": {
+    "src": "play",
+    "page": 1
+  },
+  "sheetPage": {
+    "src": "play",
+    "page": 2
+  },
+  "slips": {
+    "src": "results"
+  },
+  "budget": {
+    "1": 6,
+    "2": 6,
+    "3": 7,
+    "4": 7,
+    "5": 8,
+    "6": 8
+  },
+  "advice": "Every one of these was suggested by something already in the file. Before you spend, ask what in the closed file made you want it - and if you cannot answer, spend it on something you can answer for.",
+  "groups": {
+    "base": "Base dossier"
+  },
+  "documents": [
+    {
+      "id": "BRIEF",
+      "kind": "brief",
+      "title": "Briefing - Terms of Reference",
+      "src": "play",
+      "pages": [
+        0
+      ]
+    },
+    {
+      "id": "A-1",
+      "kind": "base",
+      "title": "Incident Dispatch & First Responder Report",
+      "src": "base",
+      "pages": [
+        0
+      ]
+    },
+    {
+      "id": "B-1",
+      "kind": "base",
+      "title": "Autopsy Protocol",
+      "src": "base",
+      "pages": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "C-1",
+      "kind": "base",
+      "title": "Interview: V. Marchetti, Facility Director",
+      "src": "base",
+      "pages": [
+        3
+      ]
+    },
+    {
+      "id": "C-2",
+      "kind": "base",
+      "title": "Interview: O. Pryce, Night Security",
+      "src": "base",
+      "pages": [
+        4
+      ]
+    },
+    {
+      "id": "C-3",
+      "kind": "base",
+      "title": "Interview: Dr L. Kovaleski, Conservator",
+      "src": "base",
+      "pages": [
+        5
+      ]
+    },
+    {
+      "id": "C-4",
+      "kind": "base",
+      "title": "Interview: D. Ferraro, Contract Handler",
+      "src": "base",
+      "pages": [
+        6
+      ]
+    },
+    {
+      "id": "D-1",
+      "kind": "base",
+      "title": "Facility Systems Extract",
+      "src": "base",
+      "pages": [
+        7,
+        8
+      ]
+    },
+    {
+      "id": "E-1",
+      "kind": "base",
+      "title": "Records & Exhibits",
+      "src": "base",
+      "pages": [
+        9
+      ]
+    }
+  ],
+  "persons": {
+    "label": "Eliminations",
+    "hint": "A suspect is eliminated only when a document places them beyond the act, and only against the time of death you have established - not the one you were handed.",
+    "statuses": [
+      "Open",
+      "Eliminated",
+      "Suspect"
+    ],
+    "list": [
+      {
+        "id": "marchetti",
+        "name": "Marchetti, Vivienne",
+        "role": "Facility Director"
+      },
+      {
+        "id": "pryce",
+        "name": "Pryce, Oskar",
+        "role": "Night Security Supervisor"
+      },
+      {
+        "id": "kovaleski",
+        "name": "Kovaleski, Dr Lena",
+        "role": "Staff Conservator"
+      },
+      {
+        "id": "ferraro",
+        "name": "Ferraro, Danny",
+        "role": "Contract handler"
+      }
+    ]
+  },
+  "motiveLabel": "Motive (optional - scores nothing, but the file is thin without it)",
+  "accusation": {
+    "question": "On the evidence recorded, the death of Tobias Renn was...",
+    "determination": "unlawful",
+    "options": [
+      {
+        "id": "accidental",
+        "type": "accidental",
+        "label": "An accident",
+        "sub": "The original finding stands. Nobody is named.",
+        "final": true
+      },
+      {
+        "id": "marchetti",
+        "type": "unlawful",
+        "label": "Unlawful killing by Vivienne Marchetti",
+        "sub": "Facility Director"
+      },
+      {
+        "id": "pryce",
+        "type": "unlawful",
+        "label": "Unlawful killing by Oskar Pryce",
+        "sub": "Night Security Supervisor",
+        "reconsider": {
+          "id": "R/PRYCE",
+          "title": "Reconsider - Pryce",
+          "src": "sealed",
+          "page": 0
+        }
+      },
+      {
+        "id": "kovaleski",
+        "type": "unlawful",
+        "label": "Unlawful killing by Dr Lena Kovaleski",
+        "sub": "Staff Conservator",
+        "reconsider": {
+          "id": "R/KOVALESKI",
+          "title": "Reconsider - Kovaleski",
+          "src": "sealed",
+          "page": 1
+        }
+      },
+      {
+        "id": "ferraro",
+        "type": "unlawful",
+        "label": "Unlawful killing by Danny Ferraro",
+        "sub": "Contract handler",
+        "reconsider": {
+          "id": "R/FERRARO",
+          "title": "Reconsider - Ferraro",
+          "src": "sealed",
+          "page": 2
+        }
+      }
+    ]
+  },
+  "phases": [
+    {
+      "docs": [
+        "BRIEF",
+        "A-1",
+        "B-1"
+      ],
+      "read": "A-1 and B-1",
+      "authorities": false,
+      "prompt": "Write down your working time of death, and which suspects are plausible."
+    },
+    {
+      "docs": [
+        "C-1",
+        "C-2",
+        "C-3",
+        "C-4",
+        "D-1"
+      ],
+      "read": "the four interviews (C-1 to C-4) and D-1",
+      "authorities": true,
+      "prompt": "Revise both in writing: your time of death, and your plausible suspects. Authorities are now open."
+    },
+    {
+      "docs": [
+        "E-1"
+      ],
+      "read": "E-1 and everything remaining",
+      "authorities": true,
+      "prompt": null
+    }
+  ],
+  "reveal": {
+    "src": "sealed",
+    "cover": 3,
+    "pages": [
+      4,
+      5,
+      6
+    ],
+    "scoringPage": 7,
+    "steps": [
+      {
+        "sheet": "step:0",
+        "checks": [
+          {
+            "id": "c1",
+            "kind": "step",
+            "points": 5,
+            "label": "Step 1 - Cause: hypoxic asphyxia, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "step:1",
+        "checks": [
+          {
+            "id": "c2",
+            "kind": "step",
+            "points": 5,
+            "label": "Step 2 - Time of death corrected to about 22:06, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "step:2",
+        "checks": [
+          {
+            "id": "c3",
+            "kind": "step",
+            "points": 5,
+            "label": "Step 3 - Mechanism: manual discharge, interlock overridden, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "step:3",
+        "checks": [
+          {
+            "id": "c4",
+            "kind": "step",
+            "points": 5,
+            "label": "Step 4 - Means: the Level-4 roster narrows it to two, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "step:4",
+        "checks": [
+          {
+            "id": "c5",
+            "kind": "step",
+            "points": 5,
+            "label": "Step 5 - Opportunity: Level D entry 21:32 and exit 22:34, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "step:5",
+        "checks": [
+          {
+            "id": "c6",
+            "kind": "step",
+            "points": 5,
+            "label": "Step 6 - Contradiction: the dinner is corroborated only to 20:20, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "persons",
+        "checks": [
+          {
+            "id": "e1",
+            "kind": "person",
+            "points": 5,
+            "label": "Ferraro eliminated with evidence"
+          },
+          {
+            "id": "e2",
+            "kind": "person",
+            "points": 5,
+            "label": "Kovaleski eliminated with evidence, against the corrected window"
+          },
+          {
+            "id": "e3",
+            "kind": "person",
+            "points": 5,
+            "label": "Pryce eliminated with evidence (all three documents cited)"
+          }
+        ]
+      },
+      {
+        "sheet": "motive",
+        "checks": [],
+        "note": "Motive scores nothing here, but the file is thin without it."
+      },
+      {
+        "sheet": "verdict"
+      },
+      {
+        "sheet": "epilogue"
+      }
+    ]
+  },
+  "scoring": {
+    "determination": {
+      "label": "Determination recorded as unlawful killing",
+      "points": 5
+    },
+    "culprit": {
+      "label": "Correct culprit named",
+      "points": 10
+    },
+    "wrong": {
+      "label": "Wrong accusation",
+      "points": -10
+    },
+    "cleanSweep": {
+      "label": "Clean Sweep - all six steps, all three eliminations, correct first time",
+      "points": 10
+    },
+    "unspent": {
+      "label": "Unspent authority",
+      "points": 2
+    },
+    "bands": [
+      {
+        "min": 65,
+        "title": "Case closed - commendation",
+        "text": "Charged, and the file will survive a defence barrister."
+      },
+      {
+        "min": 50,
+        "title": "Charged",
+        "text": "The right person, and enough working to justify it."
+      },
+      {
+        "min": 35,
+        "title": "Referred",
+        "text": "The Crown will take it and will not enjoy it."
+      },
+      {
+        "min": 20,
+        "title": "No further action",
+        "text": "You know. You cannot show it."
+      },
+      {
+        "min": -999,
+        "title": "The file stays closed",
+        "text": "Accidental death. The estate absorbs the loss and the killer retires to the coast."
+      }
+    ]
+  },
+  "debrief": [
+    "How long did the file's own time of death go unquestioned at your table? That number is the case.",
+    "Was the moment it broke an 'aha' or a shrug?",
+    "Did the Authority limit ever hurt? If nobody agonised over a choice, the budget is too generous."
+  ],
+  "rules": [
+    "The documents don't lie. People might. Every untruth in the transcripts can be caught by a document. If a statement and a log disagree, the log is right.",
+    "The whole file is yours. The tension is in what you spend, not what you hide.",
+    "You have a fixed number of Authorities and they do not come back. Not every one returns something useful. Before you spend, say out loud what in the file made you want it.",
+    "Write your working on the Resolution Sheet as you establish it, with document references. Anything not written before the final accusation scores nothing.",
+    "You get two wrong accusations. Each costs 10 points and opens a Reconsider envelope naming the gap in your theory. The third accusation is final.",
+    "When you are done, sign the sheet and break the seal on Envelope S-1. Read it aloud, in order."
+  ],
+  "printKit": {
+    "sheets": "33 A4 sheets (36 for 2-3 players, 40 for 4-6)",
+    "envelopes": "15 envelopes: 11 numbered 01-11, 3 marked RECONSIDER, 1 marked S-1",
+    "guide": "print/PRINT-GUIDE.md",
+    "files": [
+      {
+        "src": "base",
+        "name": "01 Base dossier",
+        "pages": 10,
+        "spoiler": false,
+        "what": "The case file. Everyone reads all of it. Leave it loose on the table."
+      },
+      {
+        "src": "play",
+        "name": "02 Play materials",
+        "pages": 4,
+        "spoiler": false,
+        "what": "Briefing, Authority menu, Case Resolution Sheet. One set per table."
+      },
+      {
+        "src": "results",
+        "name": "03 Authority results",
+        "pages": 11,
+        "spoiler": true,
+        "what": "Separate without reading. One page per envelope, numbered 01-11."
+      },
+      {
+        "src": "sealed",
+        "name": "04 Reconsider and Envelope S-1",
+        "pages": 8,
+        "spoiler": true,
+        "what": "Pages 1-3 seal separately (Reconsider). Pages 4-8 seal together (S-1)."
+      }
+    ],
+    "checklist": [
+      "Print the Player pack (single-sided is best, so pages can lie side by side)",
+      "Print spares of B-1 page 2 and both D-1 pages for 2+ players",
+      "Someone who is NOT playing prints the Sealed pack face-down",
+      "Put Authority results 01-11 in 11 numbered envelopes, one page each, unread",
+      "Seal the 3 Reconsider inserts separately (Pryce, Kovaleski, Ferraro)",
+      "Seal the 5 pages of Envelope S-1 together, cover facing out",
+      "Stick on the envelope labels",
+      "Put S-1 out of casual reach, and find two pencils"
+    ]
+  },
+  "order": 1
+}

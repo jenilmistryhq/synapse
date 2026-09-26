@@ -1,0 +1,731 @@
+{
+  "id": "SYN-MVP-002",
+  "number": "02",
+  "title": "The Ravensgate Interlock",
+  "tier": "Hard",
+  "time": "120-160 min",
+  "tagline": "A storm, a dam, two deaths. The file says murder-suicide.",
+  "hook": "A storm cuts the road to a hydroelectric dam and seals six people in with each other. By dawn two are dead: a manager electrocuted at a switchgear cabinet, and a control engineer drowned in the intake gallery. Her credential card opened his cabinet and closed the circuit that killed him. The police found murder-suicide and closed the file in nineteen days.",
+  "note": "Play Case 01 first. This one opens with a crime already solved.",
+  "sources": {
+    "board": "print/01-case-board.html",
+    "files": "print/02-specialist-files.html",
+    "play": "print/03-play-materials.html",
+    "results": "print/04-action-results.html",
+    "sealed": "print/05-envelope-s1.html"
+  },
+  "menu": {
+    "src": "play",
+    "page": 2
+  },
+  "sheetPage": {
+    "src": "play",
+    "page": 3
+  },
+  "slips": {
+    "src": "results"
+  },
+  "budget": {
+    "1": 5,
+    "2": 5,
+    "3": 6,
+    "4": 6,
+    "5": 7,
+    "6": 7
+  },
+  "advice": "Four of these twelve return nothing you do not already have. They are not traps; they are the ordinary shape of an investigation. Before you spend, point at the document that made you want it. If you cannot, read further first.",
+  "groups": {
+    "base": "Case Board"
+  },
+  "documents": [
+    {
+      "id": "BRIEF",
+      "kind": "brief",
+      "title": "Briefing - Terms of Reference",
+      "src": "play",
+      "pages": [
+        0
+      ]
+    },
+    {
+      "id": "RULES",
+      "kind": "brief",
+      "title": "Conduct of the Case Conference",
+      "src": "play",
+      "pages": [
+        1
+      ]
+    },
+    {
+      "id": "A-0",
+      "kind": "base",
+      "title": "RDSI Note of Dissent - Referral",
+      "src": "board",
+      "pages": [
+        0
+      ]
+    },
+    {
+      "id": "A-1",
+      "kind": "base",
+      "title": "Investigation Summary - Case Closed",
+      "src": "board",
+      "pages": [
+        1
+      ]
+    },
+    {
+      "id": "A-2",
+      "kind": "base",
+      "title": "Site Plan, Persons & Storm Chronology",
+      "src": "board",
+      "pages": [
+        2
+      ]
+    },
+    {
+      "id": "B-1",
+      "kind": "base",
+      "title": "Autopsy: A. Sarn",
+      "src": "board",
+      "pages": [
+        3
+      ]
+    },
+    {
+      "id": "B-2",
+      "kind": "base",
+      "title": "Autopsy: I. Ballard",
+      "src": "board",
+      "pages": [
+        4
+      ]
+    },
+    {
+      "id": "D-1",
+      "kind": "base",
+      "title": "SCADA Core Extract",
+      "src": "board",
+      "pages": [
+        5,
+        6
+      ]
+    },
+    {
+      "id": "F-1",
+      "kind": "file",
+      "file": "F-1",
+      "cover": true,
+      "title": "File F-1 - Control & Operations",
+      "src": "files",
+      "pages": [
+        0
+      ]
+    },
+    {
+      "id": "C-1",
+      "kind": "file",
+      "file": "F-1",
+      "title": "Statement: H. Vey, Shift Control Engineer",
+      "src": "files",
+      "pages": [
+        1
+      ]
+    },
+    {
+      "id": "C-5",
+      "kind": "file",
+      "file": "F-1",
+      "title": "Statement: C. Mbeki, Assistant Operator",
+      "src": "files",
+      "pages": [
+        2
+      ]
+    },
+    {
+      "id": "D-1A",
+      "kind": "file",
+      "file": "F-1",
+      "title": "Console 1 - Operator Session Record",
+      "src": "files",
+      "pages": [
+        3
+      ]
+    },
+    {
+      "id": "F-2",
+      "kind": "file",
+      "file": "F-2",
+      "cover": true,
+      "title": "File F-2 - Hydrology & Recovery",
+      "src": "files",
+      "pages": [
+        4
+      ]
+    },
+    {
+      "id": "D-2",
+      "kind": "file",
+      "file": "F-2",
+      "title": "Recovery Report: I. Ballard",
+      "src": "files",
+      "pages": [
+        5
+      ]
+    },
+    {
+      "id": "D-2A",
+      "kind": "file",
+      "file": "F-2",
+      "title": "Intake Gallery - Hydrological Statement",
+      "src": "files",
+      "pages": [
+        6
+      ]
+    },
+    {
+      "id": "D-2B",
+      "kind": "file",
+      "file": "F-2",
+      "title": "Forebay and Gallery - Flow Conditions",
+      "src": "files",
+      "pages": [
+        7
+      ]
+    },
+    {
+      "id": "F-3",
+      "kind": "file",
+      "file": "F-3",
+      "cover": true,
+      "title": "File F-3 - Mechanical & Maintenance",
+      "src": "files",
+      "pages": [
+        8
+      ]
+    },
+    {
+      "id": "C-3",
+      "kind": "file",
+      "file": "F-3",
+      "title": "Statement: D. Okonkwo, Maintenance Technician",
+      "src": "files",
+      "pages": [
+        9
+      ]
+    },
+    {
+      "id": "C-3A",
+      "kind": "file",
+      "file": "F-3",
+      "title": "Confined Space Permits & Monitor Telemetry",
+      "src": "files",
+      "pages": [
+        10
+      ]
+    },
+    {
+      "id": "E-6",
+      "kind": "file",
+      "file": "F-3",
+      "title": "Cabinet C-14 - Plant Report",
+      "src": "files",
+      "pages": [
+        11
+      ]
+    },
+    {
+      "id": "F-4",
+      "kind": "file",
+      "file": "F-4",
+      "cover": true,
+      "title": "File F-4 - Site Security & Personnel",
+      "src": "files",
+      "pages": [
+        12
+      ]
+    },
+    {
+      "id": "E-1",
+      "kind": "file",
+      "file": "F-4",
+      "title": "Door Logs - Control Room & Footbridge",
+      "src": "files",
+      "pages": [
+        13
+      ]
+    },
+    {
+      "id": "E-1A",
+      "kind": "file",
+      "file": "F-4",
+      "title": "Roster, Shift Pattern & Key Register",
+      "src": "files",
+      "pages": [
+        14
+      ]
+    },
+    {
+      "id": "C-5A",
+      "kind": "file",
+      "file": "F-4",
+      "title": "Credential Practice at Ravensgate",
+      "src": "files",
+      "pages": [
+        15
+      ]
+    },
+    {
+      "id": "F-5",
+      "kind": "file",
+      "file": "F-5",
+      "cover": true,
+      "title": "File F-5 - Regulator (RDSI)",
+      "src": "files",
+      "pages": [
+        16
+      ]
+    },
+    {
+      "id": "E-2",
+      "kind": "file",
+      "file": "F-5",
+      "title": "RDSI Inspection - Junction Box JB-7",
+      "src": "files",
+      "pages": [
+        17
+      ]
+    },
+    {
+      "id": "E-2A",
+      "kind": "file",
+      "file": "F-5",
+      "title": "Contract RG-0419",
+      "src": "files",
+      "pages": [
+        18
+      ]
+    },
+    {
+      "id": "C-4",
+      "kind": "file",
+      "file": "F-5",
+      "title": "Statement: P. Wrenn, RDSI Officer",
+      "src": "files",
+      "pages": [
+        19
+      ]
+    }
+  ],
+  "persons": {
+    "label": "Persons",
+    "hint": "Record a finding for every person, with the evidence you rely on. The original finding named Ines Ballard.",
+    "statuses": [
+      "Open",
+      "Cleared",
+      "Suspect",
+      "Culprit"
+    ],
+    "list": [
+      {
+        "id": "ballard",
+        "name": "Ballard, Ines",
+        "role": "Named by the original finding"
+      },
+      {
+        "id": "vey",
+        "name": "Vey, Halloran",
+        "role": "Shift Control Engineer"
+      },
+      {
+        "id": "okonkwo",
+        "name": "Okonkwo, Dessa",
+        "role": "Maintenance Technician"
+      },
+      {
+        "id": "wrenn",
+        "name": "Wrenn, Piotr",
+        "role": "RDSI officer"
+      },
+      {
+        "id": "mbeki",
+        "name": "Mbeki, Cato",
+        "role": "Assistant Operator"
+      }
+    ]
+  },
+  "motiveLabel": "Motive",
+  "accusation": {
+    "question": "The deaths of Aurelio Sarn and Ines Ballard are found to be...",
+    "determination": "third-party",
+    "options": [
+      {
+        "id": "original",
+        "type": "original",
+        "label": "Murder-suicide, as originally found",
+        "sub": "Ines Ballard killed Aurelio Sarn, then drowned herself.",
+        "reconsider": {
+          "id": "R/BALLARD",
+          "title": "Reconsider - the original finding",
+          "src": "sealed",
+          "page": 0
+        }
+      },
+      {
+        "id": "vey",
+        "type": "third-party",
+        "label": "Double unlawful killing by Halloran Vey",
+        "sub": "Shift Control Engineer"
+      },
+      {
+        "id": "okonkwo",
+        "type": "third-party",
+        "label": "Double unlawful killing by Dessa Okonkwo",
+        "sub": "Maintenance Technician",
+        "reconsider": {
+          "id": "R/OKONKWO",
+          "title": "Reconsider - Okonkwo",
+          "src": "sealed",
+          "page": 1
+        }
+      },
+      {
+        "id": "wrenn",
+        "type": "third-party",
+        "label": "Double unlawful killing by Piotr Wrenn",
+        "sub": "RDSI officer",
+        "reconsider": {
+          "id": "R/WRENN",
+          "title": "Reconsider - Wrenn",
+          "src": "sealed",
+          "page": 2
+        }
+      },
+      {
+        "id": "mbeki",
+        "type": "third-party",
+        "label": "Double unlawful killing by Cato Mbeki",
+        "sub": "Assistant Operator",
+        "reconsider": {
+          "id": "R/MBEKI",
+          "title": "Reconsider - Mbeki",
+          "src": "sealed",
+          "page": 3
+        }
+      }
+    ]
+  },
+  "phases": [
+    {
+      "docs": [
+        "BRIEF",
+        "RULES",
+        "A-0",
+        "A-1",
+        "A-2",
+        "B-1",
+        "B-2",
+        "D-1"
+      ],
+      "read": "the Case Board only",
+      "authorities": false,
+      "prompt": "Which of the two deaths came first, and why do you think so?"
+    },
+    {
+      "docs": [
+        "file:F-2"
+      ],
+      "read": "File F-2 (Hydrology)",
+      "authorities": true,
+      "prompt": "Give a time window for Ines Ballard entering the water."
+    },
+    {
+      "docs": [
+        "file:F-1"
+      ],
+      "read": "File F-1 (Control)",
+      "authorities": true,
+      "prompt": "Who could have been at console 1 at 06:02?"
+    },
+    {
+      "docs": [
+        "file:F-4"
+      ],
+      "read": "File F-4 (Security)",
+      "authorities": true,
+      "prompt": "Where was her credential card, and who could reach it?"
+    },
+    {
+      "docs": [
+        "file:F-3",
+        "file:F-5"
+      ],
+      "read": "Files F-3 and F-5",
+      "authorities": true,
+      "prompt": null
+    }
+  ],
+  "reveal": {
+    "src": "sealed",
+    "cover": 4,
+    "pages": [
+      5,
+      6,
+      7
+    ],
+    "scoringPage": 8,
+    "double": true,
+    "steps": [
+      {
+        "sheet": "step:0",
+        "checks": [
+          {
+            "id": "c1",
+            "kind": "step",
+            "points": 5,
+            "label": "Step 1 - Both causes of death, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "step:1",
+        "checks": [
+          {
+            "id": "c2",
+            "kind": "step",
+            "points": 5,
+            "label": "Step 2 - Ballard in the water 02:31-03:12, by the gate argument"
+          }
+        ]
+      },
+      {
+        "sheet": "step:2",
+        "checks": [
+          {
+            "id": "c3",
+            "kind": "step",
+            "points": 5,
+            "label": "Step 3 - A credential event is not a person, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "step:3",
+        "checks": [
+          {
+            "id": "c4",
+            "kind": "step",
+            "points": 5,
+            "label": "Step 4 - F-3, undocumented and never decommissioned, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "step:4",
+        "checks": [
+          {
+            "id": "c5",
+            "kind": "step",
+            "points": 5,
+            "label": "Step 5 - Control room sole occupancy 02:29-05:44, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "step:5",
+        "checks": [
+          {
+            "id": "c6",
+            "kind": "step",
+            "points": 5,
+            "label": "Step 6 - The 02:38-03:04 acknowledgement gap, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "persons",
+        "checks": [
+          {
+            "id": "e1",
+            "kind": "person",
+            "points": 10,
+            "label": "Ines Ballard exonerated with evidence"
+          },
+          {
+            "id": "e2",
+            "kind": "person",
+            "points": 5,
+            "label": "Mbeki cleared with evidence"
+          },
+          {
+            "id": "e3",
+            "kind": "person",
+            "points": 5,
+            "label": "Okonkwo cleared with evidence"
+          },
+          {
+            "id": "e4",
+            "kind": "person",
+            "points": 5,
+            "label": "Wrenn cleared - all three records cited"
+          }
+        ]
+      },
+      {
+        "sheet": "motive",
+        "checks": [
+          {
+            "id": "m1",
+            "kind": "other",
+            "points": 5,
+            "label": "Motive established"
+          }
+        ]
+      },
+      {
+        "sheet": "verdict"
+      },
+      {
+        "sheet": "epilogue"
+      }
+    ]
+  },
+  "scoring": {
+    "determination": {
+      "label": "Finding recorded as double unlawful killing",
+      "points": 5
+    },
+    "culprit": {
+      "label": "Correct culprit named",
+      "points": 10
+    },
+    "wrong": {
+      "label": "Wrong accusation",
+      "points": -10
+    },
+    "cleanSweep": {
+      "label": "Clean Sweep - six steps, four persons resolved, correct first time",
+      "points": 15
+    },
+    "unspent": {
+      "label": "Unspent authority",
+      "points": 2
+    },
+    "doubleLabel": "Established before the last phase opened",
+    "bands": [
+      {
+        "min": 100,
+        "title": "Commendation",
+        "text": "Charged, and the file will survive anything a defence barrister does to it."
+      },
+      {
+        "min": 75,
+        "title": "Charged",
+        "text": "The right man, and enough working to justify it."
+      },
+      {
+        "min": 50,
+        "title": "Referred",
+        "text": "The Crown will take it. Ms Ballard's name is cleared, which was the more urgent thing."
+      },
+      {
+        "min": 25,
+        "title": "Open verdict",
+        "text": "The original finding is quashed and nothing replaces it. Better than nothing, and not by much."
+      },
+      {
+        "min": -999,
+        "title": "The finding stands",
+        "text": "The file closes as it closed before, and Ines Ballard remains, on the public record, a woman who killed her manager and drowned herself."
+      }
+    ]
+  },
+  "debrief": [
+    "At which phase did you first doubt the sequence of the two deaths? That moment is the case.",
+    "Did the phase gates help you think, or did you want everything at once?",
+    "Did the Authority limit ever hurt? If nobody agonised over a choice, the budget is too generous."
+  ],
+  "rules": [
+    "The documents don't lie. People might. If a statement and a log disagree, the log is right.",
+    "The file opens in five phases: the Case Board first, then one Specialist File at a time. Write your hypothesis at each gate before you open the next.",
+    "Authorities open from Phase 2. You have a fixed number and they do not come back. Four of the twelve return nothing new.",
+    "Resolution Sheet steps score double if you establish them before the last phase opens, while the file is still in pieces.",
+    "Write your working with document references as you go. Anything not written before the final accusation scores nothing.",
+    "Two wrong accusations are permitted; each costs 10 points and opens a Reconsider envelope. Upholding the original finding counts as an accusation. The third is final."
+  ],
+  "printKit": {
+    "sheets": "53 A4 sheets (55 for 2-4 players, 56 for 5-6)",
+    "envelopes": "17 envelopes: 12 numbered 01-12, 4 marked RECONSIDER, 1 marked S-1. Plus clips for the five file bundles.",
+    "guide": "print/PRINT-GUIDE.md",
+    "files": [
+      {
+        "src": "board",
+        "name": "01 Case Board",
+        "pages": 7,
+        "spoiler": false,
+        "what": "Public. Lives in the middle of the table all game."
+      },
+      {
+        "src": "files",
+        "name": "02 Specialist Files",
+        "pages": 20,
+        "spoiler": false,
+        "what": "Split into five bundles at pages 1-4 / 5-8 / 9-12 / 13-16 / 17-20. One per detective."
+      },
+      {
+        "src": "play",
+        "name": "03 Play materials",
+        "pages": 5,
+        "spoiler": false,
+        "what": "Briefing, Conference rules, Authority menu, Resolution Sheet."
+      },
+      {
+        "src": "results",
+        "name": "04 Authority results",
+        "pages": 12,
+        "spoiler": true,
+        "what": "Separate without reading. One page per envelope, numbered 01-12."
+      },
+      {
+        "src": "sealed",
+        "name": "05 Reconsider and Envelope S-1",
+        "pages": 9,
+        "spoiler": true,
+        "what": "Pages 1-4 seal separately (Reconsider). Pages 5-9 seal together (S-1)."
+      }
+    ],
+    "checklist": [
+      "Print the Player pack single-sided, plus spares of both SCADA (D-1) pages",
+      "Split the Specialist Files into five bundles (pages 1-4, 5-8, 9-12, 13-16, 17-20) and clip each",
+      "Someone who is NOT playing prints the Sealed pack face-down",
+      "Put Authority results 01-12 in 12 numbered envelopes, one page each, unread",
+      "Seal the 4 Reconsider inserts separately (Ballard, Okonkwo, Wrenn, Mbeki)",
+      "Seal the 5 pages of Envelope S-1 together, cover facing out",
+      "Stick on the envelope labels",
+      "Hand out the file bundles face down; nobody opens one until the briefing is read"
+    ]
+  },
+  "order": 2,
+  "files": [
+    {
+      "id": "F-1",
+      "name": "Control & Operations"
+    },
+    {
+      "id": "F-2",
+      "name": "Hydrology & Recovery"
+    },
+    {
+      "id": "F-3",
+      "name": "Mechanical & Maintenance"
+    },
+    {
+      "id": "F-4",
+      "name": "Site Security & Personnel"
+    },
+    {
+      "id": "F-5",
+      "name": "Regulator (RDSI)"
+    }
+  ]
+}

@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SYN-MVP-001 — Authority Results (Sealed)</title>
+<link rel="stylesheet" href="dossier.css">
+</head>
+<body>
+
+<div class="screenonly">
+  <b>SEALED RESULTS — print all 11 pages, then separate them WITHOUT READING THEM.</b><br>
+  One page per authority. Fold each in half with the number outward, or slide each into an
+  envelope marked with its number. Open a page only when the table has spent that authority.
+  If you intend to play this case yourself, hand this file to somebody else to print.
+</div>
+
+<!-- ═══ 01 ═══ -->
+<div class="doc">
+  <div class="head">
+    <div class="docref"><b>SLIP 01</b><br>AUTH 01<br>RETURNED</div>
+    <div class="agency">Meridian Fine Art Storage — Facilities</div>
+    <div class="sub">Access Control Export · Level D (Service &amp; Loading)</div>
+  </div>
+  <h1>Level D Service Door &amp; Freight Elevator</h1>
+  <p class="small">Kestrel AC-9 export, 06 MAR 17:00 – 07 MAR 07:00. Level D only.
+  Supplied under authority of the Case Review Unit.</p>
+
+  <h2>Service Door — D-SERVICE</h2>
+  <table class="log">
+    <tr><th style="width:86pt">Timestamp</th><th style="width:34pt">Dir</th><th>Credential</th></tr>
+    <tr><td>06 MAR 17:12:03</td><td>OUT</td><td>D.FERRARO · 5510 <span class="small">(contractor, expired 23:59)</span></td></tr>
+    <tr><td><b>06 MAR 21:32:18</b></td><td><b>IN</b></td><td><b>V.MARCHETTI · 0003</b></td></tr>
+    <tr><td><b>06 MAR 22:34:51</b></td><td><b>OUT</b></td><td><b>V.MARCHETTI · 0003</b></td></tr>
+    <tr><td>07 MAR 01:18:44</td><td>IN</td><td>V.MARCHETTI · 0003</td></tr>
+  </table>
+  <p class="small">No other credential presented at the D service door during the export window.</p>
+
+  <h2>Freight Elevator — Call Authorisation &amp; Car Movement</h2>
+  <table class="log">
+    <tr><th style="width:86pt">Timestamp</th><th>Event</th><th>Credential</th></tr>
+    <tr><td>06 MAR 21:34:52</td><td>CALL AUTHORISED AT LEVEL D</td><td>· 0003</td></tr>
+    <tr><td>06 MAR 21:35:19</td><td>CAR ARRIVES B2 · DOORS CYCLE</td><td>—</td></tr>
+    <tr><td>06 MAR 22:30:41</td><td>CALL AUTHORISED AT LEVEL B2</td><td>· 0003</td></tr>
+    <tr><td>06 MAR 22:31:07</td><td>CAR DEPARTS B2 · DOORS CYCLE</td><td>—</td></tr>
+  </table>
+  <div class="box">
+    <p style="margin:0"><b>Facilities note.</b> The freight car cannot be moved without a credential
+    presented at the calling level. <b>These are the only two car movements recorded in the export
+    window, and both were authorised by credential 0003.</b> Credential 0003 is issued to the
+    Facility Director.</p>
+  </div>
+  <div class="classbar"><span>Authority 01 · Returned</span><span>Level D access export</span></div>
+</div>
+
+<!-- ═══ 02 ═══ -->
+<div class="doc">
+  <div class="head">
+    <div class="docref"><b>SLIP 02</b><br>AUTH 02<br>RETURNED</div>
+    <div class="agency">Subscriber Records — Carrier Disclosure</div>
+    <div class="sub">T. Renn · Handset recovered from deceased</div>
+  </div>
+  <h1>Telephone Records — Deceased</h1>
+
+  <table class="log">
+    <tr><th style="width:86pt">Timestamp</th><th>Type</th><th>Detail</th></tr>
+    <tr><td>06 MAR 18:41:22</td><td>SMS OUT</td><td>→ V. MARCHETTI</td></tr>
+    <tr><td>06 MAR 18:41:24</td><td>—</td><td>Delivered</td></tr>
+    <tr><td>06 MAR 18:43:07</td><td>—</td><td><b>Read receipt returned</b></td></tr>
+    <tr><td>06 MAR 20:31:44</td><td>CALL OUT</td><td>→ Hensley &amp; Vaal (estate solicitors) · 41 sec · out-of-hours voicemail</td></tr>
+    <tr><td>06 MAR 21:02:36</td><td>SMS IN</td><td>← spouse · "don't be late again x"</td></tr>
+  </table>
+
+  <div class="box">
+    <div class="boxtitle">Message content, 18:41:22</div>
+    <p class="mono" style="margin:0">"Found the problem with Halvorsen. Not damage. I'm in B2
+    tonight — this can't wait until Monday. T."</p>
+  </div>
+  <p class="small">No reply was sent to this message from the recipient's number. No further
+  outbound activity from the handset after 20:58. Handset was recovered switched on, in the
+  deceased's coat, on the anteroom hook.</p>
+  <div class="classbar"><span>Authority 02 · Returned</span><span>Carrier disclosure</span></div>
+</div>
+
+<!-- ═══ 03 ═══ -->
+<div class="doc">
+  <div class="head">
+    <div class="docref"><b>SLIP 03</b><br>AUTH 03<br>RETURNED</div>
+    <div class="agency">Kestrel Security Systems — Vendor Disclosure</div>
+    <div class="sub">Guard-Tour NFC Checkpoint Export · Unedited</div>
+  </div>
+  <h1>Raw Checkpoint Export — O. Pryce, 06 MAR</h1>
+  <p class="small">Direct vendor export. This data is written by the checkpoint tags themselves and
+  cannot be edited from the site terminal.</p>
+
+  <table class="log">
+    <tr><th style="width:86pt">Timestamp</th><th>Checkpoint</th><th>Location</th></tr>
+    <tr><td>06 MAR 18:02:44</td><td>CP-3</td><td>Lobby</td></tr>
+    <tr><td>06 MAR 18:19:10</td><td>CP-5</td><td>Level A galleries</td></tr>
+    <tr><td>06 MAR 18:33:57</td><td>CP-7</td><td>Level D loading bay</td></tr>
+    <tr><td>06 MAR 18:47:22</td><td>CP-2</td><td>Vault Level B2 corridor</td></tr>
+    <tr class="blank"><td colspan="3">— no checkpoint activity 18:47:22 → 21:44:11 —</td></tr>
+    <tr><td><b>06 MAR 21:44:11</b></td><td><b>CP-7</b></td><td><b>Level D loading bay</b></td></tr>
+    <tr><td><b>06 MAR 22:02:37</b></td><td><b>CP-7</b></td><td><b>Level D loading bay</b></td></tr>
+    <tr><td>06 MAR 23:19:48</td><td>CP-7</td><td>Level D loading bay</td></tr>
+    <tr><td>06 MAR 23:36:12</td><td>CP-3</td><td>Lobby</td></tr>
+    <tr><td>06 MAR 23:41:30</td><td>CP-2</td><td>Vault Level B2 corridor</td></tr>
+  </table>
+
+  <div class="box">
+    <p style="margin:0 0 6pt"><b>No checkpoint was scanned on Vault Level B2 between 18:47:22 and
+    23:41:30.</b></p>
+    <p style="margin:0"><b>Discrepancy against the site round book.</b> The handwritten round book
+    submitted by the site carries the entry <span class="mono">"22:00 — B2 all secure, panels green,
+    O.P."</span> There is no checkpoint scan corresponding to that entry, on that level or any other,
+    within forty minutes either side of it. The round book is handwritten and is not verified by
+    this system.</p>
+  </div>
+
+  <h2>Stairwell B2-ST1 — Fire Door Alarm Log</h2>
+  <table class="log">
+    <tr><td style="width:58%">Activations, 06 MAR 17:30 – 07 MAR 00:07</td><td class="mono"><b>NONE</b></td></tr>
+    <tr><td>Door state</td><td class="mono">CLOSED, ALARMED, THROUGHOUT</td></tr>
+  </table>
+  <p class="small">Vendor note: Level D and Vault Level B2 are connected by two routes only — the
+  freight elevator, and stairwell B2-ST1. The stairwell fire door is alarmed on both faces and
+  logs every activation. There is no third route.</p>
+  <div class="classbar"><span>Authority 03 · Returned</span><span>Kestrel vendor export</span></div>
+</div>
+
+<!-- ═══ 04 ═══ -->
+<div class="doc">
+  <div class="head">
+    <div class="docref"><b>SLIP 04</b><br>AUTH 04<br>RETURNED</div>
+    <div class="agency">Office of the Chief Medical Examiner</div>
+    <div class="sub">Supplementary Toxicology · Extended Screen</div>
+  </div>
+  <h1>Second Toxicological Panel</h1>
+
+  <table>
+    <tr><th>Extended screen</th><th>Result</th></tr>
+    <tr><td>Volatile anaesthetics</td><td>Not detected</td></tr>
+    <tr><td>Neuromuscular blocking agents</td><td>Not detected</td></tr>
+    <tr><td>Cardioactive glycosides</td><td>Not detected</td></tr>
+    <tr><td>Heavy metals</td><td>Within reference range</td></tr>
+    <tr><td>Novel psychoactive panel (117 compounds)</td><td>Not detected</td></tr>
+    <tr><td>Repeat carboxyhaemoglobin</td><td>1.1% — unchanged</td></tr>
+  </table>
+
+  <div class="box">
+    <p style="margin:0"><b>No agent is identified beyond those screened in the original panel. The
+    extended screen adds nothing to the finding at B-1.</b> The Office notes that the original
+    panel was comprehensive and that the cause of death was never in doubt.</p>
+  </div>
+  <p class="small">Turnaround: nine working days. Cost centre CRU-2.</p>
+  <div class="classbar"><span>Authority 04 · Returned</span><span>Nothing further</span></div>
+</div>
+
+<!-- ═══ 05 ═══ -->
+<div class="doc">
+  <div class="head">
+    <div class="docref"><b>SLIP 05</b><br>AUTH 05<br>RETURNED</div>
+    <div class="agency">Aldenmoor Metropolitan Police — CID</div>
+    <div class="sub">Record of Interview · Under Caution</div>
+  </div>
+  <h1>Dr L. Kovaleski — Second Interview</h1>
+  <div class="fields three">
+    <div class="f"><span class="k">Status</span><span class="v">UNDER CAUTION</span></div>
+    <div class="f"><span class="k">Solicitor</span><span class="v">PRESENT</span></div>
+    <div class="f"><span class="k">Interviewing</span><span class="v">DS R. ABIOLA</span></div>
+  </div>
+
+  <div class="tx">
+    <div class="q"><span class="spk">DS A</span><span>Your badge says 21:26. You told DC Halverd quarter to eight.</span></div>
+    <div class="a"><span class="spk">LK</span><span>I know what I said.</span></div>
+    <div class="q"><span class="spk">DS A</span><span>Why?</span></div>
+    <div class="stage">[Long pause. Consultation with solicitor.]</div>
+    <div class="a"><span class="spk">LK</span><span>Because I was using the vacuum table. And the solvent store. For a private client. A watercolour with a tide line, cash in hand, about nine hundred. It is a sackable breach of contract and I have done it perhaps six times and I would like that on the record now rather than have it found.</span></div>
+    <div class="q"><span class="spk">DS A</span><span>You understand how that looked.</span></div>
+    <div class="a"><span class="spk">LK</span><span>I have understood how it looked since about four o'clock on Friday afternoon, yes.</span></div>
+    <div class="q"><span class="spk">DS A</span><span>When did you last see Tobias Renn alive?</span></div>
+    <div class="a"><span class="spk">LK</span><span>Half eight, give or take. He came into the wet lab to ask if I had a loupe he could borrow. He was on the phone at the same time, trying to get hold of somebody, and not getting them.</span></div>
+    <div class="q"><span class="spk">DS A</span><span>Did he say anything?</span></div>
+    <div class="a"><span class="spk">LK</span><span>He said: "I'm sending this to the estate's solicitor in the morning and then it isn't mine any more." He looked relieved about it. He'd been carrying it about a week.</span></div>
+    <div class="q"><span class="spk">DS A</span><span>And when you left at 21:26?</span></div>
+    <div class="a"><span class="spk">LK</span><span>The anteroom light was on and his coat was on the hook. I went up and got the tram.</span></div>
+  </div>
+  <div class="classbar"><span>Authority 05 · Returned</span><span>Interview under caution</span></div>
+</div>
+
+<!-- ═══ 06 ═══ -->
+<div class="doc">
+  <div class="head">
+    <div class="docref"><b>SLIP 06</b><br>AUTH 06<br>RETURNED</div>
+    <div class="agency">Financial Investigation Unit</div>
+    <div class="sub">Disclosure · V. Marchetti</div>
+  </div>
+  <h1>Personal Financial Records — V. Marchetti</h1>
+
+  <h2>Receipts — private treaty settlements</h2>
+  <table class="log">
+    <tr><th>Date</th><th>Remitter</th><th class="n">Amount</th></tr>
+    <tr><td>12 JAN (prev. yr)</td><td>Numbered account, Vaduz</td><td class="n">$96,000</td></tr>
+    <tr><td>28 JUN (prev. yr)</td><td>Numbered account, Vaduz</td><td class="n">$141,000</td></tr>
+    <tr><td>03 FEB (this yr)</td><td>Numbered account, Vaduz</td><td class="n">$175,000</td></tr>
+    <tr><td colspan="2"><b>TOTAL</b></td><td class="n"><b>$412,000</b></td></tr>
+  </table>
+
+  <h2>Cross-match</h2>
+  <p>A dealer's stock book obtained from the same jurisdiction lists four albumen prints consigned
+  from "a European private collection," described by plate dimension and by negative number.
+  <b>All four negative numbers correspond to Halvorsen Bequest accessions HB-021, HB-022, HB-030 and
+  HB-031</b> — the four plates flagged CONDITION QUERY at E-1.3, and the four crates opened and
+  re-crated in the B2 anteroom on 14 January under Ms Marchetti's own signature.</p>
+
+  <h2>Position</h2>
+  <table>
+    <tr><td style="width:58%">Second charge on principal residence</td><td class="mono">registered 4 yr ago</td></tr>
+    <tr><td>Personal guarantee called (Fennimore Gallery Ltd, dissolved)</td><td class="mono">$390,000</td></tr>
+    <tr><td>Arrears position after each settlement</td><td class="mono">CLEARED WITHIN 11 DAYS, ×3</td></tr>
+  </table>
+  <p class="small">The third settlement, 03 February, cleared the guarantee in full. The Halvorsen
+  five-yearly condition report was commissioned on 27 January.</p>
+  <div class="classbar"><span>Authority 06 · Returned</span><span>Financial disclosure</span></div>
+</div>
+
+<!-- ═══ 07 ═══ -->
+<div class="doc">
+  <div class="head">
+    <div class="docref"><b>SLIP 07</b><br>AUTH 07<br>RETURNED</div>
+    <div class="agency">Digital Forensics Unit</div>
+    <div class="sub">Disk Image · Workstation B2-CONS-02</div>
+  </div>
+  <h1>Recovered Document — HALVORSEN_DISCREPANCY_v4.docx</h1>
+  <div class="fields three">
+    <div class="f"><span class="k">Written</span><span class="v">06 MAR 21:51:07</span></div>
+    <div class="f"><span class="k">Author</span><span class="v">t.renn</span></div>
+    <div class="f"><span class="k">Sent</span><span class="v">NO — SAVED ONLY</span></div>
+  </div>
+
+  <div class="box">
+    <p style="margin:0 0 6pt"><b>HB-021, HB-022, HB-030, HB-031.</b></p>
+    <p style="margin:0 0 6pt">Secondary supports on all four are modern conservation board,
+    machine-cut, showing none of the foxing or edge oxidation present on every adjacent plate in the
+    same accession. The emulsions are modern gelatin-silver, printed and toned to imitate albumen.
+    Under raking light the surface sheen is wrong and it is wrong in the same way on all four.</p>
+    <p style="margin:0 0 6pt">These are not the objects photographed in the 1994 accession record.
+    I have the accession photographs open beside them as I write this.</p>
+    <p style="margin:0 0 6pt">The four crates were opened and re-crated in the anteroom on 14
+    January, off the conservation log, which should not have been possible and which nobody
+    recorded.</p>
+    <p style="margin:0"><b>Recommend immediate notification of the estate and of the insurers.
+    I will send this to Hensley &amp; Vaal in the morning. — TR</b></p>
+  </div>
+
+  <p class="small">No email draft, no outbound transmission and no cloud sync of this document exist.
+  It was written, saved to the conservation share at 21:51:07, and never sent. Version v3 (20:22:14)
+  contains the same findings in note form. No further activity on this workstation after 21:51:07.</p>
+  <div class="classbar"><span>Authority 07 · Returned</span><span>Recovered document</span></div>
+</div>
+
+<!-- ═══ 08 ═══ -->
+<div class="doc">
+  <div class="head">
+    <div class="docref"><b>SLIP 08</b><br>AUTH 08<br>RETURNED</div>
+    <div class="agency">Aldenmoor Metropolitan Police — CID</div>
+    <div class="sub">Canvass Report · Perrin Foundation Dinner, 06 MAR</div>
+  </div>
+  <h1>Perrin Foundation Dinner — Attendance of V. Marchetti</h1>
+  <p class="small">Venue: the Aldenmoor Athenaeum, Founders' Room. Forty guests. Eleven attendees
+  and four venue staff interviewed.</p>
+
+  <h2>Established</h2>
+  <table class="log">
+    <tr><td style="width:58%">Arrival, cloakroom ticket 44 issued</td><td class="mono">18:55</td></tr>
+    <tr><td>Speeches concluded</td><td class="mono">20:05</td></tr>
+    <tr><td><b>Last retained photograph including Ms Marchetti</b></td><td class="mono"><b>20:16</b></td></tr>
+    <tr><td><b>Her table's terminal receipt settled</b></td><td class="mono"><b>20:20</b></td></tr>
+    <tr><td>Guest card presented after 20:20</td><td class="mono">NO FURTHER USE</td></tr>
+    <tr><td>Cloakroom ticket 44 returned</td><td class="mono">TIME NOT RECORDED</td></tr>
+    <tr><td>Event concluded</td><td class="mono">22:40</td></tr>
+  </table>
+  <p class="small">Thirty-one photographs were retained by the Foundation's photographer. Ms Marchetti
+  appears in nine of them, the latest timestamped 20:16.</p>
+
+  <h2>Statements</h2>
+  <div class="tx">
+    <div class="a"><span class="spk">STWD</span><span>"After the speeches it's a floating room — nobody's at their own table, everybody's working the room. I could not tell you when Ms Marchetti left. People drift."</span></div>
+    <div class="a"><span class="spk">W-04</span><span>"I'm fairly sure she was still there at ten. I couldn't swear to it. I couldn't tell you who I spoke to at ten."</span></div>
+    <div class="a"><span class="spk">W-09</span><span>"I said goodnight to her. I've no idea what time. Before the coffee, I'd have said."</span></div>
+  </div>
+  <div class="box">
+    <p style="margin:0"><b>No attendee or member of venue staff can place Ms Marchetti at the
+    Athenaeum at any specific point after 20:20.</b> Nothing establishes that she left; nothing
+    establishes that she stayed.</p>
+  </div>
+  <p class="small">Athenaeum to Halligan Wharf: 22 km. Twenty-six minutes by road at that hour.</p>
+  <div class="classbar"><span>Authority 08 · Returned</span><span>Canvass report</span></div>
+</div>
+
+<!-- ═══ 09 ═══ -->
+<div class="doc">
+  <div class="head">
+    <div class="docref"><b>SLIP 09</b><br>AUTH 09<br>RETURNED</div>
+    <div class="agency">Aldenmoor Transit Authority</div>
+    <div class="sub">Validation Record &amp; Platform Imagery</div>
+  </div>
+  <h1>Kestrel Row Station — 06 MAR</h1>
+  <table class="log">
+    <tr><td style="width:58%">Card 8814-2 (registered: L. KOVALESKI) validated</td><td class="mono">21:35:12</td></tr>
+    <tr><td>Platform camera, northbound, frame retained</td><td class="mono">21:34:58</td></tr>
+    <tr><td>Identification</td><td class="mono">POSITIVE — matches staff photograph</td></tr>
+    <tr><td>Service boarded</td><td class="mono">21:37 NORTHBOUND</td></tr>
+    <tr><td>Kestrel Row to Halligan Wharf</td><td class="mono">6.2 km</td></tr>
+  </table>
+  <p>Corroborates the B2 exit at 21:26:44 recorded at D-1 §1 and the lobby camera frame at 21:33.
+  <b>Nothing here is new.</b> Dr Kovaleski was where the file already said she was.</p>
+  <div class="classbar"><span>Authority 09 · Returned</span><span>Corroboration only</span></div>
+</div>
+
+<!-- ═══ 10 ═══ -->
+<div class="doc">
+  <div class="head">
+    <div class="docref"><b>SLIP 10</b><br>AUTH 10<br>RETURNED</div>
+    <div class="agency">Ostrand Logistics / Brenholt Ferry Operator</div>
+    <div class="sub">Manifest Verification</div>
+  </div>
+  <h1>Aldenmoor–Brenholt Crossing — Verification</h1>
+  <table class="log">
+    <tr><td style="width:58%">Manifest line 22, sailing 17:40 06 MAR</td><td class="mono">CONFIRMED — OL-14, D. FERRARO</td></tr>
+    <tr><td>Brenholt forecourt camera, fuel card 4471</td><td class="mono">FRAME 19:05 — POSITIVE ID</td></tr>
+    <tr><td>Brenholt depot gate, in / out</td><td class="mono">20:34 / 23:51</td></tr>
+    <tr><td>Return sailing docking Aldenmoor</td><td class="mono">01:20 07 MAR</td></tr>
+    <tr><td>Intervening sailings carrying OL-14</td><td class="mono">NONE</td></tr>
+  </table>
+  <p>Ostrand's dispatcher confirms the run in full. <b>Nothing here is new.</b> The run sheet at
+  E-1.2 was accurate.</p>
+  <div class="classbar"><span>Authority 10 · Returned</span><span>Corroboration only</span></div>
+</div>
+
+<!-- ═══ 11 ═══ -->
+<div class="doc">
+  <div class="head">
+    <div class="docref"><b>SLIP 11</b><br>AUTH 11<br>RETURNED</div>
+    <div class="agency">Meridian Fine Art Storage — Facilities</div>
+    <div class="sub">Life-Safety Controller · Full Event Log</div>
+  </div>
+  <h1>Zone B2-CS3 — Full Event Log</h1>
+  <p class="small">Reporting period 01 MAR – 07 MAR. Controller time source: NTP, synchronised.
+  Two discrete events recorded.</p>
+
+  <div class="box">
+    <pre class="mono" style="margin:0; white-space:pre-wrap; font-size:9pt; line-height:1.5">06 MAR 21:58:41   MANUAL DISCHARGE INITIATED
+                  SOURCE ........ PANEL B2-P1 (B2 CORRIDOR, LOCAL)
+                  CREDENTIAL .... LEVEL 4
+                  INTERLOCK ..... OCCUPANCY DETECTED IN ZONE
+                  INTERLOCK ..... OVERRIDE ASSERTED BY OPERATOR
+                  TARGET O2 ..... 9.0 %
+
+06 MAR 22:20:13   MANUAL VENT INITIATED
+                  SOURCE ........ PANEL B2-P1 (B2 CORRIDOR, LOCAL)
+                  CREDENTIAL .... LEVEL 4</pre>
+  </div>
+
+  <h2>Zone Oxygen Trace</h2>
+  <table class="log">
+    <tr><th>Time</th><th class="n">O₂ %</th><th>Time</th><th class="n">O₂ %</th></tr>
+    <tr><td>21:58</td><td class="n">15.0</td><td>22:06</td><td class="n"><b>9.4</b></td></tr>
+    <tr><td>22:00</td><td class="n">13.1</td><td>22:20</td><td class="n">9.4</td></tr>
+    <tr><td>22:02</td><td class="n">11.6</td><td>22:30</td><td class="n">12.8</td></tr>
+    <tr><td>22:04</td><td class="n">10.3</td><td>22:45</td><td class="n">15.0</td></tr>
+  </table>
+
+  <div class="box">
+    <div class="boxtitle">Vendor note</div>
+    <p style="margin:0 0 6pt">The interlock <b>reported occupancy in Zone B2-CS3 at the moment of
+    discharge.</b> The override is a discrete, deliberate operator action: the credential must be
+    presented at the panel and the override held while the discharge is committed. It cannot be
+    asserted remotely, it cannot be asserted by the automatic system, and it cannot be asserted in
+    error.</p>
+    <p style="margin:0"><b>Limitation.</b> This controller generation records the credential
+    <i>level</i> only. It does not retain the identity of the individual credential presented.
+    Establishing <i>which</i> Level-4 holder was at panel B2-P1 requires a separate record.</p>
+  </div>
+  <div class="classbar"><span>Authority 11 · Returned</span><span>Life-safety full event log</span></div>
+</div>
+
+</body>
+</html>

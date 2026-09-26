@@ -1,0 +1,13 @@
+{
+  "name": "Project Synapse",
+  "short_name": "Synapse",
+  "description": "Deductive murder mysteries built from case files.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#110f0c",
+  "theme_color": "#110f0c",
+  "icons": [
+    { "src": "app/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

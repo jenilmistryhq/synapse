@@ -1,0 +1,668 @@
+{
+  "ledger_version": 1,
+  "case_id": "SYN-MVP-001",
+  "case_title": "THE HALVORSEN BEQUEST",
+  "schema_version": "6.1-fork",
+  "last_modified_stage": "2-hand-authored",
+  "authoring_mode": "MVP-0 / hand-authored, no generator",
+  "difficulty_tier": "MEDIUM",
+  "player_count_range": [
+    1,
+    6
+  ],
+  "target_play_time_min": [
+    90,
+    120
+  ],
+  "_fork_notes": {
+    "why_6_1": "Diverges from spec v6.0 in five places, each traced to a review finding. See docs/DELTAS-FROM-SPEC-V6.md.",
+    "changes": [
+      "eliminates edges MUST carry non-empty requires (kills the elimination-sweep dominant strategy)",
+      "new edge type: eliminates_by_conjunction (>=2 evidence inputs, no single clearing card)",
+      "new node fields: tier / unlock_action (Investigation Clock)",
+      "new node field: reads_as (what the document literally prints, vs. the deduction it licenses)",
+      "tier bands measured against the BASE dossier only; action-gated nodes are earned, not counted"
+    ]
+  },
+  "canonical_incident": {
+    "victim_name": "Tobias Renn",
+    "victim_age": 54,
+    "victim_role": "Head of Conservation, Meridian Fine Art Storage & Conservation",
+    "location": "Cold Store 3, Vault Level B2, Meridian Fine Art Storage, Aldenmoor",
+    "discovered": "2025-03-06T23:46:00",
+    "cause_of_death": "Hypoxic asphyxia (oxygen-reduction fire-suppression discharge, O2 to 9.4%)",
+    "manner": "Homicide, staged as sudden cardiac collapse",
+    "stated_tod_window": [
+      "2025-03-06T19:10:00",
+      "2025-03-06T20:10:00"
+    ],
+    "true_tod_window": [
+      "2025-03-06T21:45:00",
+      "2025-03-06T22:25:00"
+    ],
+    "true_tod_estimate": "2025-03-06T22:06:00"
+  },
+  "forensic_model": {
+    "algor_mortis_base_rate_c_per_hr": 0.9,
+    "algor_mortis_base_ambient_c": 21,
+    "algor_mortis_rule": "Cooling rate is proportional to the body-ambient differential. rate(A) = 0.9 * (37 - A) / (37 - 21)",
+    "worked": {
+      "liver_temp_c": 32.5,
+      "measured_at": "2025-03-07T00:41:00",
+      "drop_c": 4.5,
+      "me_assumed_ambient_c": 20.8,
+      "me_elapsed_hr": 5,
+      "me_tod": "2025-03-06T19:41:00",
+      "true_ambient_c": 6,
+      "true_rate_multiplier": 1.94,
+      "true_elapsed_hr": 2.58,
+      "true_tod": "2025-03-06T22:06:00"
+    },
+    "player_math": "5.0 hr (ME) divided by 1.94 = 2.6 hr. Single division. Table-solvable with a pencil."
+  },
+  "canonical_suspects": [
+    {
+      "suspect_id": "S-01",
+      "name": "Vivienne Marchetti",
+      "age": 51,
+      "role": "culprit",
+      "job": "Facility Director",
+      "motive_category": "Concealment of asset theft / financial ruin",
+      "motive_detail": "Sold four original Halvorsen albumen plates by private treaty for $412,000 over 14 months, substituting modern reproductions. Renn's audit found the substitution.",
+      "apparent_status_before_reframe": "CLEARED - airtight alibi for the stated TOD window",
+      "apparent_status_after_reframe": "The only suspect with no alibi for the true window",
+      "descriptor_block": "female, early 50s, tall, silver bob cut blunt at the jaw, heavy tortoiseshell frames, charcoal wool suit, single strand of pearls"
+    },
+    {
+      "suspect_id": "S-02",
+      "name": "Oskar Pryce",
+      "age": 44,
+      "role": "red_herring",
+      "job": "Night Security Supervisor",
+      "suspicious_factor": "One of only two Level-4 suppression-override credential holders. Skipped the 22:00 B2 round and back-dated the handwritten log. Found the body and delayed the emergency call by 14 minutes. Documented grievance: Renn's incident report cost him his overtime allocation.",
+      "real_secret": "Asleep off-post in the Level D loading bay office. Falsified the round log to hide it. Misconduct, not murder.",
+      "elimination_type": "conjunction",
+      "descriptor_block": "male, mid 40s, heavy build, shaved head, grey uniform sweater with Meridian shoulder flash, thick steel wristwatch"
+    },
+    {
+      "suspect_id": "S-03",
+      "name": "Dr. Lena Kovaleski",
+      "age": 38,
+      "role": "red_herring",
+      "job": "Staff Conservator (Renn's deputy)",
+      "suspicious_factor": "Alone in B2 with the victim for over three hours. Passed over for Renn's post eighteen months ago. Lied in her first statement - said she left at 19:45; her badge says 21:26.",
+      "real_secret": "Using Meridian's solvent store and vacuum table after hours for a private restoration commission. Contract breach, not murder.",
+      "elimination_type": "gated",
+      "elimination_gate": "Her exit at 21:26 clears her ONLY against the corrected window. Against the stated window (19:10-20:10) she is the strongest suspect in the building.",
+      "descriptor_block": "female, late 30s, small frame, dark hair pinned up, nitrile gloves, magnifying visor pushed to forehead, blue conservation smock"
+    },
+    {
+      "suspect_id": "S-04",
+      "name": "Danny Ferraro",
+      "age": 29,
+      "role": "minor_suspect",
+      "job": "Freight and handling contractor, Ostrand Logistics",
+      "suspicious_factor": "His crew moved the Halvorsen crates in January. Prior dismissal for warehouse theft. His signature is on the crate manifest carrying the discrepancy.",
+      "elimination_type": "single_free",
+      "design_purpose": "The tutorial elimination. Cleared cheaply and early so the group learns the mechanic and banks one win before the hard work starts.",
+      "descriptor_block": "male, late 20s, wiry, buzzcut, high-vis vest over a hooded sweatshirt, forearm tattoo of a ship's anchor"
+    }
+  ],
+  "canonical_evidence_nodes": [
+    {
+      "evidence_id": "EV-01",
+      "doc_ref": "B-1",
+      "tier": "base",
+      "reads_as": "Autopsy: no trauma, no ligature, no occlusion. Findings consistent with acute hypoxic asphyxia. Provisional manner: ACCIDENTAL. Contributory: documented cardiopulmonary insufficiency; decedent held a standing medical exemption barring extended entry to reduced-oxygen zones. Cold Store 3 is maintained at a nominal 15.0% oxygen under the facility's fire-prevention protocol.",
+      "establishes": "fact:cause_of_death",
+      "design_note": "The case OPENS as an accident. The staged reading is: a man with a heart condition entered a low-oxygen room he was barred from. Every piece of the real case has to be dug out from under that."
+    },
+    {
+      "evidence_id": "EV-02",
+      "doc_ref": "B-1",
+      "tier": "base",
+      "reads_as": "Liver temperature 32.5 C recorded 00:41. Methodology block: 'Ambient at scene 20.8 C per responding officer intake form. Standard cooling constant 0.9 C/hr applied.' Estimated TOD 19:41, window 19:10-20:10.",
+      "establishes": "fact:stated_tod_window",
+      "design_note": "The ambient value is printed in a boilerplate methodology line, not in the findings. The ME did correct arithmetic on a wrong input."
+    },
+    {
+      "evidence_id": "EV-03",
+      "doc_ref": "A-1",
+      "tier": "base",
+      "reads_as": "First responder narrative: body relocated from Cold Store 3 to the B2 corridor at 00:11 to attempt resuscitation in breathable atmosphere. Ambient temperature recorded 00:29: 20.8 C. Location of reading: B2 corridor.",
+      "establishes": "fact:ambient_provenance_error",
+      "design_note": "DOOR B. The ambient the ME used was measured in the wrong room, eighteen minutes after the body left the right one."
+    },
+    {
+      "evidence_id": "EV-04",
+      "doc_ref": "D-1",
+      "tier": "base",
+      "reads_as": "Vault climate log, Cold Store 3: 6.0 C +/- 0.2, continuous, 14:00 Thu through 00:11 Fri. Setpoint mandated by the Halvorsen loan agreement for albumen prints.",
+      "establishes": "fact:true_ambient"
+    },
+    {
+      "evidence_id": "EV-05",
+      "doc_ref": "D-1",
+      "tier": "base",
+      "reads_as": "Conservation server write log: HALVORSEN_DISCREPANCY_v4.docx, 21:51:07, user t.renn, workstation B2-CONS-02.",
+      "establishes": "fact:victim_alive_2151",
+      "design_note": "DOOR A. Proves the stated window is wrong without explaining why. Gives a floor, not a window."
+    },
+    {
+      "evidence_id": "EV-14",
+      "doc_ref": "D-1",
+      "tier": "base",
+      "reads_as": "Life-safety system status page, Zone B2-CS3. Nominal oxygen setpoint 15.0%. Interlock: ACTIVE. Discrete events logged this reporting period: 2. Detail: see full event log (not included in this extract).",
+      "establishes": "fact:suppression_events_exist",
+      "design_note": "THE SIGNPOST. A bare event count on a status page. Meaningless until you know the death happened at 22:06 rather than 19:41 - at which point 'two events' becomes the most interesting number in the dossier."
+    },
+    {
+      "evidence_id": "EV-07",
+      "doc_ref": "E-1",
+      "tier": "base",
+      "reads_as": "Suppression system credential roster. Level-4 manual override: 2 holders. V. Marchetti (Director). O. Pryce (Night Security Supervisor). No other active credentials.",
+      "establishes": "fact:means_restricted",
+      "implicates": [
+        "S-01",
+        "S-02"
+      ],
+      "edge_class": "cross_suspect"
+    },
+    {
+      "evidence_id": "EV-11",
+      "doc_ref": "D-1",
+      "tier": "base",
+      "reads_as": "B2 access log: L.KOVALESKI OUT 21:26:44. Lobby camera still, 21:33. Transit card validation, Kestrel Row Station (6.2 km), 21:35.",
+      "eliminates": "S-03"
+    },
+    {
+      "evidence_id": "EV-12",
+      "doc_ref": "E-1",
+      "tier": "base",
+      "reads_as": "Ostrand Logistics run sheet: D. Ferraro, Aldenmoor-Brenholt ferry crossing, vehicle manifest and fuel card transactions, 17:40 Thu to 01:20 Fri, 190 km from the facility.",
+      "eliminates": "S-04"
+    },
+    {
+      "evidence_id": "EV-06",
+      "doc_ref": "D-5",
+      "tier": "action_gated",
+      "unlock_action": "ACT-11",
+      "reads_as": "Full life-safety event log, Zone B2-CS3. 21:58:41 MANUAL DISCHARGE, initiated at corridor panel B2-P1, credential level 4, occupancy interlock OVERRIDDEN BY OPERATOR. O2 15.0% to 9.4% by 22:06. 22:20:13 MANUAL VENT, panel B2-P1, same credential level.",
+      "establishes": [
+        "fact:mechanism",
+        "fact:discharge_time"
+      ],
+      "design_note": "Two deliberate manual acts twenty-two minutes apart at a physical corridor panel, with the occupancy interlock overridden by hand. This is the line that converts an accident into a homicide. It is action-gated precisely because it also timestamps the death - free access to it would let players skip the entire reframe."
+    },
+    {
+      "evidence_id": "EV-08",
+      "doc_ref": "D-2",
+      "tier": "action_gated",
+      "unlock_action": "ACT-01",
+      "reads_as": "Level D service door and freight elevator log: V.MARCHETTI IN 21:32:18, OUT 22:34:51. Freight elevator cycles D to B2 at 21:35, B2 to D at 22:31.",
+      "implicates": "S-01",
+      "signpost": "The BASE B2 access log prints two freight-elevator door cycles at 21:35 and 22:31 with no matching B2 badge event. The anomaly is visible for free; the answer costs an action."
+    },
+    {
+      "evidence_id": "EV-09",
+      "doc_ref": "C-5",
+      "tier": "action_gated",
+      "unlock_action": "ACT-08",
+      "reads_as": "Perrin Foundation dinner corroboration packet: last photograph including Marchetti timestamped 20:16. Her table's terminal receipt settled 20:20. Seating steward: 'I could not say when she left. It was a floating room.'",
+      "contradicts_alibi_of": "S-01",
+      "signpost": "Her statement (C-1) claims she stayed until 22:15. The base dossier records that claim; nothing in the base dossier tests it."
+    },
+    {
+      "evidence_id": "EV-10",
+      "doc_ref": "D-3",
+      "tier": "action_gated",
+      "unlock_action": "ACT-03",
+      "reads_as": "Raw guard-tour NFC data (unedited): O.PRYCE, Checkpoint 7, Level D loading bay, 21:44:11 and 22:02:37. Stairwell B2-ST1 door alarm log: no activation 17:30 Thu to 00:07 Fri.",
+      "eliminates": "S-02",
+      "design_note": "Does not clear him alone. Only in conjunction with EV-06 (discharge at 21:58 from the B2 corridor panel, i.e. between his two scans) and EV-08 (the only two freight-elevator cycles both belong to Marchetti)."
+    },
+    {
+      "evidence_id": "EV-13",
+      "doc_ref": "D-4",
+      "tier": "action_gated",
+      "unlock_action": "ACT-06",
+      "reads_as": "Three private-treaty settlement wires to a numbered account, $412,000 total, dated across 14 months, cross-matched to four Halvorsen accession numbers flagged in the victim's audit file.",
+      "establishes": "fact:motive",
+      "implicates": "S-01",
+      "signpost": "The base dossier prints the filename the victim saved at 21:51: HALVORSEN_DISCREPANCY_v4.docx. A discrepancy in a collection is a thing somebody profits from. The word is the pointer; following the money costs an action."
+    }
+  ],
+  "canonical_dag_edges": [
+    {
+      "id": "E01",
+      "from": [
+        "EV-01"
+      ],
+      "to": "fact:cause_of_death",
+      "relation": "establish",
+      "requires": []
+    },
+    {
+      "id": "E02",
+      "from": [
+        "EV-02"
+      ],
+      "to": "fact:stated_tod_window",
+      "relation": "establish",
+      "requires": [
+        "fact:cause_of_death"
+      ]
+    },
+    {
+      "id": "E03",
+      "from": [
+        "EV-03"
+      ],
+      "to": "fact:ambient_provenance_error",
+      "relation": "establish",
+      "requires": [
+        "fact:stated_tod_window"
+      ]
+    },
+    {
+      "id": "E04",
+      "from": [
+        "EV-04"
+      ],
+      "to": "fact:true_ambient",
+      "relation": "establish",
+      "requires": []
+    },
+    {
+      "id": "E05",
+      "from": [
+        "EV-02",
+        "EV-03",
+        "EV-04"
+      ],
+      "to": "fact:corrected_tod_window",
+      "relation": "recompute",
+      "requires": [
+        "fact:stated_tod_window",
+        "fact:ambient_provenance_error",
+        "fact:true_ambient"
+      ],
+      "note": "THE REFRAME. Three-input conjunction. Nothing downstream is reachable without it."
+    },
+    {
+      "id": "E06",
+      "from": [
+        "EV-05"
+      ],
+      "to": "fact:victim_alive_2151",
+      "relation": "establish",
+      "requires": []
+    },
+    {
+      "id": "E07",
+      "from": [
+        "EV-05"
+      ],
+      "to": "fact:tod_window_confirmed",
+      "relation": "corroborate",
+      "requires": [
+        "fact:corrected_tod_window",
+        "fact:victim_alive_2151"
+      ]
+    },
+    {
+      "id": "E17",
+      "from": [
+        "EV-14"
+      ],
+      "to": "fact:suppression_events_exist",
+      "relation": "establish",
+      "requires": [
+        "fact:tod_window_confirmed"
+      ],
+      "note": "Gated on the reframe by design. Before you know he died at 22:06, an event count on a status page is furniture."
+    },
+    {
+      "id": "E08",
+      "from": [
+        "EV-06"
+      ],
+      "to": "fact:mechanism",
+      "relation": "establish",
+      "requires": [
+        "fact:cause_of_death",
+        "fact:suppression_events_exist"
+      ],
+      "note": "Overturns the provisional ACCIDENTAL finding in EV-01."
+    },
+    {
+      "id": "E09",
+      "from": [
+        "EV-06"
+      ],
+      "to": "fact:discharge_time",
+      "relation": "establish",
+      "requires": [
+        "fact:mechanism"
+      ]
+    },
+    {
+      "id": "E10",
+      "from": [
+        "EV-07"
+      ],
+      "to": "fact:means_restricted",
+      "implicates": [
+        "suspect:S-01",
+        "suspect:S-02"
+      ],
+      "relation": "means_restricted",
+      "edge_class": "cross_suspect",
+      "requires": [
+        "fact:mechanism"
+      ]
+    },
+    {
+      "id": "E11",
+      "from": [
+        "EV-08"
+      ],
+      "to": "suspect:S-01",
+      "relation": "opportunity",
+      "requires": [
+        "fact:tod_window_confirmed",
+        "fact:means_restricted"
+      ]
+    },
+    {
+      "id": "E12",
+      "from": [
+        "EV-09"
+      ],
+      "to": "suspect:S-01",
+      "relation": "alibi_contradiction",
+      "requires": [
+        "suspect:S-01/opportunity",
+        "fact:tod_window_confirmed"
+      ]
+    },
+    {
+      "id": "E13",
+      "from": [
+        "EV-06",
+        "EV-08",
+        "EV-10"
+      ],
+      "to": "suspect:S-02",
+      "relation": "eliminates_by_conjunction",
+      "requires": [
+        "fact:discharge_time"
+      ]
+    },
+    {
+      "id": "E14",
+      "from": [
+        "EV-11"
+      ],
+      "to": "suspect:S-03",
+      "relation": "eliminates",
+      "requires": [
+        "fact:tod_window_confirmed"
+      ]
+    },
+    {
+      "id": "E15",
+      "from": [
+        "EV-12"
+      ],
+      "to": "suspect:S-04",
+      "relation": "eliminates",
+      "requires": []
+    },
+    {
+      "id": "E16",
+      "from": [
+        "EV-13"
+      ],
+      "to": "suspect:S-01",
+      "relation": "motive",
+      "requires": [
+        "suspect:S-01/opportunity"
+      ]
+    }
+  ],
+  "tier_measurement": {
+    "suspects": 4,
+    "base_dossier_evidence_nodes": 9,
+    "action_gated_evidence_nodes": 5,
+    "total_evidence_nodes": 14,
+    "red_herrings": 2,
+    "minor_suspects": 1,
+    "max_requires_chain_depth": 10,
+    "cross_suspect_corroboration_edges": 1,
+    "innocents_clearable_with_zero_prerequisites": 1,
+    "spec_v6_medium_band": {
+      "suspects": 4,
+      "evidence_nodes": "7-9",
+      "red_herrings": 2,
+      "max_depth": 2,
+      "cross_suspect": 1
+    },
+    "conformance": "PASS on suspects, base-dossier nodes, red herrings, cross-suspect edges. FAIL on max_depth (10 vs 2). See DELTAS finding #3 - the spec's depth bands cannot express a case containing a reframe, and the five tier dimensions do not co-vary, so one label cannot bound them all.",
+    "tier_deviations_accepted": [
+      "max_requires_chain_depth"
+    ],
+    "deviation_rationale": "Spec v6.0 bands MEDIUM at depth 2, which describes a case with no reframe: establish two facts, accuse. Our keystone (corrected time of death) sits four inferences deep before any suspect is touched. Declared, not silently tolerated. See DELTAS finding #3."
+  },
+  "investigation_actions": {
+    "budget_rule": "6 actions for 1-2 detectives, 7 for 3-4, 8 for 5-6. Actions do not regenerate. The final accusation is free.",
+    "budget_this_case": {
+      "1": 6,
+      "2": 6,
+      "3": 7,
+      "4": 7,
+      "5": 8,
+      "6": 8
+    },
+    "_note": "Minimum winning set is 4 of a 11-card deck; clean sweep is 5. A 6-action group has two spare. Draft numbers - the first playtest measures whether that slack is too kind.",
+    "deck": [
+      {
+        "id": "ACT-11",
+        "label": "Pull the full life-safety event log for Zone B2-CS3",
+        "yields": "EV-06",
+        "value": "DECISIVE - converts accident to homicide"
+      },
+      {
+        "id": "ACT-01",
+        "label": "Pull Level D service-door and freight elevator logs",
+        "yields": "EV-08",
+        "value": "DECISIVE"
+      },
+      {
+        "id": "ACT-02",
+        "label": "Subpoena the victim's phone records",
+        "yields": "flavour: the 18:41 message to Marchetti",
+        "value": "supporting"
+      },
+      {
+        "id": "ACT-03",
+        "label": "Request raw guard-tour NFC data (bypassing the handwritten log)",
+        "yields": "EV-10",
+        "value": "DECISIVE"
+      },
+      {
+        "id": "ACT-04",
+        "label": "Order a second toxicology panel",
+        "yields": "nothing - confirms EV-01",
+        "value": "DEAD END"
+      },
+      {
+        "id": "ACT-05",
+        "label": "Re-interview Kovaleski under caution",
+        "yields": "her private-commission confession",
+        "value": "red herring resolution"
+      },
+      {
+        "id": "ACT-06",
+        "label": "Subpoena Marchetti's personal financials",
+        "yields": "EV-13",
+        "value": "motive"
+      },
+      {
+        "id": "ACT-07",
+        "label": "Forensic imaging of workstation B2-CONS-02",
+        "yields": "contents of the audit file",
+        "value": "supporting"
+      },
+      {
+        "id": "ACT-08",
+        "label": "Canvass Perrin Foundation dinner attendees",
+        "yields": "EV-09",
+        "value": "DECISIVE"
+      },
+      {
+        "id": "ACT-09",
+        "label": "Pull Kestrel Row transit and platform camera",
+        "yields": "corroborates EV-11",
+        "value": "redundant"
+      },
+      {
+        "id": "ACT-10",
+        "label": "Verify the Ostrand ferry manifest",
+        "yields": "corroborates EV-12",
+        "value": "redundant"
+      }
+    ],
+    "minimum_winning_set": [
+      "ACT-11",
+      "ACT-01",
+      "ACT-03",
+      "ACT-08"
+    ],
+    "clean_sweep_set": [
+      "ACT-11",
+      "ACT-01",
+      "ACT-03",
+      "ACT-08",
+      "ACT-06"
+    ],
+    "gating_order": "ACT-11 is not usefully spendable until the group has corrected the time of death from the base dossier alone. A group that buys it first learns the mechanism but cannot yet place anyone at the panel."
+  },
+  "ground_truth_timeline": [
+    {
+      "t": "2025-03-06T17:30",
+      "event": "Facility closes to day staff. Night complement: Pryce, Kovaleski."
+    },
+    {
+      "t": "2025-03-06T18:04",
+      "event": "Kovaleski badges into B2."
+    },
+    {
+      "t": "2025-03-06T18:15",
+      "event": "Renn badges into B2 to continue the Halvorsen condition audit."
+    },
+    {
+      "t": "2025-03-06T18:41",
+      "event": "Renn messages Marchetti: 'Found the problem with Halvorsen. I am in B2 tonight. This cannot wait.'"
+    },
+    {
+      "t": "2025-03-06T18:55",
+      "event": "Marchetti arrives at the Perrin Foundation dinner, Aldenmoor Athenaeum, 22 km away."
+    },
+    {
+      "t": "2025-03-06T20:16",
+      "event": "Last photograph including Marchetti."
+    },
+    {
+      "t": "2025-03-06T20:20",
+      "event": "Her table's terminal receipt is settled. She leaves shortly after, unobserved, from a forty-guest floating room."
+    },
+    {
+      "t": "2025-03-06T21:26",
+      "event": "Kovaleski badges out of B2."
+    },
+    {
+      "t": "2025-03-06T21:32",
+      "event": "Marchetti badges the Level D service door. Not the lobby."
+    },
+    {
+      "t": "2025-03-06T21:35",
+      "event": "Freight elevator cycles D to B2."
+    },
+    {
+      "t": "2025-03-06T21:44",
+      "event": "Pryce scans Checkpoint 7, Level D loading bay. He is off-post and about to fall asleep."
+    },
+    {
+      "t": "2025-03-06T21:51",
+      "event": "Renn saves HALVORSEN_DISCREPANCY_v4.docx to the conservation server. Marchetti does not know this file exists."
+    },
+    {
+      "t": "2025-03-06T21:55",
+      "event": "Marchetti confronts Renn in Cold Store 3, then steps into the corridor and seals the door."
+    },
+    {
+      "t": "2025-03-06T21:58",
+      "event": "Manual hypoxic discharge from corridor panel B2-P1, Level-4 credential, occupancy interlock overridden."
+    },
+    {
+      "t": "2025-03-06T22:00",
+      "event": "Pryce's scheduled B2 round. NOT PERFORMED. The handwritten log will later say otherwise."
+    },
+    {
+      "t": "2025-03-06T22:02",
+      "event": "Pryce scans Checkpoint 7 again, still Level D."
+    },
+    {
+      "t": "2025-03-06T22:06",
+      "event": "O2 reaches 9.4%. Renn dies. TRUE TIME OF DEATH."
+    },
+    {
+      "t": "2025-03-06T22:20",
+      "event": "Manual vent from panel B2-P1. Marchetti re-enters, takes Renn's tablet, leaves the body."
+    },
+    {
+      "t": "2025-03-06T22:31",
+      "event": "Freight elevator cycles B2 to D."
+    },
+    {
+      "t": "2025-03-06T22:34",
+      "event": "Marchetti badges out of the Level D service door."
+    },
+    {
+      "t": "2025-03-06T23:40",
+      "event": "Pryce begins his late round."
+    },
+    {
+      "t": "2025-03-06T23:46",
+      "event": "Body found in Cold Store 3."
+    },
+    {
+      "t": "2025-03-07T00:00",
+      "event": "Emergency call placed. Fourteen minutes after discovery; Pryce spent them back-dating the round log."
+    },
+    {
+      "t": "2025-03-07T00:07",
+      "event": "First responders arrive."
+    },
+    {
+      "t": "2025-03-07T00:11",
+      "event": "Body relocated to the B2 corridor for resuscitation attempt."
+    },
+    {
+      "t": "2025-03-07T00:29",
+      "event": "Responding officer records ambient 20.8 C. In the corridor. This number will poison the autopsy."
+    },
+    {
+      "t": "2025-03-07T00:41",
+      "event": "Deputy ME records liver temperature 32.5 C."
+    }
+  ],
+  "solution_shape": {
+    "one_line": "The time of death is wrong, and everything you believe about who had an alibi is downstream of it.",
+    "inversion": "Before the reframe: Marchetti is the only cleared suspect and everyone else looks guilty. After the reframe: everyone else is cleared and Marchetti is the only one without an alibi. The suspect list flips whole.",
+    "culprit": "S-01",
+    "the_killers_mistake": "She took the tablet. The file was already on the server.",
+    "keystone_fact": "fact:corrected_tod_window"
+  }
+}

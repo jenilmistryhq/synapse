@@ -1,0 +1,25 @@
+{
+  "generated": "2026-09-26T13:44:37.812Z",
+  "cases": [
+    {
+      "id": "SYN-MVP-001",
+      "number": "01",
+      "title": "The Halvorsen Bequest",
+      "tier": "Medium",
+      "time": "90-120 min",
+      "tagline": "A death in a cold store, filed as an accident. Is it?",
+      "hook": "A conservator is found dead in a refrigerated art vault. He had a heart condition, a written exemption barring him from that room, and he went in anyway without his monitor. The Medical Examiner recorded accidental death and the file closed in eleven days. Six weeks later the insurers refused the claim. You are the review team.",
+      "note": "Start here. This case teaches the whole system."
+    },
+    {
+      "id": "SYN-MVP-002",
+      "number": "02",
+      "title": "The Ravensgate Interlock",
+      "tier": "Hard",
+      "time": "120-160 min",
+      "tagline": "A storm, a dam, two deaths. The file says murder-suicide.",
+      "hook": "A storm cuts the road to a hydroelectric dam and seals six people in with each other. By dawn two are dead: a manager electrocuted at a switchgear cabinet, and a control engineer drowned in the intake gallery. Her credential card opened his cabinet and closed the circuit that killed him. The police found murder-suicide and closed the file in nineteen days.",
+      "note": "Play Case 01 first. This one opens with a crime already solved."
+    }
+  ]
+}

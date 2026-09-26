@@ -1,0 +1,15 @@
+{
+  "name": "project-synapse",
+  "private": true,
+  "description": "Deductive murder mysteries: print-and-play kits and a solo web game.",
+  "scripts": {
+    "serve": "node tools/serve.js",
+    "catalog": "node tools/build-catalog.js",
+    "pdf": "node tools/build-pdfs.js",
+    "build": "node tools/build-catalog.js && node tools/build-pdfs.js",
+    "validate": "node tools/validate.js cases/SYN-MVP-001/ledger.json && node tools/validate.js cases/SYN-MVP-002/ledger.json"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^23.11.1"
+  }
+}

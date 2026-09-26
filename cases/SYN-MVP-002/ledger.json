@@ -1,0 +1,793 @@
+{
+  "ledger_version": 1,
+  "case_id": "SYN-MVP-002",
+  "case_title": "THE RAVENSGATE INTERLOCK",
+  "schema_version": "6.1-fork",
+  "last_modified_stage": "2-hand-authored",
+  "authoring_mode": "MVP-0 / hand-authored, no generator",
+  "difficulty_tier": "HARD",
+  "player_count_range": [
+    1,
+    6
+  ],
+  "target_play_time_min": [
+    120,
+    160
+  ],
+  "_design_intent": {
+    "what_level_02_tests": "Information asymmetry between players (source spec section 8), which Level 01 deliberately did not use. Level 01 was a shared-information game; every page was on the table. Level 02 splits the file into five Specialist Files and adds one new mechanic - the Case Conference - to govern what reaches the shared board and when.",
+    "one_variable_at_a_time": "The Authority economy is carried over UNCHANGED IN SHAPE from Level 01, tightened by exactly one point per band, because Level 01's playtest flagged it as possibly too generous. Adding the Conference plus a redesigned clock would change two things at once and teach us nothing.",
+    "diversity_against_level_01": {
+      "keystone_family": "Level 01: a measured NUMBER had the wrong provenance. Level 02: a LOG IS ENTIRELY HONEST and correctly attributes a credential - and the credential's owner was dead. Different failure mode, different skill.",
+      "opportunity_mechanism": "Level 01 used Digital Access Logs. Level 02 uses Environmental / Temporal Forensics (reservoir hydrology) for the keystone and Testimonial Contradiction by SILENCE for the alibi break.",
+      "alibi_break_shape": "Level 01: corroboration simply stops at a time. Level 02: a continuously-recording system records NOTHING for 26 minutes. The absence is the finding.",
+      "structural_shape": "Level 01 opened with no crime and found one. Level 02 opens with a SOLVED crime and has to take it apart. Opposite direction, so a group that has played 01 cannot reuse the shape."
+    }
+  },
+  "canonical_incident": {
+    "site": "Ravensgate Dam & Hydroelectric Station, Ravensgate Valley. Operator: Cairnhold Power.",
+    "night": "18-19 November 2024, during Storm Bettany. Road access severed by landslip 19:40. Six persons on site, none able to leave.",
+    "victim_1": {
+      "name": "Aurelio Sarn",
+      "age": 58,
+      "role": "Station Manager",
+      "found": "2024-11-19T06:10:00",
+      "location": "Turbine hall, cabinet C-14",
+      "cause_of_death": "Electrocution - 11 kV contact, hand-to-hand current path",
+      "tod": "2024-11-19T06:03:00",
+      "tod_uncontroversial": true
+    },
+    "victim_2": {
+      "name": "Ines Ballard",
+      "age": 41,
+      "role": "Control Engineer",
+      "found": "2024-11-19T07:25:00",
+      "location": "Intake gallery, trash rack panel 4, downstream of intake gate 2",
+      "cause_of_death": "Drowning, freshwater",
+      "tod": "2024-11-19T02:50:00 (approx)",
+      "tod_by_pathology": "NOT DETERMINABLE - prolonged immersion in near-freezing storm water invalidates every standard estimator. The autopsy says so explicitly."
+    },
+    "original_finding": "MURDER-SUICIDE. Ballard killed Sarn, then drowned herself. Closed in nineteen days.",
+    "reopening": "The Reservoirs & Dam Safety Inspectorate's own accident report reached a materially different conclusion on one technical point. The two reports contradict. This review is convened to reconcile them."
+  },
+  "canonical_suspects": [
+    {
+      "suspect_id": "S-01",
+      "name": "Halloran Vey",
+      "age": 47,
+      "job": "Shift Control Engineer",
+      "role": "culprit",
+      "motive_category": "Concealment of procurement fraud",
+      "motive_detail": "Certified contract RG-0419 (foundation instrumentation renewal and legacy feeder decommissioning) as complete. Neither scope was executed. Took $186,000 across three years from Thennick Instrumentation Ltd through Ashgrove Technical Services, a consultancy registered to his spouse.",
+      "why_he_looks_innocent": "He was at console 1 in the control room all night and the entire site's telemetry says so. He is the one person whose presence is continuously documented - which is exactly why nobody looked at the twenty-six minutes when it wasn't.",
+      "descriptor_block": "male, late 40s, heavy-set, close beard going grey, half-moon reading glasses on a cord, Cairnhold Power fleece over a checked shirt"
+    },
+    {
+      "suspect_id": "S-02",
+      "name": "Ines Ballard",
+      "age": 41,
+      "job": "Control Engineer",
+      "role": "red_herring",
+      "special_role": "accused_deceased",
+      "suspicious_factor": "The original inquiry's culprit. Her credential opened cabinet C-14 at 05:47 and closed the F-3 tie at 06:02. She was overheard in a hard argument with Sarn at 02:25. She had the technical knowledge and no third party was accounted for. Then she was found drowned.",
+      "the_truth": "She was in the water from about 02:50, more than three hours before her credential was used. She spotted the fraud and told Sarn. She is the second victim, not the first offender.",
+      "elimination_type": "conjunction",
+      "design_note": "This case's central act is EXONERATING a suspect the file has already convicted. That is a different verb from every elimination in Level 01, and it is the reason the case exists.",
+      "descriptor_block": "female, early 40s, wiry, dark hair cut short, wire-rimmed glasses, hi-vis over a fleece, permanent marker in the chest pocket"
+    },
+    {
+      "suspect_id": "S-03",
+      "name": "Dessa Okonkwo",
+      "age": 34,
+      "job": "Mechanical Maintenance Technician",
+      "role": "red_herring",
+      "suspicious_factor": "Signed the goods-receipt for the piezometer array that was never installed. Filed a formal grievance against Sarn in August. Unaccounted for across both critical windows on the face of the roster.",
+      "real_secret": "She signed the receipt without checking, on Vey's word, because she was two hours into a twelve-hour shift and he was her senior. Negligence and a career-ending embarrassment, not conspiracy.",
+      "elimination_type": "gated",
+      "descriptor_block": "female, mid 30s, tall, braided hair under a hard hat, oil-marked coveralls, tool tally on a belt clip"
+    },
+    {
+      "suspect_id": "S-04",
+      "name": "Piotr Wrenn",
+      "age": 61,
+      "job": "Dam Safety & Instrumentation Officer, RDSI",
+      "role": "red_herring",
+      "suspicious_factor": "The regulator's own man. He signed off the 2019 instrumentation renewal and did not catch that it had not happened - so he has the strongest possible reason to want the whole thing buried. He was awake and moving all night. He and Vey worked together at Thennick fifteen years ago.",
+      "real_secret": "He accepted Vey's data package in 2019 without a site verification because he was three weeks from a hip replacement and the instrument gallery is down forty-one steps. Professional failure, and he knows it.",
+      "elimination_type": "conjunction",
+      "descriptor_block": "male, early 60s, stooped, white moustache, RDSI stormcoat, walking stick, spectacles pushed up on the forehead"
+    },
+    {
+      "suspect_id": "S-05",
+      "name": "Cato Mbeki",
+      "age": 26,
+      "job": "Assistant Operator",
+      "role": "minor_suspect",
+      "suspicious_factor": "Found Sarn's body. Was the last person to be issued a spare control-room key. Nine months in post.",
+      "elimination_type": "single_free",
+      "design_purpose": "The tutorial elimination, as Ferraro was in Level 01. Cleared by one free document so the group learns the verb before it has to do anything hard with it.",
+      "descriptor_block": "male, mid 20s, slight, shaved head, oversized waterproofs, head torch worn permanently around the neck"
+    }
+  ],
+  "canonical_evidence_nodes": [
+    {
+      "evidence_id": "EV-01",
+      "doc_ref": "B-1",
+      "tier": "base",
+      "file": "board",
+      "reads_as": "Autopsy, A. Sarn: electrocution. Entry wound right palm, exit left forearm, hand-to-hand path across the thorax. Consistent with 11 kV contact. Death effectively instantaneous. Time of death 06:03, established by the alarm cascade and the discovery at 06:10 - not by pathology.",
+      "establishes": "fact:sarn_cod"
+    },
+    {
+      "evidence_id": "EV-02",
+      "doc_ref": "B-2",
+      "tier": "base",
+      "file": "board",
+      "reads_as": "Autopsy, I. Ballard: drowning, freshwater, diatom profile matching the forebay. No defensive injuries, no ligature, no restraint marks. Methodology note: 'Prolonged immersion in water at 3-5 C invalidates algor mortis, rigor timing and vitreous potassium alike. THIS OFFICE CANNOT ESTIMATE A TIME OF DEATH FOR THIS DECEDENT AND DECLINES TO ATTEMPT ONE.'",
+      "establishes": [
+        "fact:ballard_cod",
+        "fact:ballard_tod_unknown"
+      ],
+      "design_note": "Deliberately closes the Level 01 route and says so in capital letters. A group that played Level 01 will reach for body temperature first; this tells them, fairly and immediately, to find another clock."
+    },
+    {
+      "evidence_id": "EV-03",
+      "doc_ref": "A-1",
+      "tier": "base",
+      "file": "board",
+      "reads_as": "Original investigation summary. Finding: murder-suicide. Rests on three legs - (i) credential I.BALLARD opened C-14 at 05:47 and closed the F-3 tie at 06:02; (ii) Sarn and Ballard were overheard in a serious argument at 02:25; (iii) no third party could be placed at either scene. Case closed after nineteen days.",
+      "establishes": "fact:original_finding"
+    },
+    {
+      "evidence_id": "EV-04",
+      "doc_ref": "D-1",
+      "tier": "base",
+      "file": "board",
+      "reads_as": "SCADA switching and access log. 05:47:31 cabinet C-14 opened, credential I.BALLARD. 05:52:06 LOTO padlock applied to feeder F-5 isolator, credential A.SARN. 06:02:14 FEEDER F-3 TIE CLOSED, credential I.BALLARD, initiated at CONTROL ROOM CONSOLE 1. 06:03:0x earth-fault cascade, eleven alarms.",
+      "establishes": "fact:switching_event"
+    },
+    {
+      "evidence_id": "EV-05",
+      "doc_ref": "D-1",
+      "tier": "base",
+      "file": "board",
+      "reads_as": "SCADA gate log. Intake gate 2: OPEN 02:31:08, CLOSED 03:12:44. No further operation of gate 2 until 08:40:19. Gates 1 and 3 not operated at any point during the storm.",
+      "establishes": "fact:gate_window"
+    },
+    {
+      "evidence_id": "EV-06",
+      "doc_ref": "D-2",
+      "tier": "base",
+      "file": "hydrology",
+      "reads_as": "Recovery report. Ballard recovered from the intake gallery, pinned against trash rack panel 4 at elevation 218.4 m - downstream of intake gate 2, inside the sealed gallery.",
+      "establishes": "fact:recovery_position"
+    },
+    {
+      "evidence_id": "EV-07",
+      "doc_ref": "D-2",
+      "tier": "base",
+      "file": "hydrology",
+      "reads_as": "Hydrological statement. The intake gallery is dry above the sill whenever intake gate 2 is shut. A body can only pass from the forebay to trash rack panel 4 while gate 2 is open and flowing. There is no other route into the gallery: the upstream stoplogs were in place and the downstream draft tube was under vacuum all night.",
+      "establishes": "fact:transit_rule"
+    },
+    {
+      "evidence_id": "EV-10",
+      "doc_ref": "E-1",
+      "tier": "base",
+      "file": "site_security",
+      "reads_as": "Control room door log, 02:25 to 05:47. P.WRENN in 01:50:12, out 01:58:40. No further entry or exit by any credential until 05:44:03. H.VEY did not leave. The control room was continuously occupied by exactly one person for three hours and nineteen minutes.",
+      "establishes": "fact:card_access_window",
+      "edge_class": "cross_suspect"
+    },
+    {
+      "evidence_id": "EV-12",
+      "doc_ref": "E-2",
+      "tier": "base",
+      "file": "regulator",
+      "reads_as": "RDSI post-incident inspection, instrument gallery. Junction box JB-7 empty. The cabling installed under contract RG-0419 terminates unconnected behind the box. Piezometers P-7 to P-12 do not physically exist. The values reported against them since 2019 were generated somewhere else.",
+      "establishes": "fact:fake_array"
+    },
+    {
+      "evidence_id": "EV-14",
+      "doc_ref": "E-1",
+      "tier": "base",
+      "file": "site_security",
+      "reads_as": "Footbridge access door log, powerhouse crossing. C.MBEKI crossed to the downstream powerhouse 21:04:33 and crossed back 06:05:51. No intervening activation. The footbridge is the only route; the service tunnel was gated and padlocked for the storm.",
+      "eliminates": "S-05"
+    },
+    {
+      "evidence_id": "EV-15",
+      "doc_ref": "C-3A",
+      "tier": "base",
+      "file": "maintenance",
+      "reads_as": "Confined-space entry permits and atmospheric monitor telemetry, wet well 2. Permit 1144: D.OKONKWO, entry 02:12, exit 03:40. Permit 1145: entry 05:35, exit 06:25. The monitor transmits continuously while a person is in the space and logged unbroken occupancy across both.",
+      "eliminates": "S-03"
+    },
+    {
+      "evidence_id": "EV-08",
+      "doc_ref": "D-3",
+      "tier": "action_gated",
+      "unlock_action": "ACT-04",
+      "file": "hydrology",
+      "reads_as": "Trash rack differential-pressure trace and debris analysis. A compacted debris mat formed on rack panel 4 during the 04:00-05:00 peak inflow, dated by the pressure-differential step at 04:12 and by its composition (bracken, spruce needles, one fence rail). The mat lay OVER the body, not under it.",
+      "establishes": "fact:window_corroborated",
+      "signpost": "The recovery report (D-2) notes the body was 'beneath consolidated debris' and does not say when the debris arrived. The Board can see the question; answering it costs an authority."
+    },
+    {
+      "evidence_id": "EV-11",
+      "doc_ref": "E-3",
+      "tier": "action_gated",
+      "unlock_action": "ACT-02",
+      "file": "site_security",
+      "reads_as": "Property and credential audit. Ballard's lanyard, with credential card attached, was recovered from the second drawer of the control room desk - not from her body, and not from her locker. Two colleagues state on the record that she habitually left it on the desk when moving about the site, and had been spoken to about it twice.",
+      "establishes": "fact:credential_separable",
+      "signpost": "The original finding (A-1) treats a credential event as a person. Nothing in the base file establishes that her card was on her. Ask where it was found."
+    },
+    {
+      "evidence_id": "EV-13",
+      "doc_ref": "E-4",
+      "tier": "action_gated",
+      "unlock_action": "ACT-07",
+      "file": "regulator",
+      "reads_as": "As-built schedule for cabinet C-14 and the RG-0419 decommissioning certificate. The current schedule shows C-14 as SINGLE-FED from F-5. The 2019 amendment record names the reviser: H.VEY. The certificate declaring legacy feeder F-3 permanently decommissioned is signed by H.VEY and countersigned on goods-receipt by D.OKONKWO. F-3 was never removed. It remained live, switchable, and absent from the drawing Sarn would have consulted.",
+      "establishes": "fact:dual_feed_concealed",
+      "implicates": [
+        "S-01",
+        "S-03"
+      ],
+      "edge_class": "cross_suspect",
+      "signpost": "The switching log (D-1) is free and it prints the contradiction on one page: Sarn isolated and padlocked feeder F-5 at 05:52, and was killed at 06:03 by feeder F-3. Any reader can ask why a cabinet one man had just proved dead was fed by a second circuit - and whether the drawing he was working from said so."
+    },
+    {
+      "evidence_id": "EV-16",
+      "doc_ref": "C-4A",
+      "tier": "action_gated",
+      "unlock_action": "ACT-09",
+      "file": "regulator",
+      "reads_as": "Three records for P. Wrenn. (i) Control room door log: no entry between 01:58 and 07:00. (ii) RDSI instrument van datalogger: operator session open at the van on the crest, keystrokes at 02:20, 02:34, 02:51, 03:06, 03:29. (iii) Satellite call record: RDSI duty desk, 05:58 to 06:14, sixteen minutes, his voice on the recording throughout.",
+      "eliminates": "S-04",
+      "design_note": "Three records covering three different windows. (i) alone leaves the forebay open. (ii) alone leaves 06:02 open. (iii) alone leaves 02:45 open. No single document clears him."
+    },
+    {
+      "evidence_id": "EV-17",
+      "doc_ref": "E-5",
+      "tier": "action_gated",
+      "unlock_action": "ACT-06",
+      "file": "regulator",
+      "reads_as": "Financial disclosure, H. Vey. Ashgrove Technical Services Ltd, registered to his spouse, invoiced Thennick Instrumentation Ltd $186,000 across three years - $61,000, $70,000 and $55,000 - each within nine days of a Cairnhold certification signed by Vey. Ashgrove has no other client, no premises and no employees.",
+      "establishes": "fact:motive",
+      "implicates": "S-01",
+      "signpost": "Two contract scopes were certified complete and neither was done (E-2, and the decommissioning certificate). Somebody was paid for the certificate."
+    },
+    {
+      "evidence_id": "EV-18",
+      "doc_ref": "D-4",
+      "tier": "action_gated",
+      "unlock_action": "ACT-01",
+      "file": "control_room",
+      "reads_as": "Alarm acknowledgement log, console 1. Storm-mode alarms require operator acknowledgement within 90 seconds or they escalate to the auto-dialler. Across the whole night, one gap: 02:38 to 03:04, during which ELEVEN alarms escalated unacknowledged. At 03:05:12 all eleven were acknowledged in thirty-eight seconds. There is no other unacknowledged escalation between 22:00 and 06:00.",
+      "contradicts_alibi_of": "S-01",
+      "signpost": "Vey's own statement (C-1) claims he was at console 1 continuously from 22:00 to 06:10, and the base file has no reason to doubt it. Test the claim against the console's own record of being attended.",
+      "design_note": "THE ALIBI BREAK. A continuously-recording system records nothing for twenty-six minutes. The silence is the evidence. Control room to forebay parapet is four minutes each way (site plan, A-2)."
+    }
+  ],
+  "canonical_dag_edges": [
+    {
+      "id": "E01",
+      "from": [
+        "EV-01"
+      ],
+      "to": "fact:sarn_cod",
+      "relation": "establish",
+      "requires": []
+    },
+    {
+      "id": "E02",
+      "from": [
+        "EV-02"
+      ],
+      "to": "fact:ballard_cod",
+      "relation": "establish",
+      "requires": []
+    },
+    {
+      "id": "E03",
+      "from": [
+        "EV-02"
+      ],
+      "to": "fact:ballard_tod_unknown",
+      "relation": "establish",
+      "requires": [
+        "fact:ballard_cod"
+      ]
+    },
+    {
+      "id": "E04",
+      "from": [
+        "EV-03"
+      ],
+      "to": "fact:original_finding",
+      "relation": "establish",
+      "requires": [
+        "fact:sarn_cod",
+        "fact:ballard_cod"
+      ]
+    },
+    {
+      "id": "E05",
+      "from": [
+        "EV-04"
+      ],
+      "to": "fact:switching_event",
+      "relation": "establish",
+      "requires": [
+        "fact:sarn_cod"
+      ]
+    },
+    {
+      "id": "E06",
+      "from": [
+        "EV-05"
+      ],
+      "to": "fact:gate_window",
+      "relation": "establish",
+      "requires": []
+    },
+    {
+      "id": "E07",
+      "from": [
+        "EV-06"
+      ],
+      "to": "fact:recovery_position",
+      "relation": "establish",
+      "requires": [
+        "fact:ballard_cod"
+      ]
+    },
+    {
+      "id": "E08",
+      "from": [
+        "EV-07"
+      ],
+      "to": "fact:transit_rule",
+      "relation": "establish",
+      "requires": [
+        "fact:recovery_position"
+      ]
+    },
+    {
+      "id": "E09",
+      "from": [
+        "EV-05",
+        "EV-06",
+        "EV-07"
+      ],
+      "to": "fact:ballard_window",
+      "relation": "recompute",
+      "requires": [
+        "fact:gate_window",
+        "fact:transit_rule",
+        "fact:ballard_tod_unknown"
+      ],
+      "note": "THE KEYSTONE. Pathology cannot date her death, so hydrology does it instead. She entered the water between 02:31 and 03:12 because that is the only interval in which the water could carry her to where she was found."
+    },
+    {
+      "id": "E10",
+      "from": [
+        "EV-08"
+      ],
+      "to": "fact:window_corroborated",
+      "relation": "corroborate",
+      "requires": [
+        "fact:ballard_window"
+      ]
+    },
+    {
+      "id": "E11",
+      "from": [
+        "EV-05",
+        "EV-06",
+        "EV-07"
+      ],
+      "to": "suspect:S-02",
+      "relation": "eliminates_by_conjunction",
+      "requires": [
+        "fact:ballard_window",
+        "fact:switching_event"
+      ],
+      "note": "The exoneration. She was three hours dead when her credential was used."
+    },
+    {
+      "id": "E12",
+      "from": [
+        "EV-11"
+      ],
+      "to": "fact:credential_separable",
+      "relation": "establish",
+      "requires": [
+        "fact:ballard_window"
+      ]
+    },
+    {
+      "id": "E13",
+      "from": [
+        "EV-10"
+      ],
+      "to": "fact:card_access_window",
+      "relation": "means_restricted",
+      "implicates": [
+        "suspect:S-01",
+        "suspect:S-04"
+      ],
+      "edge_class": "cross_suspect",
+      "requires": [
+        "fact:credential_separable"
+      ]
+    },
+    {
+      "id": "E14",
+      "from": [
+        "EV-04"
+      ],
+      "to": "suspect:S-01",
+      "relation": "opportunity",
+      "requires": [
+        "fact:card_access_window",
+        "fact:switching_event"
+      ]
+    },
+    {
+      "id": "E15",
+      "from": [
+        "EV-18"
+      ],
+      "to": "suspect:S-01",
+      "relation": "alibi_contradiction",
+      "requires": [
+        "suspect:S-01/opportunity",
+        "fact:ballard_window"
+      ]
+    },
+    {
+      "id": "E16",
+      "from": [
+        "EV-12"
+      ],
+      "to": "fact:fake_array",
+      "relation": "establish",
+      "requires": []
+    },
+    {
+      "id": "E17",
+      "from": [
+        "EV-13"
+      ],
+      "to": "fact:dual_feed_concealed",
+      "relation": "means_restricted",
+      "implicates": [
+        "suspect:S-01",
+        "suspect:S-03"
+      ],
+      "edge_class": "cross_suspect",
+      "requires": [
+        "fact:sarn_cod",
+        "fact:fake_array"
+      ]
+    },
+    {
+      "id": "E18",
+      "from": [
+        "EV-17"
+      ],
+      "to": "suspect:S-01",
+      "relation": "motive",
+      "requires": [
+        "fact:dual_feed_concealed",
+        "suspect:S-01/opportunity"
+      ]
+    },
+    {
+      "id": "E19",
+      "from": [
+        "EV-14"
+      ],
+      "to": "suspect:S-05",
+      "relation": "eliminates",
+      "requires": []
+    },
+    {
+      "id": "E20",
+      "from": [
+        "EV-15"
+      ],
+      "to": "suspect:S-03",
+      "relation": "eliminates",
+      "requires": [
+        "fact:ballard_window",
+        "fact:switching_event"
+      ]
+    },
+    {
+      "id": "E21",
+      "from": [
+        "EV-16"
+      ],
+      "to": "suspect:S-04",
+      "relation": "eliminates_by_conjunction",
+      "requires": [
+        "fact:ballard_window",
+        "fact:switching_event"
+      ]
+    }
+  ],
+  "tier_measurement": {
+    "suspects": 5,
+    "base_dossier_evidence_nodes": 11,
+    "action_gated_evidence_nodes": 6,
+    "total_evidence_nodes": 17,
+    "red_herrings": 3,
+    "minor_suspects": 1,
+    "cross_suspect_corroboration_edges": 2,
+    "spec_v6_band": {
+      "suspects": "5-6",
+      "evidence_nodes": "10-13",
+      "red_herrings": 3,
+      "max_depth": 3,
+      "cross_suspect": 2
+    },
+    "tier_deviations_accepted": [
+      "max_requires_chain_depth"
+    ],
+    "deviation_rationale": "Same finding as Level 01, now confirmed at a second tier. Spec v6.0 bands HARD at depth 3. Any case whose premise must be dismantled before a suspect can be touched will exceed that by a wide margin. The depth column measures a property the tier system does not actually want to constrain."
+  },
+  "investigation_actions": {
+    "budget_rule": "5 authorities for 1-2 detectives, 6 for 3-4, 7 for 5-6. One tighter per band than Level 01, because Level 01's playtest flagged the budget as possibly too generous.",
+    "budget_this_case": {
+      "1": 5,
+      "2": 5,
+      "3": 6,
+      "4": 6,
+      "5": 7,
+      "6": 7
+    },
+    "deck": [
+      {
+        "id": "ACT-01",
+        "label": "Obtain the console 1 alarm acknowledgement log",
+        "yields": "EV-18",
+        "value": "DECISIVE - the alibi break"
+      },
+      {
+        "id": "ACT-02",
+        "label": "Property and credential audit - where was Ballard's card found?",
+        "yields": "EV-11",
+        "value": "DECISIVE - separates credential from person"
+      },
+      {
+        "id": "ACT-03",
+        "label": "Re-interview C. Mbeki about the spare control room key",
+        "yields": "the key was returned in September; nothing",
+        "value": "DEAD END"
+      },
+      {
+        "id": "ACT-04",
+        "label": "Trash rack differential-pressure trace and debris analysis",
+        "yields": "EV-08",
+        "value": "corroborates the keystone"
+      },
+      {
+        "id": "ACT-05",
+        "label": "Second post-mortem on Ballard, independent pathologist",
+        "yields": "confirms that no time of death can be established",
+        "value": "DEAD END"
+      },
+      {
+        "id": "ACT-06",
+        "label": "Financial disclosure - H. Vey and associated entities",
+        "yields": "EV-17",
+        "value": "motive"
+      },
+      {
+        "id": "ACT-07",
+        "label": "As-built schedule amendment record and the RG-0419 decommissioning certificate",
+        "yields": "EV-13",
+        "value": "mechanism + cross-suspect"
+      },
+      {
+        "id": "ACT-08",
+        "label": "Recover the argument - who overheard Sarn and Ballard at 02:25, and what was said",
+        "yields": "the subject of the argument was the piezometer data",
+        "value": "supporting"
+      },
+      {
+        "id": "ACT-09",
+        "label": "Full movement reconciliation for P. Wrenn (RDSI officer)",
+        "yields": "EV-16",
+        "value": "clears a red herring"
+      },
+      {
+        "id": "ACT-10",
+        "label": "Metallurgical examination of the C-14 contact surfaces",
+        "yields": "confirms 11 kV contact; already known",
+        "value": "DEAD END"
+      },
+      {
+        "id": "ACT-11",
+        "label": "Thennick Instrumentation Ltd - corporate and delivery records",
+        "yields": "no delivery of P-7 to P-12 was ever made",
+        "value": "supporting"
+      },
+      {
+        "id": "ACT-12",
+        "label": "Forebay parapet examination - fibre, contact traces, damage",
+        "yields": "storm-washed; nothing recoverable",
+        "value": "DEAD END"
+      }
+    ],
+    "minimum_winning_set": [
+      "ACT-01",
+      "ACT-02",
+      "ACT-09"
+    ],
+    "clean_sweep_set": [
+      "ACT-01",
+      "ACT-02",
+      "ACT-09",
+      "ACT-07",
+      "ACT-06"
+    ],
+    "note": "Minimum 3, clean sweep 5, budget 5-7, deck of 12 with four genuine dead ends. A four-player table has 6 authorities and needs 5 for a clean sweep - one spare, and four ways to waste it."
+  },
+  "case_conference": {
+    "what_it_is": "Level 02's one new mechanic, and the thing this case exists to test. The file is split into five Specialist Files. Only the Case Board is public.",
+    "files": [
+      {
+        "id": "F-1",
+        "name": "CONTROL & OPERATIONS",
+        "holds": "console records, switching detail, operator statements"
+      },
+      {
+        "id": "F-2",
+        "name": "HYDROLOGY & RECOVERY",
+        "holds": "gate operations, reservoir levels, the recovery of Ballard, the intake gallery"
+      },
+      {
+        "id": "F-3",
+        "name": "MECHANICAL & MAINTENANCE",
+        "holds": "permits, plant condition, Okonkwo's record, the wet well"
+      },
+      {
+        "id": "F-4",
+        "name": "SITE SECURITY & PERSONNEL",
+        "holds": "door logs, credentials, property, rosters"
+      },
+      {
+        "id": "F-5",
+        "name": "REGULATOR (RDSI)",
+        "holds": "the instrumentation renewal, the contract, Wrenn's own conduct"
+      }
+    ],
+    "rules": {
+      "sessions": 3,
+      "table_allowance": "Each detective may TABLE one document from their file per Session. A tabled document is read aloud and becomes public forever.",
+      "query": "At any time a detective may QUERY - name a subject or a clock time. Every other detective must answer truthfully whether their file holds anything on it. They need not say what. Tabling it still costs a slot.",
+      "authorities": "Spent from a shared pool, between Sessions only.",
+      "after_session_3": "All files open. The group then has everything and makes its accusation.",
+      "scoring_teeth": "Resolution Sheet steps score double if established on the Case Board before the end of Session 3."
+    },
+    "player_count_mapping": {
+      "1": "Solo: no Conference. Phased release instead, as Level 01. Files open in the order F-2, F-1, F-4, F-3, F-5, one per phase, each gated on a written hypothesis.",
+      "2": "Two detectives, two or three files each, 2 Sessions.",
+      "3": "F-1+F-3 / F-2 / F-4+F-5",
+      "4": "F-1 / F-2 / F-3+F-4 / F-5",
+      "5": "one file each",
+      "6": "one file each; the sixth detective is CASE OFFICER - holds no file, keeps the Board and the Resolution Sheet, and may not table, only query."
+    },
+    "the_experiment": "Does holding a file make a person participate more, or does it make five people read quietly and then recite? Level 01 is the control. If the Conference makes the room louder and the deductions slower, it stays. If it makes the room quieter, it is cut and the source spec's section 8 is wrong."
+  },
+  "ground_truth_timeline": [
+    {
+      "t": "2024-11-18T17:00",
+      "event": "Storm Bettany. Night complement: Sarn, Vey, Ballard, Okonkwo, Wrenn, Mbeki."
+    },
+    {
+      "t": "2024-11-18T19:40",
+      "event": "Landslip severs the access road. Nobody in or out until the following afternoon."
+    },
+    {
+      "t": "2024-11-18T21:04",
+      "event": "Mbeki crosses the footbridge to the downstream powerhouse."
+    },
+    {
+      "t": "2024-11-19T01:30",
+      "event": "Ballard, reconciling storm data, notices piezometers P-7 to P-12 reporting values that do not move with the reservoir."
+    },
+    {
+      "t": "2024-11-19T01:50",
+      "event": "Wrenn enters the control room, leaves at 01:58."
+    },
+    {
+      "t": "2024-11-19T02:10",
+      "event": "Sarn and Ballard go down to the instrument gallery. Junction box JB-7 is empty. The array does not exist."
+    },
+    {
+      "t": "2024-11-19T02:25",
+      "event": "Sarn confronts Vey in the control room. Overheard, and later misread as an argument between Sarn and Ballard. Sarn says he will raise it with Wrenn at first light."
+    },
+    {
+      "t": "2024-11-19T02:31",
+      "event": "Vey opens intake gate 2. A defensible storm operation, and the disposal route."
+    },
+    {
+      "t": "2024-11-19T02:38",
+      "event": "Vey leaves console 1. Alarms begin escalating unacknowledged."
+    },
+    {
+      "t": "2024-11-19T02:45",
+      "event": "Ballard is crossing the crest to the site office for the as-built drawings. Vey puts her over the forebay parapet."
+    },
+    {
+      "t": "2024-11-19T02:50",
+      "event": "Ballard drowns. She is carried through the open gate 2 to trash rack panel 4."
+    },
+    {
+      "t": "2024-11-19T03:04",
+      "event": "Vey returns to console 1."
+    },
+    {
+      "t": "2024-11-19T03:05",
+      "event": "Eleven escalated alarms acknowledged in thirty-eight seconds."
+    },
+    {
+      "t": "2024-11-19T03:12",
+      "event": "Gate 2 closed. The gallery goes dry above the sill. She stays where she is."
+    },
+    {
+      "t": "2024-11-19T04:12",
+      "event": "Peak inflow. A debris mat consolidates on rack panel 4, over the body."
+    },
+    {
+      "t": "2024-11-19T05:40",
+      "event": "Vey tells Sarn that Ballard has walked off site and that F-5 is showing an earth fault at C-14."
+    },
+    {
+      "t": "2024-11-19T05:44",
+      "event": "Vey briefly leaves and re-enters the control room."
+    },
+    {
+      "t": "2024-11-19T05:47",
+      "event": "Cabinet C-14 opened using Ballard's credential, taken from the control room desk."
+    },
+    {
+      "t": "2024-11-19T05:52",
+      "event": "Sarn isolates feeder F-5 and applies his personal LOTO padlock. He does this correctly. The drawing he is working from shows C-14 as single-fed."
+    },
+    {
+      "t": "2024-11-19T06:02",
+      "event": "From console 1, using Ballard's credential, Vey closes the F-3 tie. F-3 is the legacy feeder he certified as decommissioned and was paid to remove."
+    },
+    {
+      "t": "2024-11-19T06:03",
+      "event": "Sarn is killed. Eleven alarms cascade - and this time they are acknowledged immediately."
+    },
+    {
+      "t": "2024-11-19T06:05",
+      "event": "Mbeki crosses back over the footbridge."
+    },
+    {
+      "t": "2024-11-19T06:10",
+      "event": "Mbeki finds Sarn."
+    },
+    {
+      "t": "2024-11-19T07:25",
+      "event": "Ballard found at trash rack panel 4, beneath consolidated debris."
+    }
+  ],
+  "solution_shape": {
+    "one_line": "The log is honest. It says her card did it. Her card was in a desk drawer and she was in the water.",
+    "keystone_fact": "fact:ballard_window",
+    "culprit": "S-01",
+    "the_inversion": "Level 01 opened with no crime and found one. Level 02 opens with a crime already solved and has to prove the convicted woman was the second victim. The work is exoneration before accusation.",
+    "the_killers_mistake": "He needed twenty-six minutes away from a console that writes down, every ninety seconds, whether anybody is sitting at it."
+  }
+}
