@@ -1,8 +1,7 @@
 // The tactile moment: breaking a seal.
 
 import { h, icon } from './util.js';
-
-const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+import { motionReduced as reducedMotion } from './settings.js';
 
 // A sealed envelope the table has to open on purpose. Resolves once opened.
 export function openEnvelope({ kicker = 'Sealed', label, sub, tone = '', button = 'Break the seal' }) {

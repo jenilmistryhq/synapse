@@ -2,13 +2,15 @@
 
 import { h, icon, fmtClock, toast, modal, confirmModal, plural, append, clear, store } from './util.js';
 import { chunkNodes, pageNode } from './docs.js';
-import { saveState, clearState, wrongCount, markSolutionSeen } from './state.js';
+import { saveState, clearState, wrongCount, markSolutionSeen, hintsTaken } from './state.js';
 import { submitScore, MIN_TIME } from './leaderboard.js';
 import { checkName, cleanName } from './profanity.js';
 import { nativeShare, downloadCard, resultUrl, shareText } from './share.js';
 
 const NAME_KEY = 'synapse:name';
 import { openEnvelope } from './fx.js';
+import { motionReduced } from './settings.js';
+import { portrait } from './people.js';
 
 const optionOf = (m, id) => m.accusation.options.find(o => o.id === id);
 
@@ -32,7 +34,7 @@ export function mountSign(root, m, st, { go }) {
     go(`#/play/${m.id}`);
   };
 
-  root.replaceChildren(h('div', { class: 'stage sign' }, h('div', { class: 'stage-inner narrow' },
+  root.replaceChildren(h('main', { class: 'scene sign' }, h('div', { class: 'stage-inner narrow' },
     h('div', { class: 'kicker' }, `Case ${m.number} · ${m.title}`),
     h('h1', { class: 'display' }, 'The review is closed.'),
     h('p', { class: 'lead' }, line),
@@ -59,7 +61,7 @@ export function mountReveal(root, m, st, { go }) {
   const steps = m.reveal.steps;
   const chunks = m._chunks;
   const count = steps.length + 1;
-  const stage = h('div', { class: 'stage reveal' });
+  const stage = h('main', { class: 'scene reveal' });
   root.replaceChildren(stage);
 
   const save = () => saveState(st);
@@ -122,7 +124,7 @@ export function mountReveal(root, m, st, { go }) {
         h('div', { class: 'kicker' }, `Your sheet · ${m.persons.label}`),
         h('div', { class: 'rv-persons' }, m.persons.list.map(p => {
           const r = st.sheet.persons[p.id];
-          return h('div', { class: 'rv-person' }, h('b', {}, p.name), h('span', { class: `status-pill s-${r.status.toLowerCase()}` }, r.status), cites(r.cites));
+          return h('div', { class: 'rv-person' }, portrait(m, p, 'sm'), h('b', {}, p.name), h('span', { class: `status-pill s-${r.status.toLowerCase()}` }, r.status), cites(r.cites));
         })),
       ];
     }
@@ -223,6 +225,8 @@ export function computeScore(m, st) {
   lines.push({ label: sc.cleanSweep.label, pts: sweep ? sc.cleanSweep.points : 0 });
   const unspent = st.budget - st.spent.length;
   lines.push({ label: `${sc.unspent.label} x${unspent}`, pts: unspent * sc.unspent.points });
+  const hints = hintsTaken(m, st);
+  if (hints.levels) lines.push({ label: `Advice from the Unit x${hints.levels}`, pts: -hints.cost });
   const total = lines.reduce((a, l) => a + l.pts, 0);
   const band = sc.bands.find(b => total >= b.min) || sc.bands[sc.bands.length - 1];
   return { lines, total, band, correct };
@@ -314,7 +318,7 @@ export function mountScore(root, m, st, { go }) {
   }
   drawPost();
 
-  append(clear(root), h('div', { class: 'stage score' }, h('div', { class: 'stage-inner' },
+  append(clear(root), h('main', { class: 'scene score' }, h('div', { class: 'stage-inner' },
     h('div', { class: 'kicker' }, `Case ${m.number} · ${m.title} · Scored`),
     h('div', { class: 'score-hero' },
       h('div', {}, totalEl, h('div', { class: 'score-l' }, 'points')),
@@ -339,13 +343,14 @@ export function mountScore(root, m, st, { go }) {
           h('ol', {}, m.debrief.map(q => h('li', {}, q)))))),
     h('div', { class: 'score-actions' },
       h('a', { class: 'btn', href: `#/leaderboard/${m.id}` }, icon('trophy'), 'Leaderboard'),
+      m.replay ? h('a', { class: 'btn primary', href: `#/replay/${m.id}` }, icon('eye'), 'Replay the file') : null,
       h('button', { class: 'btn', onclick: readAll }, 'Read Envelope S-1 in full'),
       h('button', { class: 'btn ghost', onclick: () => copyText(summary(), 'Summary copied') }, 'Copy notes'),
       h('button', { class: 'btn ghost', onclick: replay }, 'Play again'),
       h('a', { class: 'btn ghost', href: '#/' }, icon('home'), 'All cases')))));
 
   // Count the total up, unless the viewer prefers no motion.
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduce = motionReduced();
   if (reduce) totalEl.textContent = sc.total;
   else {
     const t0 = performance.now(), dur = 1100;

@@ -18,7 +18,7 @@ export function renderLeaderboard(app, catalog, caseId, go) {
     cases.map(c => h('option', { value: c.id }, `Case ${c.number} · ${c.title}`)));
   picker.value = current.id;
 
-  append(clear(app), h('div', { class: 'page wide' },
+  append(clear(app), h('main', { class: 'page wide' },
     h('a', { class: 'back', href: '#/' }, icon('left'), 'All cases'),
     h('div', { class: 'kicker' }, isGlobal() ? 'Global leaderboard' : 'Leaderboard · this device'),
     h('h1', { class: 'display sm' }, 'Best reviews'),
@@ -51,12 +51,12 @@ export function renderResult(app, catalog, data) {
   const r = decodeResult(data || '');
   const meta = r && catalog.cases.find(c => c.id === r.caseId);
   if (!r || !meta) {
-    append(clear(app), h('div', { class: 'page' },
+    append(clear(app), h('main', { class: 'page' },
       h('h1', { class: 'display sm' }, 'That result link is broken.'),
       h('a', { class: 'btn', href: '#/' }, 'See all cases')));
     return () => {};
   }
-  append(clear(app), h('div', { class: 'page result-page' },
+  append(clear(app), h('main', { class: 'page result-page' },
     h('a', { class: 'back', href: '#/' }, icon('left'), 'All cases'),
     h('div', { class: 'result-card' },
       h('div', { class: 'kicker' }, `Project Synapse · Case ${meta.number} · ${meta.tier}`),

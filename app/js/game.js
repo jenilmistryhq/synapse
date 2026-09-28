@@ -3,13 +3,20 @@
 // the clipboard and notebook dock beside it so you can write while you read.
 
 import { h, $$, icon, fmtClock, debounce, toast, modal, confirmModal, calc, plural } from './util.js';
-import { renderPages, rangeToOffsets, wrapRange } from './docs.js';
+import { renderPages, rangeToOffsets, wrapRange, pageNode } from './docs.js';
 import {
   saveState, clearState, timerNow, timerStart, timerStop, timerRebase, timerRunning,
-  authoritiesOpen, remaining, fileStillSplit, isPhased,
+  authoritiesOpen, remaining, fileStillSplit, isPhased, hintCosts, hintsTaken,
 } from './state.js';
 import { openEnvelope } from './fx.js';
 import { sfx, soundOn, setSound } from './sfx.js';
+import { runTour } from './tour.js';
+import { openSettings, getSettings, setSetting } from './settings.js';
+import { portrait, fullName, surname, mentions } from './people.js';
+import { visibleExhibits, evidenceBag } from './exhibits.js';
+import { tapeSupported, hasTranscript, createTape } from './tape.js';
+import { openBoard, boardSummary } from './board.js';
+import { mountGuide } from './guide.js';
 
 const ZOOMS = [0.8, 0.9, 1, 1.1, 1.25, 1.4, 1.6];
 const tilt = id => { let x = 0; for (const ch of id) x = (x * 31 + ch.charCodeAt(0)) % 997; return ((x % 7) - 3) * 0.45; };
@@ -32,7 +39,7 @@ export function mountGame(root, m, st, { go }) {
   const top = h('header', { class: 'dk-top' });
   const surface = h('main', { class: 'dk-surface', 'aria-label': 'Desk' });
   const reader = h('section', { class: 'rd', hidden: true, 'aria-label': 'Document reader' });
-  const drawer = h('aside', { class: 'dw', hidden: true });
+  const drawer = h('aside', { class: 'dw', hidden: true, 'aria-label': 'Clipboard and notebook' });
   const citeList = h('datalist', { id: 'cite-list' });
   const game = h('div', { class: 'dk' }, top, surface, reader, drawer, citeList);
   root.replaceChildren(game);
@@ -70,6 +77,7 @@ export function mountGame(root, m, st, { go }) {
         h('span', { class: `tries ${tries === 1 ? 'final' : ''}`, title: 'Accusations left. The third is final.' }, icon('accuse'), h('b', {}, tries === 1 ? 'Final' : tries))),
       h('div', { class: 'dk-actions' },
         h('button', { class: 'iconbtn', title: soundOn() ? 'Mute sounds' : 'Turn sounds on', 'aria-label': 'Toggle sound', onclick: () => { setSound(!soundOn()); renderTop(); if (soundOn()) sfx.tick(); } }, icon(soundOn() ? 'sound' : 'mute')),
+        h('button', { class: 'iconbtn', title: 'Settings', 'aria-label': 'Settings', onclick: () => openSettings({ onChange: () => { renderTop(); if (ui.reader) $$('.rd-paper', reader).forEach(p => { p.style.zoom = getSettings().docZoom; }); } }) }, icon('gear')),
         h('button', { class: 'iconbtn', title: 'Rules and help', 'aria-label': 'Rules and help', onclick: showHelp }, icon('help')),
         h('button', { class: 'stamp-btn', onclick: accuse, title: 'Make an accusation' }, h('span', {}, 'Accuse'))));
   }
@@ -103,6 +111,7 @@ export function mountGame(root, m, st, { go }) {
       style: { '--tilt': `${tilt(id)}deg` },
       onclick: () => openReader(id),
       title: d.title,
+      dataset: { doc: id },
     },
     h('span', { class: 'folder-tab' }, refOf(id)),
     h('span', { class: 'folder-body' },
@@ -165,8 +174,101 @@ export function mountGame(root, m, st, { go }) {
       }));
   }
 
+  /* --- persons of interest ---------------------------------------------------- */
+  const statusCls = s => `s-${s.toLowerCase()}`;
+  function personCard(p) {
+    const rec = st.sheet.persons[p.id];
+    const note = ((st.people || {})[p.id] || {}).note;
+    return h('button', {
+      class: `poi-card ${statusCls(rec.status)}`,
+      style: { '--tilt': `${tilt('p' + p.id) * 1.3}deg` },
+      onclick: () => openPerson(p),
+      title: `${fullName(p)} · ${p.role}`,
+      dataset: { person: p.id },
+    },
+    h('span', { class: 'poi-pin' }),
+    portrait(m, p),
+    h('span', { class: 'poi-name' }, surname(p)),
+    h('span', { class: 'poi-role' }, p.role),
+    rec.status !== 'Open' ? h('span', { class: 'poi-stamp' }, rec.status) : null,
+    note && note.trim() ? h('span', { class: 'poi-noted', title: 'You have a note on this person' }, icon('notes')) : null);
+  }
+
+  // A file card for one person: their finding (the same one as on the
+  // Resolution Sheet), where the readable documents mention them, and a note.
+  function openPerson(p) {
+    sfx.paper();
+    st.people ||= {};
+    const mine = st.people[p.id] ||= { note: '' };
+    const rec = st.sheet.persons[p.id];
+    const found = mentions(m, reg, available(), p);
+    const sel = h('select', { class: `hand-select ${statusCls(rec.status)}`, 'aria-label': `Finding for ${fullName(p)}`, value: rec.status,
+      onchange: e => { rec.status = e.target.value; e.target.className = `hand-select ${statusCls(rec.status)}`; save(); sfx.tick(); renderDesk(); } },
+    m.persons.statuses.map(o => h('option', { value: o }, o)));
+    let close;
+    const docBtn = ({ id, n }) => h('button', { class: 'pc-doc', onclick: () => { close(); openReader(id); } },
+      h('span', { class: 'pc-ref' }, refOf(id)), h('span', { class: 'pc-title' }, reg.get(id).title), h('span', { class: 'pc-n' }, `x${n}`));
+    ({ close } = modal({
+      kicker: `Person of interest · Case ${m.number}`, title: fullName(p), className: 'person-modal',
+      body: h('div', { class: 'pc' },
+        h('div', { class: 'pc-photo' }, portrait(m, p, 'lg'), h('span', { class: 'pc-plate' }, p.role)),
+        h('div', { class: 'pc-body' },
+          h('label', { class: 'pc-field' }, h('span', { class: 'pc-l' }, 'Your finding'), sel),
+          h('p', { class: 'pc-hint' }, 'The same finding as on your Resolution Sheet. Cite the evidence for it there.'),
+          h('div', { class: 'pc-l' }, found.length ? `Named in ${plural(found.length, 'document')} you can read` : 'Not named in anything you can read yet'),
+          found.length ? h('div', { class: 'pc-docs' }, found.map(docBtn)) : null,
+          h('label', { class: 'pc-field' }, h('span', { class: 'pc-l' }, 'Your note'),
+            h('textarea', { class: 'hand', rows: 3, value: mine.note, placeholder: 'Alibi, motive, what does not add up...',
+              oninput: e => { mine.note = e.target.value; save(); } })))),
+      actions: [{ label: 'Back to the desk', kind: 'primary' }],
+      onClose: () => { renderDesk(); refocus(null, `.poi-card[data-person="${CSS.escape(p.id)}"]`); },
+    }));
+  }
+
+  /* --- evidence board ------------------------------------------------------------ */
+  let board = null;
+  function showBoard() {
+    if (board) return;
+    sfx.paper();
+    board = openBoard({ m, st, save, ids: available(), reg, refOf, onOpenDoc: id => openReader(id), behind: game });
+    board.onClose = () => { board = null; renderDesk(); refocus(null, '.board-thumb'); };
+  }
+
+  /* --- exhibits ------------------------------------------------------------------ */
+  function exhibitTray(ids) {
+    const list = visibleExhibits(m, ids);
+    if (!list.length) return null;
+    return h('div', { class: 'tray t-exhibits' }, h('h3', { class: 'tray-h' }, 'Exhibits'),
+      h('div', { class: 'bag-row' }, list.map(x => h('button', {
+        class: 'bag-btn', style: { '--tilt': `${tilt('x' + x.ref) * 1.6}deg` },
+        onclick: () => openExhibit(x), title: `${x.ref} · ${x.name}`, dataset: { ex: x.ref },
+      }, evidenceBag(x)))));
+  }
+
+  function openExhibit(x) {
+    sfx.paper();
+    const src = refOf(x.source);
+    const line = `${x.ref}: ${x.name} - ${x.missing ? 'not recovered. ' : ''}${x.found}${x.time ? `, ${x.time}` : ''} (${x.source})`;
+    modal({
+      kicker: `Exhibit · recorded in ${src}`, title: x.name, className: 'exhibit-modal',
+      body: h('div', { class: 'xc' }, evidenceBag(x, { big: true }),
+        h('dl', { class: 'xc-facts' },
+          h('dt', {}, 'Reference'), h('dd', {}, x.ref),
+          h('dt', {}, x.missing ? 'Searched for' : 'Found'), h('dd', {}, x.found),
+          x.time ? [h('dt', {}, 'Time'), h('dd', { class: 'mono' }, x.time)] : null,
+          h('dt', {}, 'Cite as'), h('dd', { class: 'mono' }, x.source))),
+      actions: [
+        { label: 'Copy to notebook', icon: 'quote', close: false, onClick: b => {
+          st.notes = st.notes.trim() ? `${st.notes.replace(/\s*$/, '')}\n${line}` : line;
+          save(); sfx.tick(); toast('Copied to your notebook'); b.disabled = true;
+        } },
+        { label: `Read ${src}`, kind: 'primary', icon: 'file', onClick: () => { setTimeout(() => openReader(x.source), 0); } },
+      ],
+    });
+  }
+
   function tool(cls, title, sub, onclick, inner) {
-    return h('button', { class: `tool ${cls}`, onclick, title }, inner, h('span', { class: 'tool-label' }, title), sub ? h('span', { class: 'tool-sub' }, sub) : null);
+    return h('button', { class: `tool ${cls}`, onclick, title: title.replace(/\u00ad/g, ''), dataset: { tool: cls } }, inner, h('span', { class: 'tool-label' }, title), sub ? h('span', { class: 'tool-sub' }, sub) : null);
   }
 
   function renderDesk() {
@@ -185,8 +287,11 @@ export function mountGame(root, m, st, { go }) {
     surface.replaceChildren(h('div', { class: 'dk-grid' },
       h('section', { class: 'dk-files' },
         h('div', { class: 'plate' }, 'Case file', h('span', {}, `${plural(ids.length, 'document')}${unread ? ` · ${unread} new` : ''}`)),
+        h('div', { class: 'tray t-poi' }, h('h3', { class: 'tray-h' }, 'Persons of interest'),
+          h('div', { class: 'poi-row' }, m.persons.list.map(personCard))),
         [...trays].filter(([k]) => k !== 'slip' && k !== 'reconsider').map(([k, t]) => h('div', { class: `tray t-${k}` },
           h('h3', { class: 'tray-h' }, t.label), h('div', { class: 'folders' }, t.ids.map(folder)))),
+        exhibitTray(ids),
         phased && st.phase < m.phases.length ? h('div', { class: 'tray t-locked' }, h('h3', { class: 'tray-h' }, 'Still sealed'), h('div', { class: 'folders' }, lockedBundles())) : null,
         ['slip', 'reconsider'].filter(k => trays.has(k)).map(k => h('div', { class: `tray t-${k}` },
           h('h3', { class: 'tray-h' }, trays.get(k).label), h('div', { class: 'folders' }, trays.get(k).ids.map(folder))))),
@@ -197,16 +302,35 @@ export function mountGame(root, m, st, { go }) {
           !gate.ok && remaining(st) > 0 ? h('p', { class: 'env-gate' }, icon('lock'), gate.why) : null,
           envelopes(),
           h('p', { class: 'env-advice' }, m.advice)),
+        h('button', { class: 'board-thumb', onclick: showBoard, dataset: { tool: 't-board' }, title: 'Pin the case up and tie it together with string' },
+          h('span', { class: 'bt-felt', 'aria-hidden': 'true' }, h('i'), h('i'), h('i'), h('i'), h('b')),
+          h('span', { class: 'bt-text' }, h('b', {}, 'Evidence board'), h('span', {}, boardSummary(st)))),
         h('div', { class: 'tools' },
           tool('t-clip', 'Resolution Sheet', `${done} of ${st.sheet.steps.length} steps written`, () => openDrawer('sheet'), h('span', { class: 'art clipboard' }, h('i'), h('i'), h('i'))),
           tool('t-note', 'Notebook', st.notes.trim() ? plural(st.notes.trim().split('\n').length, 'line') : 'Empty', () => openDrawer('notes'), h('span', { class: 'art notebook' })),
           tool('t-calc', 'Calculator', null, openCalculator, h('span', { class: 'art calculator' }, h('i'), h('i'), h('i'), h('i'), h('i'), h('i'))),
-          tool('t-bell', 'Breakthrough', st.breakthroughs.length ? plural(st.breakthroughs.length, 'logged', 'logged') : 'Ring it', logBreakthrough, h('span', { class: 'art bell' }))))));
+          tool('t-phone', 'Ask the Unit', hintsTaken(m, st).levels ? `${hintsTaken(m, st).cost} points spent` : 'Hints cost points', openHints, h('span', { class: 'art phone' }, h('i'))),
+          tool('t-bell', 'Break\u00adthrough', st.breakthroughs.length ? plural(st.breakthroughs.length, 'logged', 'logged') : 'Ring it', logBreakthrough, h('span', { class: 'art bell' }))))));
   }
 
   /* --- reader ------------------------------------------------------------------- */
+  // Keyboard focus: into the reader or drawer when it opens, back to where you
+  // were when it closes. Whatever is covered is made inert so Tab cannot reach it.
+  let readerReturn = null, drawerReturn = null;
+  const syncInert = () => { surface.inert = !!(ui.reader || ui.drawer); reader.inert = !!(ui.drawer && innerWidth <= 900); };
+  // The desk re-renders often, so the element focus came from may have been
+  // replaced. Its twin is found again by its data key (folder, tool, person, exhibit).
+  const twinOf = el => {
+    const k = el && el.dataset && ['doc', 'tool', 'person', 'ex'].find(x => el.dataset[x] != null);
+    return k ? document.querySelector(`${el.tagName.toLowerCase()}[data-${k}="${CSS.escape(el.dataset[k])}"]`) : null;
+  };
+  const refocus = (el, fallbackSel) => {
+    const target = el && el.isConnected ? el : (twinOf(el) || (fallbackSel && document.querySelector(fallbackSel)));
+    if (target && target.focus) target.focus();
+  };
   function openReader(id, col = null) {
     if (!available().includes(id)) return;
+    if (reader.hidden) { readerReturn = document.activeElement; readerReturnDoc = id; }
     const fresh = !st.read[id];
     st.read[id] = true;
     if (col === 1 && ui.compare !== null) ui.compare = id;
@@ -215,13 +339,29 @@ export function mountGame(root, m, st, { go }) {
     save(); sfx.paper();
     renderReader(true);
     if (fresh) renderDesk();
+    syncInert();
   }
+  let readerReturnDoc = null;
 
   function closeReader() {
+    stopTapes();
     ui.reader = null; ui.compare = null; ui.active = 0;
     reader.hidden = true; hideSel(); sfx.close();
     game.classList.remove('reading');
     renderDesk();
+    syncInert();
+    refocus(readerReturn, readerReturnDoc && `.folder[data-doc="${CSS.escape(readerReturnDoc)}"]`);
+  }
+
+  const tapes = new Map();
+  const stopTapes = () => { tapes.forEach(t => t.destroy()); tapes.clear(); };
+  function toggleTape(idx, col, paper, id) {
+    if (tapes.has(idx)) { tapes.get(idx).destroy(); tapes.delete(idx); col.classList.remove('taping'); return; }
+    const t = createTape(paper, { voices: m.voices || {}, label: `Interview tape · ${refOf(id)}`, short: refOf(id) });
+    tapes.set(idx, t);
+    col.classList.add('taping');
+    col.insertBefore(t.el, col.querySelector('.rd-scroll'));
+    t.el.querySelector('.tape-play').focus();
   }
 
   function column(id, idx) {
@@ -231,12 +371,16 @@ export function mountGame(root, m, st, { go }) {
     const pick = h('select', { class: 'rd-pick', 'aria-label': 'Change document', onchange: e => { ui.active = idx; openReader(e.target.value, idx); } },
       order.map(o => h('option', { value: o }, `${refOf(o)} · ${reg.get(o).title}`)));
     pick.value = id;
+    const paper = h('div', { class: 'paper rd-paper', style: { zoom: getSettings().docZoom } }, renderPages(m, d, st.highlights));
+    const tapeBtn = tapeSupported() && hasTranscript(paper)
+      ? h('button', { class: 'btn ghost sm tape-btn', title: 'Hear this interview read aloud by your device', onclick: () => { toggleTape(idx, col, paper, id); tapeBtn.classList.toggle('on', tapes.has(idx)); } }, icon('tape'), h('span', { class: 'blbl' }, 'Play tape'))
+      : null;
     const col = h('div', { class: `rd-col ${ui.compare !== null && ui.active === idx ? 'active' : ''}`, dataset: { col: String(idx) } },
       h('div', { class: 'rd-col-head' },
-        h('span', { class: 'rd-ref' }, refOf(id)), pick,
+        h('span', { class: 'rd-ref' }, refOf(id)), pick, tapeBtn,
         ui.compare !== null ? h('button', { class: 'iconbtn sm', title: 'Close this side', 'aria-label': 'Close this side', onclick: () => { if (idx === 0) { ui.reader = ui.compare; } ui.compare = null; ui.active = 0; renderReader(); } }, icon('close')) : null),
       h('div', { class: 'rd-scroll' },
-        h('div', { class: 'paper rd-paper', style: { zoom: st.ui.zoom } }, renderPages(m, d, st.highlights)),
+        paper,
         h('div', { class: 'rd-foot' },
           k > 0 ? h('button', { class: 'btn ghost sm', onclick: () => { ui.active = idx; openReader(order[k - 1], idx); } }, icon('left'), refOf(order[k - 1])) : h('span'),
           k < order.length - 1 ? h('button', { class: 'btn ghost sm', onclick: () => { ui.active = idx; openReader(order[k + 1], idx); } }, refOf(order[k + 1]), icon('right')) : h('span'))));
@@ -246,6 +390,7 @@ export function mountGame(root, m, st, { go }) {
 
   function renderReader(animate = false) {
     if (!ui.reader) return;
+    stopTapes();
     const d = reg.get(ui.reader);
     reader.hidden = false;
     game.classList.add('reading');
@@ -258,12 +403,15 @@ export function mountGame(root, m, st, { go }) {
         h('div', { class: 'rd-tools' },
           h('button', { class: 'iconbtn sm', title: 'Smaller text', 'aria-label': 'Smaller text', onclick: () => zoom(-1) }, icon('zoomOut')),
           h('button', { class: 'iconbtn sm', title: 'Larger text', 'aria-label': 'Larger text', onclick: () => zoom(1) }, icon('zoomIn')),
+          h('button', { class: 'btn ghost sm hl-clear', hidden: true, onclick: clearHighlights, title: 'Remove every highlight on the open document(s)' }, icon('eraser'), h('span', {}, 'Clear')),
           ui.compare === null ? h('button', { class: 'btn ghost sm wide-only', onclick: startCompare, title: 'Put a second document beside this one' }, icon('split'), 'Compare') : null,
           h('button', { class: `btn sm ${ui.drawer === 'sheet' ? 'primary' : 'ghost'}`, onclick: () => toggleDrawer('sheet') }, icon('sheet'), h('span', { class: 'blbl' }, 'Sheet')),
           h('button', { class: `btn sm ${ui.drawer === 'notes' ? 'primary' : 'ghost'}`, onclick: () => toggleDrawer('notes') }, icon('notes'), h('span', { class: 'blbl' }, 'Notes')))),
       h('div', { class: `rd-cols ${cols.length > 1 ? 'two' : ''} ${animate ? 'enter' : ''}` }, cols),
       h('p', { class: 'rd-hint' }, 'Select text to highlight it or quote it into your notebook. Esc returns to the desk.'));
     reader.querySelectorAll('.rd-scroll').forEach(s => { s.scrollTop = 0; });
+    if (animate) { const back = reader.querySelector('.rd-bar .btn'); if (back && !reader.contains(document.activeElement)) back.focus(); }
+    renderHlCount();
   }
 
   function startCompare() {
@@ -275,9 +423,10 @@ export function mountGame(root, m, st, { go }) {
   }
 
   function zoom(dir) {
-    const i = ZOOMS.indexOf(st.ui.zoom);
-    st.ui.zoom = ZOOMS[Math.max(0, Math.min(ZOOMS.length - 1, (i < 0 ? 2 : i) + dir))];
-    $$('.rd-paper', reader).forEach(p => { p.style.zoom = st.ui.zoom; });
+    const i = ZOOMS.indexOf(getSettings().docZoom);
+    const z = ZOOMS[Math.max(0, Math.min(ZOOMS.length - 1, (i < 0 ? 2 : i) + dir))];
+    setSetting('docZoom', z);
+    $$('.rd-paper', reader).forEach(p => { p.style.zoom = z; });
     save();
   }
 
@@ -296,6 +445,32 @@ export function mountGame(root, m, st, { go }) {
   }
   const pageOf = node => { const el = node && (node.nodeType === 1 ? node : node.parentElement); return el && el.closest('.doc[data-key]'); };
 
+  // Highlights are kept per page as sorted, non-overlapping ranges, so they
+  // behave like a real highlighter: marking over a mark merges, and erasing
+  // removes exactly the part you select.
+  const hlId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+  function normalise(list) {
+    const out = [];
+    for (const r of [...list].sort((a, b) => a.s - b.s)) {
+      const last = out[out.length - 1];
+      if (last && r.s <= last.e) last.e = Math.max(last.e, r.e);
+      else if (r.e > r.s) out.push({ s: r.s, e: r.e, id: r.id || hlId() });
+    }
+    return out;
+  }
+  for (const k of Object.keys(st.highlights)) st.highlights[k] = normalise(st.highlights[k] || []);
+
+  function repaint(key) {
+    $$(`.doc[data-key="${CSS.escape(key)}"]`, reader).forEach(pg => {
+      $$('mark.hl', pg).forEach(mk => { const p = mk.parentNode; mk.replaceWith(...mk.childNodes); p.normalize(); });
+      for (const r of st.highlights[key] || []) wrapRange(pg, r.s, r.e, r.id);
+    });
+    renderHlCount();
+    refreshTimeline();
+  }
+  const overlaps = (key, s, e) => (st.highlights[key] || []).filter(r => r.s < e && r.e > s);
+  const covered = (key, s, e) => (st.highlights[key] || []).some(r => r.s <= s && r.e >= e);
+
   on(document, 'selectionchange', debounce(() => {
     const sel = getSelection();
     if (!sel.rangeCount || sel.isCollapsed) { if (selCtx && selCtx.type === 'sel') hideSel(); return; }
@@ -306,18 +481,36 @@ export function mountGame(root, m, st, { go }) {
     const text = sel.toString().replace(/\s+/g, ' ').trim();
     if (!offsets || !text) return hideSel();
     selCtx = { type: 'sel', key: pg.dataset.key, doc: pg.dataset.doc, offsets, text };
+    const hit = overlaps(selCtx.key, offsets.s, offsets.e).length > 0;
+    const keep = e => e.preventDefault();
     selBar.replaceChildren(
-      h('button', { onmousedown: e => e.preventDefault(), onclick: addHighlight }, icon('marker'), 'Highlight'),
-      h('button', { onmousedown: e => e.preventDefault(), onclick: quoteSelection }, icon('quote'), 'Quote to notebook'));
+      covered(selCtx.key, offsets.s, offsets.e) ? null : h('button', { onmousedown: keep, onclick: addHighlight }, icon('marker'), 'Highlight'),
+      hit ? h('button', { onmousedown: keep, onclick: eraseSelection }, icon('eraser'), 'Remove highlight') : null,
+      h('button', { onmousedown: keep, onclick: quoteSelection }, icon('quote'), 'Quote to notebook'));
     placeBar(range.getBoundingClientRect());
   }, 120));
 
   function addHighlight() {
     if (!selCtx) return;
     const { key, offsets } = selCtx;
-    const id = Date.now().toString(36);
-    (st.highlights[key] ||= []).push({ s: offsets.s, e: offsets.e, id });
-    $$(`.doc[data-key="${CSS.escape(key)}"]`, reader).forEach(pg => wrapRange(pg, offsets.s, offsets.e, id));
+    st.highlights[key] = normalise([...(st.highlights[key] || []), { s: offsets.s, e: offsets.e, id: hlId() }]);
+    repaint(key);
+    getSelection().removeAllRanges();
+    hideSel(); save(); sfx.tick();
+  }
+
+  // Erase only the selected span, keeping any highlighted text either side of it.
+  function eraseSelection() {
+    if (!selCtx) return;
+    const { key, offsets: { s, e } } = selCtx;
+    const next = [];
+    for (const r of st.highlights[key] || []) {
+      if (r.e <= s || r.s >= e) { next.push(r); continue; }
+      if (r.s < s) next.push({ s: r.s, e: s, id: hlId() });
+      if (r.e > e) next.push({ s: e, e: r.e, id: hlId() });
+    }
+    st.highlights[key] = normalise(next);
+    repaint(key);
     getSelection().removeAllRanges();
     hideSel(); save(); sfx.tick();
   }
@@ -329,16 +522,17 @@ export function mountGame(root, m, st, { go }) {
     const ta = drawer.querySelector('.notes-ta');
     if (ta) ta.value = st.notes;
     getSelection().removeAllRanges();
-    hideSel(); save();
+    hideSel(); save(); refreshTimeline();
     toast('Quoted into the notebook');
   }
 
+  // Clicking (or tapping) a highlight offers to remove that whole highlight.
   on(reader, 'click', e => {
     const mark = e.target.closest('mark.hl');
     if (!mark || !getSelection().isCollapsed) return;
     const pg = pageOf(mark);
     selCtx = { type: 'mark', key: pg.dataset.key, id: mark.dataset.hl };
-    selBar.replaceChildren(h('button', { onclick: removeHighlight }, icon('trash'), 'Remove highlight'));
+    selBar.replaceChildren(h('button', { onclick: removeHighlight }, icon('eraser'), 'Remove highlight'));
     placeBar(mark.getBoundingClientRect());
   });
   on(document, 'mousedown', e => { if (!selBar.contains(e.target) && selCtx && selCtx.type === 'mark' && !e.target.closest('mark.hl')) hideSel(); });
@@ -348,8 +542,27 @@ export function mountGame(root, m, st, { go }) {
   function removeHighlight() {
     const { key, id } = selCtx;
     st.highlights[key] = (st.highlights[key] || []).filter(x => x.id !== id);
-    $$(`mark.hl[data-hl="${CSS.escape(id)}"]`, reader).forEach(mk => { const p = mk.parentNode; mk.replaceWith(...mk.childNodes); p.normalize(); });
-    hideSel(); save();
+    repaint(key);
+    hideSel(); save(); sfx.tick();
+  }
+
+  // Every highlight on the documents currently open in the reader.
+  const openKeys = () => [ui.reader, ui.compare].filter(Boolean).flatMap(id => reg.get(id).pages.map((_, i) => `${id}#${i}`));
+  const hlCount = () => openKeys().reduce((a, k) => a + (st.highlights[k] || []).length, 0);
+  function renderHlCount() {
+    const btn = reader.querySelector('.hl-clear');
+    if (!btn) return;
+    const n = hlCount();
+    btn.hidden = !n;
+    btn.lastChild.textContent = `Clear ${n}`;
+  }
+  async function clearHighlights() {
+    const n = hlCount();
+    if (!n) return;
+    const ok = await confirmModal({ title: `Clear ${plural(n, 'highlight')}?`, body: h('p', {}, 'This removes every highlight on the document(s) open in the reader.'), confirm: 'Clear highlights' });
+    if (!ok) return;
+    for (const k of openKeys()) { delete st.highlights[k]; repaint(k); }
+    save(); toast('Highlights cleared');
   }
 
   /* --- phases --------------------------------------------------------------------- */
@@ -364,6 +577,7 @@ export function mountGame(root, m, st, { go }) {
 
   /* --- drawers: clipboard and notebook ---------------------------------------------- */
   function openDrawer(which) {
+    if (!drawer.contains(document.activeElement)) drawerReturn = document.activeElement;
     ui.drawer = which;
     game.classList.add('drawer-open');
     drawer.hidden = false;
@@ -375,14 +589,20 @@ export function mountGame(root, m, st, { go }) {
         h('button', { class: 'iconbtn sm', 'aria-label': 'Put it down', title: 'Put it down (Esc)', onclick: closeDrawer }, icon('close'))),
       h('div', { class: 'dw-body' }, which === 'sheet' ? renderSheet() : renderNotes()));
     if (ui.reader) renderReader();
+    syncInert();
+    const first = drawer.querySelector('textarea, input, select, button:not(.iconbtn)');
+    if (first) first.focus({ preventScroll: true });
   }
   function closeDrawer() {
+    const was = ui.drawer;
     ui.drawer = null;
     drawer.hidden = true;
     game.classList.remove('drawer-open');
     sfx.close();
     renderDesk();
     if (ui.reader) renderReader();
+    syncInert();
+    refocus(drawerReturn, ui.reader ? '.rd-bar .btn' : `.tool[data-tool="${was === 'sheet' ? 't-clip' : 't-note'}"]`);
   }
   const toggleDrawer = which => (ui.drawer === which ? closeDrawer() : openDrawer(which));
 
@@ -390,10 +610,28 @@ export function mountGame(root, m, st, { go }) {
     if (step.early === null && step.text.trim() && step.cites.length) step.early = fileStillSplit(m, st);
   }
 
+  // "B-1", "D-1 §2", "SLIP 3" or "Authority 03" -> the readable document it names, if any.
+  function citeTarget(c) {
+    const ids = available();
+    const t = c.trim().toUpperCase().replace(/^AUTHORITY\s*/, 'SLIP ');
+    const slip = /^SLIP\s*0*(\d{1,2})\b/.exec(t);
+    if (slip) { const id = `SLIP ${slip[1].padStart(2, '0')}`; return ids.includes(id) ? id : null; }
+    const tok = t.split(/[\s§(,;:]/)[0];
+    return ids.find(id => id.toUpperCase() === tok) || null;
+  }
+  function openCited(id) {
+    if (innerWidth <= 900 && ui.drawer) closeDrawer(); // on a phone the sheet covers the reader
+    openReader(id);
+  }
+
   function citeEditor(list, onChange) {
     const chips = h('div', { class: 'chips' });
-    const draw = () => chips.replaceChildren(...list.map((c, i) => h('span', { class: 'chip' }, c,
-      h('button', { class: 'chip-x', 'aria-label': `Remove ${c}`, onclick: () => { list.splice(i, 1); draw(); onChange(); } }, icon('close')))));
+    const draw = () => chips.replaceChildren(...list.map((c, i) => {
+      const id = citeTarget(c);
+      return h('span', { class: `chip ${id ? 'linked' : 'unknown'}`, title: id ? `Open ${refOf(id)}` : 'Not a document you can read in this file' },
+        id ? h('button', { class: 'chip-go', onclick: () => openCited(id) }, c) : h('span', {}, c),
+        h('button', { class: 'chip-x', 'aria-label': `Remove ${c}`, onclick: () => { list.splice(i, 1); draw(); onChange(); } }, icon('close')));
+    }));
     const input = h('input', { class: 'cite-in', list: 'cite-list', placeholder: 'Cite, e.g. B-1', 'aria-label': 'Add a citation' });
     const add = () => {
       const v = input.value.trim();
@@ -410,6 +648,18 @@ export function mountGame(root, m, st, { go }) {
   function renderSheet() {
     const s = st.sheet;
     const dbl = !!m.reveal.double;
+    const meter = h('div', { class: 'sheet-meter' });
+    function drawMeter() {
+      const cited = s.steps.filter(x => x.text.trim() && x.cites.length).length;
+      const found = m.persons.list.filter(p => s.persons[p.id].status !== 'Open').length;
+      meter.replaceChildren(
+        h('div', { class: 'sm-steps', role: 'img', 'aria-label': `${cited} of ${s.steps.length} steps written and cited` },
+          s.steps.map((x, i) => h('span', { class: `pip ${x.text.trim() && x.cites.length ? 'ok' : x.text.trim() ? 'half' : ''}`, title: `Step ${i + 1}` }))),
+        h('span', { class: 'sm-l' }, h('b', {}, `${cited}/${s.steps.length}`), ' steps cited'),
+        h('span', { class: 'sm-l' }, h('b', {}, `${found}/${m.persons.list.length}`), ' findings'),
+        h('span', { class: `sm-l ${s.motive.trim() ? 'on' : ''}` }, s.motive.trim() ? 'Motive written' : 'No motive yet'));
+    }
+    drawMeter();
     const steps = m._steps.map((q, i) => {
       const step = s.steps[i];
       const mark = h('span', { class: 'tick' });
@@ -417,9 +667,9 @@ export function mountGame(root, m, st, { go }) {
         const ok = step.text.trim() && step.cites.length;
         mark.className = `tick ${ok ? 'ok' : step.text.trim() ? 'half' : ''}`;
         mark.title = ok ? `Written and cited${dbl && step.early ? ` - ${m.scoring.doubleLabel}` : ''}` : step.text.trim() ? 'Needs a citation' : 'Not started';
-        mark.textContent = ok ? (dbl && step.early ? 'x2' : '✓') : '';
+        mark.textContent = ok ? (dbl && step.early ? 'Cited x2' : 'Cited') : step.text.trim() ? 'Cite?' : '';
       };
-      const changed = () => { markEarly(step); refresh(); save(); };
+      const changed = () => { markEarly(step); refresh(); drawMeter(); save(); };
       refresh();
       return h('div', { class: 'form-step' },
         h('div', { class: 'form-q' }, h('span', { class: 'form-n' }, `${i + 1}.`), h('span', {}, q), mark),
@@ -432,31 +682,114 @@ export function mountGame(root, m, st, { go }) {
       h('table', { class: 'form-table' }, m.persons.list.map(p => {
         const rec = s.persons[p.id];
         const sel = h('select', { class: `hand-select s-${rec.status.toLowerCase()}`, 'aria-label': `Finding for ${p.name}`, value: rec.status,
-          onchange: e => { rec.status = e.target.value; e.target.className = `hand-select s-${rec.status.toLowerCase()}`; save(); sfx.tick(); } },
+          onchange: e => { rec.status = e.target.value; e.target.className = `hand-select s-${rec.status.toLowerCase()}`; drawMeter(); save(); sfx.tick(); } },
         m.persons.statuses.map(o => h('option', { value: o }, o)));
-        return h('tr', {}, h('td', {}, h('b', {}, p.name), h('span', {}, p.role)), h('td', {}, sel), h('td', {}, citeEditor(rec.cites, save)));
+        return h('tr', {}, h('td', { class: 'who' }, portrait(m, p, 'sm'), h('span', {}, h('b', {}, p.name), h('span', {}, p.role))), h('td', {}, sel), h('td', {}, citeEditor(rec.cites, save)));
       })));
     const motive = h('div', { class: 'form-step' },
       h('div', { class: 'form-q' }, h('span', {}, m.motiveLabel)),
-      h('textarea', { class: 'hand', rows: 3, value: s.motive, 'aria-label': m.motiveLabel, oninput: e => { s.motive = e.target.value; save(); } }));
+      h('textarea', { class: 'hand', rows: 3, value: s.motive, 'aria-label': m.motiveLabel, oninput: e => { s.motive = e.target.value; drawMeter(); save(); } }));
     return h('div', { class: 'form' },
       h('div', { class: 'form-top' }, h('span', {}, `Case ${m.number}`), h('span', {}, 'Complete before the final accusation')),
+      meter,
       h('p', { class: 'form-hint' }, 'Cite by document reference (B-1, D-1 §2, SLIP 03). A step with no citation scores nothing, however right it is.',
         dbl ? ' Steps marked x2 were established before the last phase opened and score double.' : ''),
       steps, persons, motive,
       h('button', { class: 'stamp-btn wide', onclick: accuse }, h('span', {}, 'Ready to accuse')));
   }
 
+  /* --- timeline: every clock time you have highlighted or written down ------------- */
+  const TIME = /\b([01]?\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?\b/g;
+  function timelineEntries() {
+    const ids = available();
+    const out = [];
+    const add = (mt, text, id, from) => out.push({ min: +mt[1] * 60 + +mt[2] + (mt[3] ? +mt[3] / 60 : 0), time: `${mt[1].padStart(2, '0')}:${mt[2]}${mt[3] ? `:${mt[3]}` : ''}`, text, id, from });
+    for (const [key, list] of Object.entries(st.highlights)) {
+      const [id, i] = [key.slice(0, key.lastIndexOf('#')), +key.slice(key.lastIndexOf('#') + 1)];
+      if (!list || !list.length || !ids.includes(id)) continue;
+      const d = reg.get(id);
+      const page = pageNode(m, d.src, d.pages[i]).textContent;
+      for (const r of list) {
+        const t = page.slice(r.s, r.e).replace(/\s+/g, ' ').trim();
+        for (const mt of t.matchAll(TIME)) add(mt, t, id, 'highlight');
+      }
+    }
+    for (const line of st.notes.split('\n')) {
+      const t = line.trim();
+      const ref = /\(([^()]+)\)\s*$/.exec(t);
+      for (const mt of t.matchAll(TIME)) add(mt, t, ref ? citeTarget(ref[1]) : null, 'note');
+    }
+    const seen = new Set();
+    const list = out.filter(e => { const k = `${e.time}|${e.text}`; if (seen.has(k)) return false; seen.add(k); return true; });
+    // Cases run through the night, so the day starts after the longest quiet gap on the clock.
+    const mins = [...new Set(list.map(e => e.min))].sort((a, b) => a - b);
+    let start = 0, gap = -1;
+    mins.forEach((x, j) => { const g = (x - mins[(j - 1 + mins.length) % mins.length] + 1440) % 1440 || 1440; if (g > gap) { gap = g; start = x; } });
+    return list.sort((a, b) => ((a.min - start + 1440) % 1440) - ((b.min - start + 1440) % 1440));
+  }
+  let timelineBox = null;
+  function drawTimeline() {
+    if (!timelineBox || !timelineBox.isConnected) return;
+    const tl = timelineEntries();
+    timelineBox.replaceChildren(
+      h('div', { class: 'nb-h' }, 'Timeline', tl.length ? h('span', { class: 'nb-count' }, plural(tl.length, 'moment')) : null),
+      tl.length
+        ? h('ol', { class: 'tl' }, tl.map(e => h('li', { class: `tl-${e.from}` },
+          h('span', { class: 'tl-t' }, e.time),
+          h('span', { class: 'tl-x' }, e.text.length > 160 ? `${e.text.slice(0, 157)}...` : e.text),
+          e.id ? h('button', { class: 'tl-ref', onclick: () => openCited(e.id), title: `Open ${refOf(e.id)}` }, refOf(e.id)) : h('span', { class: 'tl-ref none' }, 'note'))))
+        : h('p', { class: 'nb-empty' }, 'Highlight any line with a time in it, like 22:10, and it lands here in order. Times you write in the notebook count too.'));
+  }
+  const refreshTimeline = debounce(drawTimeline, 250);
+
   function renderNotes() {
     const hyp = phased ? Object.entries(st.hypotheses).filter(([, v]) => v.trim()) : [];
+    timelineBox = h('div', { class: 'nb-sec nb-tl' });
+    requestAnimationFrame(drawTimeline);
     return h('div', { class: 'nb' },
+      timelineBox,
       hyp.length ? h('div', { class: 'nb-sec' }, h('div', { class: 'nb-h' }, 'Written at the phase gates'),
         hyp.map(([k, v]) => h('p', { class: 'nb-hyp' }, h('b', {}, `Phase ${k}: `), v))) : null,
       h('textarea', { class: 'hand notes-ta', value: st.notes, 'aria-label': 'Notebook',
         placeholder: 'Timelines, hunches, arguments...\nSelect text in any document and choose "Quote to notebook" to drop it here.',
-        oninput: e => { st.notes = e.target.value; save(); } }),
+        oninput: e => { st.notes = e.target.value; save(); refreshTimeline(); } }),
       st.breakthroughs.length ? h('div', { class: 'nb-sec' }, h('div', { class: 'nb-h' }, 'Breakthroughs'),
-        h('ol', { class: 'bt-list' }, st.breakthroughs.map(b => h('li', {}, h('span', { class: 'mono' }, fmtClock(b.at)), b.note || 'Breakthrough')))) : null);
+        h('ol', { class: 'bt-list' }, st.breakthroughs.map(b => h('li', {}, h('span', { class: 'mono' }, fmtClock(b.at)), b.note || 'Breakthrough')))) : null,
+      takenHints().length ? h('div', { class: 'nb-sec' }, h('div', { class: 'nb-h' }, 'Advice from the Unit'),
+        takenHints().map(([x, n]) => h('div', { class: 'nb-advice' }, h('b', {}, x.q), x.steps.slice(0, n).map(t => h('p', {}, t))))) : null);
+  }
+
+  /* --- hints: "Ask the Unit" ------------------------------------------------------- */
+  const takenHints = () => (m.hints || []).map(x => [x, (st.hints || {})[x.id] || 0]).filter(([, n]) => n > 0);
+
+  function openHints() {
+    sfx.tick();
+    st.hints ||= {};
+    const costs = hintCosts(m);
+    const list = h('div', { class: 'hints' });
+    const draw = () => {
+      const ids = available();
+      const open = (m.hints || []).filter(x => !x.needs || ids.includes(x.needs));
+      const taken = hintsTaken(m, st);
+      total.textContent = taken.levels ? `So far: ${plural(taken.levels, 'hint')}, -${taken.cost} points.` : 'You have not asked for any help yet.';
+      list.replaceChildren(...(open.length ? open.map(x => {
+        const n = st.hints[x.id] || 0;
+        const more = n < x.steps.length;
+        return h('div', { class: `hint ${n ? 'asked' : ''}` },
+          h('div', { class: 'hint-q' }, h('b', {}, x.q), h('span', { class: 'hint-lv' }, `${n} of ${x.steps.length}`)),
+          x.steps.slice(0, n).map((t, i) => h('p', { class: 'hint-a' }, h('span', { class: 'hint-n' }, `${i + 1}`), t)),
+          more ? h('button', { class: 'btn sm', onclick: () => { st.hints[x.id] = n + 1; save(); sfx.tick(); draw(); renderDesk(); } },
+            icon('help'), n ? `Ask for more (-${costs[n]} points)` : `Ask (-${costs[0]} points)`)
+            : h('p', { class: 'hint-done' }, 'That is everything the Unit can tell you.'));
+      }) : [h('p', { class: 'muted' }, 'Read further into the file first. The Unit can help once you have something to ask about.')]));
+    };
+    const total = h('p', { class: 'hint-total' });
+    modal({
+      kicker: 'Case Review Unit · advice line', title: 'Ask the Unit', className: 'wide hints-modal',
+      body: [h('p', {}, `Stuck? Each question has up to three answers, from a gentle nudge to nearly the answer. They cost ${costs.join(', ')} points in turn, taken off your final score.`), total, list],
+      actions: [{ label: 'Back to the desk', kind: 'primary' }],
+    });
+    draw();
   }
 
   /* --- calculator ------------------------------------------------------------------ */
@@ -566,25 +899,33 @@ export function mountGame(root, m, st, { go }) {
           if (ok) { clearState(m.id); go('#/'); }
           return ok;
         } },
+        { label: 'Take the tour', kind: 'ghost', onClick: () => { setTimeout(coach, 250); } },
+        m.tutorial && st.setup.guide === 'off' ? { label: 'Guide me again', kind: 'ghost', onClick: () => { st.setup.guide = 'mixed'; if (st.guide) st.guide.handed = false; save(); toast('The guide is back. Reload the desk to see it.'); setTimeout(() => go(`#/play/${m.id}`), 300); } } : null,
         { label: 'Back to the desk', kind: 'primary' },
       ],
     });
   }
 
+  let endTour = null;
   function coach() {
-    const items = [
-      ['file', 'Folders', 'Every document you may read. Click one to pick it up. New ones carry a red clip.'],
-      ['envelope', 'Sealed envelopes', `${st.budget} Authorities. Each breaks one seal and returns one result. They do not come back.`],
-      ['sheet', 'The clipboard', 'Your Resolution Sheet. Write each step with a citation as you establish it. Only what is written scores.'],
-      ['accuse', 'The red stamp', 'Accuse. Two wrong accusations are allowed; the third is final. Then Envelope S-1.'],
-    ];
-    if (phased) items.unshift(['lock', 'The memo', 'The file opens in phases. Answer the memo to unseal the next bundle.']);
-    modal({
-      kicker: 'Solo investigation', title: 'Welcome to your desk',
-      body: h('ul', { class: 'coach' }, items.map(([ic, t, d]) => h('li', {}, icon(ic), h('div', {}, h('b', {}, t), h('span', {}, d))))),
-      actions: [{ label: 'Start reading', kind: 'primary' }],
-      onClose: () => { st.ui.coach = true; save(); },
-    });
+    if (endTour) return;
+    endTour = runTour([
+      { sel: '.memo', title: phased ? 'The memo' : 'Standing orders',
+        text: phased ? 'The file opens in phases. Read what the memo names, write your answer on it, then stamp it to unseal the next bundle.'
+          : 'The Unit\'s standing orders. The documents do not lie; people might.' },
+      { sel: '.dk-files .folder', title: 'Folders', text: 'Every document you may read. Click one to pick it up. New ones carry a red clip. Select text inside to highlight it or quote it into your notebook.' },
+      { sel: '.t-poi', title: 'Persons of interest', text: 'Everyone the file names. Click a photo to record your finding, jot a note, and see which documents mention them.' },
+      { sel: '.t-exhibits', title: 'Exhibits', text: 'The physical evidence, bagged and labelled exactly as the file records it. A new bag appears when a document you can read lists it.' },
+      { sel: '.board-thumb', title: 'Evidence board', text: 'Pin people, exhibits and documents to a green board and tie them together with red string. Voice notes and index cards go up there too.' },
+      { sel: '.env-tray', title: 'Sealed Authorities', text: `${st.budget} envelopes you may open. Each is one line of inquiry and they do not come back. Spend them on what the file points at.` },
+      { sel: '.tool.t-clip', title: 'The Resolution Sheet', text: 'Write each step with a document citation as you establish it. Only what is written, with a citation, scores.' },
+      { sel: '.tool.t-note', title: 'Your notebook', text: 'Timelines, hunches and quotes. It opens beside the document you are reading.' },
+      { sel: '.tool.t-phone', title: 'Ask the Unit', text: 'Stuck? Phone for a hint. Each one costs points, so try on your own first.' },
+      { sel: '.tool.t-bell', title: 'The bell', text: 'Ring it when something clicks. The debrief shows when each breakthrough happened.' },
+      { sel: '.watch', title: 'The clock', text: 'It runs while you play and your time goes on the leaderboard. Click it to pause.' },
+      { sel: '.dk-top .stamp-btn', title: 'Accuse', text: 'When you are sure, stamp an accusation. Two wrong ones are allowed; the third is final. Then Envelope S-1 reveals the truth.' },
+      { sel: '.dk-actions .iconbtn[aria-label="Rules and help"]', title: 'Rules and help', text: 'The full rules, and this tour again whenever you want it.' },
+    ], { onDone: () => { endTour = null; st.ui.coach = true; save(); } });
   }
 
   /* --- accusation ------------------------------------------------------------------- */
@@ -666,7 +1007,13 @@ export function mountGame(root, m, st, { go }) {
   renderAll();
   if (!st.ui.coach) coach();
 
+  const guide = mountGuide({ m, st, save, host: game });
+
   return () => {
+    if (endTour) endTour();
+    guide.destroy();
+    stopTapes();
+    if (board) board.close();
     clearInterval(tick); clearInterval(autosave);
     listeners.forEach(off => off());
     selBar.remove();

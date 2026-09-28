@@ -1,6 +1,16 @@
 {
-  "generated": "2026-09-26T13:44:37.812Z",
+  "generated": "2026-09-28T15:53:37.437Z",
   "cases": [
+    {
+      "id": "SYN-MVP-000",
+      "number": "00",
+      "title": "The Consignment Watch",
+      "tier": "Easy",
+      "time": "15-25 min",
+      "tagline": "A $4,800 pocket watch vanishes from a locked safe. The apprentice took the blame.",
+      "hook": "A gold pocket watch goes missing overnight from a small watchmaker's shop. The alarm log shows the apprentice let himself in at 22:14, and the first officer never looked further. The owner of the watch wants a second opinion. This is your first file, and a guide will walk you through the desk.",
+      "note": "New here? Start with this one. A guide shows you every tool."
+    },
     {
       "id": "SYN-MVP-001",
       "number": "01",

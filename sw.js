@@ -1,14 +1,19 @@
 // Offline support. Network first, so a new deploy is picked up immediately;
 // the cache is only a fallback when there is no connection.
-const CACHE = 'synapse-v4';
+const CACHE = 'synapse-v5';
 // The app shell is cached up front. Case files are cached the first time a
 // case is opened, so a case you have started keeps working offline.
 const CORE = [
   './', 'index.html', 'manifest.webmanifest', 'cases/index.json',
-  'app/app.css', 'app/paper.css', 'app/icon.svg', 'app/config.js',
+  'app/app.css', 'app/fonts.css', 'app/paper.css', 'app/icon.svg', 'app/config.js',
   'app/js/main.js', 'app/js/util.js', 'app/js/docs.js', 'app/js/state.js', 'app/js/fx.js',
   'app/js/home.js', 'app/js/game.js', 'app/js/reveal.js', 'app/js/boards.js',
   'app/js/leaderboard.js', 'app/js/profanity.js', 'app/js/share.js', 'app/js/sfx.js', 'app/js/printkit.js',
+  'app/js/settings.js', 'app/js/tour.js', 'app/js/people.js', 'app/js/exhibits.js', 'app/js/tape.js', 'app/js/board.js', 'app/js/voice.js', 'app/js/replay.js', 'app/js/guide.js',
+  'app/fonts/caveat-latin-500-normal.woff2', 'app/fonts/caveat-latin-600-normal.woff2',
+  'app/fonts/ibm-plex-mono-latin-400-normal.woff2', 'app/fonts/ibm-plex-mono-latin-500-normal.woff2', 'app/fonts/ibm-plex-mono-latin-600-normal.woff2',
+  'app/fonts/ibm-plex-sans-latin-400-normal.woff2', 'app/fonts/ibm-plex-sans-latin-400-italic.woff2', 'app/fonts/ibm-plex-sans-latin-500-normal.woff2', 'app/fonts/ibm-plex-sans-latin-600-normal.woff2',
+  'app/fonts/ibm-plex-sans-condensed-latin-500-normal.woff2', 'app/fonts/ibm-plex-sans-condensed-latin-600-normal.woff2', 'app/fonts/ibm-plex-sans-condensed-latin-700-normal.woff2',
 ];
 
 self.addEventListener('install', e => {
@@ -28,8 +33,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   const sameOrigin = url.origin === self.location.origin;
-  const fonts = /fonts\.(googleapis|gstatic)\.com$/.test(url.hostname);
-  if (!sameOrigin && !fonts) return;
+  if (!sameOrigin) return;
   if (url.pathname.includes('/rest/v1/')) return;
   e.respondWith(fetch(req).then(res => {
     if (res.ok || res.type === 'opaque') {

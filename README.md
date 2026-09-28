@@ -3,14 +3,16 @@
 Print-and-play deductive murder mysteries for **1–6 detectives**, no facilitator required — and,
 eventually, an engine that generates them.
 
-**Two cases are complete and playable.**
+**Three cases are complete and playable**, including a short training case.
 
 | | Case | Tier | Time | Sheets | The experiment |
 |---|---|---|---|---|---|
+| **00** | The Consignment Watch | EASY | 15-25 min | 22 | The tutorial. A small theft, with an optional in-game guide. |
 | **01** | [The Halvorsen Bequest](#part-one--how-to-play-case-01) | MEDIUM | 90–120 min | 33 | Shared information. *Is deduction from documents fun?* |
 | **02** | [The Ravensgate Interlock](#part-one-b--case-02-the-ravensgate-interlock) | HARD | 120–160 min | 53 | Split information. *Does asymmetry between players add anything?* |
 
-**Play Case 01 first.** It is the control condition, and Case 02 assumes you know how it works.
+**New to it? Play Case 00 first** (in the web app a guide walks you through the desk), then
+Case 01. Case 01 is the control condition, and Case 02 assumes you know how it works.
 
 ## Two ways to play
 
@@ -390,6 +392,14 @@ leaderboard guards against casual abuse (a first-attempt rule, a one-minute mini
 filter, range checks in the database), not against someone who sets out to cheat. Moderate by
 deleting rows in the Supabase table editor.
 
+## Credits
+
+Fonts are self-hosted in `app/fonts/` (latin subset, from Fontsource): **IBM Plex** Sans, Sans Condensed and Mono by IBM, and **Caveat** by The Caveat Project Authors. All are under the SIL Open Font License 1.1, and the licence texts sit next to the files.
+
+Portraits are **Open Peeps** by Pablo Stanley (CC0 1.0, public domain), assembled at build time
+with **DiceBear** (MIT). Neither is loaded by the site; the generated SVGs are committed with each case.
+Exhibit icons are from **Lucide** (ISC), copied into `app/js/exhibits.js`. To add a weight, copy its `.woff2` into `app/fonts/`, add an `@font-face` rule to `app/fonts.css`, and list the file in `CORE` in `sw.js`.
+
 ## Security
 
 Reviewed 2026-09-26. What protects the site:
@@ -397,7 +407,8 @@ Reviewed 2026-09-26. What protects the site:
 | Layer | Protection |
 |---|---|
 | Case content | Every print page is sanitized before display: scripts, iframes, SVG, forms, `on*` handlers, `javascript:`/`data:` links and CSS `url()` are stripped. A bad edit to any case file cannot run code. |
-| Browser | A Content Security Policy (`index.html`) allows scripts only from this site. There is no `eval` anywhere, no plugins and no form posts, and network calls go only to this site, Google Fonts and `*.supabase.co`. |
+| Browser | A Content Security Policy (`index.html`) allows scripts only from this site. There is no `eval` anywhere, no plugins and no form posts, and network calls go only to this site and `*.supabase.co`. Fonts are self-hosted, so no third party sees who visits. |
+| Microphone | Used only when a player presses Record on the evidence board. Voice notes are kept in that browser's IndexedDB, are never uploaded, and are deleted when the case is reset. Interview tapes use the device's own speech engine. |
 | Rendering | All player and leaderboard text is inserted as text, never HTML. Rows from the server are validated before display. |
 | Database | The public role can SELECT and INSERT only, into the game's columns. UPDATE, DELETE and TRUNCATE are denied, the server sets `created_at`, and every value is range-checked. A server-side name filter runs, plus a rate limit of 10 posts per network per hour and 300 per 10 minutes globally. Tested against Postgres 16. |
 | Keys | Only the public anon key belongs in `app/config.js`. The app refuses to use a secret or service_role key. |
@@ -411,7 +422,6 @@ Reviewed 2026-09-26. What protects the site:
 - **Anyone can post under any name**, for example yours. There are no accounts.
 - **Clickjacking headers** can't be set on GitHub Pages. The only framed action would be posting a score.
 - **Shared origin.** Every repository on `jenilmistryhq.github.io` shares one browser origin, so your other Pages projects could read this game's saved progress. A custom domain avoids this.
-- **Google Fonts** sees each visitor's IP address. Self-host the fonts in `app/` if that matters to you (GDPR).
 
 Also turn on two-factor authentication for the GitHub and Supabase accounts: whoever controls
 those controls the site.
@@ -429,8 +439,55 @@ those controls the site.
    anything is broken.
 4. S-1 is split into reveal steps at every `<h2>` and at the verdict box. `reveal.steps` must
    have one entry per section (the browser console warns if the counts differ).
+5. Give each person in `persons.list` a `look` that matches the documents, then run
+   **`npm run portraits`**. It draws `cases/<id>/portraits/<person>.svg` once, so the site
+   never fetches a face from anywhere else. Keep faces neutral: an expression must not give the
+   case away. A person with no portrait shows their initials. The desk lists which documents
+   name each person by matching the surname (the part of `name` before the comma), and only
+   counts documents the player can already read.
 
-5. Run **`npm run pdf`** (after `npm install` once) to build the print kit PDFs into
+   ```json
+   "look": { "head": "bun", "face": "serious", "accessories": "glasses", "skin": "ffdbb4", "hair": "b58143" }
+   ```
+
+   The options are Open Peeps parts: see `tools/build-portraits.js` for the list and the
+   neutral faces it picks from when you leave `face` out.
+6. List the physical evidence under `exhibits`. Each one names the document that records it
+   (`source`: a document id, or `SLIP 02` for an Authority result), and its bag appears on the
+   desk only once the player can read that document. Copy the wording from the document, so a
+   bag never tells the player more than the file does. `missing: true` draws an empty bag for
+   an item that was searched for and not found. Icons: gauge, glasses, coat, badge, tablet, card,
+   key, phone, note, pill, watch, wallet, camera, drive, item (the default).
+
+   ```json
+   { "ref": "EX-02", "name": "Spectacles, folded", "found": "Breast pocket of deceased", "icon": "glasses", "source": "E-1" }
+   ```
+7. Interview transcripts (`.q` and `.a` lines with a `.spk` speaker code) get a **Play tape**
+   button: the device's own text-to-speech reads them, one voice per speaker. Say which speakers
+   sound female or male under `voices`, going only by the pronouns the documents use; anyone
+   left out gets a neutral voice. `[Pause.]` stage directions become real pauses.
+
+   ```json
+   "voices": { "VM": "f", "OP": "m" }
+   ```
+8. List the key clues under `replay`, in the order a player should find them. After solving,
+   **Replay** walks back through the file with each one marked in red pen, beside the player's
+   own highlights, and says which ones they caught. `find` must be an exact phrase from that
+   document (`doc` is a document id, or `SLIP 03` for an Authority result); spaces are ignored,
+   and `build-catalog.js` refuses a phrase it cannot find.
+
+   ```json
+   { "doc": "A-1", "find": "paramedics relocated the male to the B2 corridor", "note": "The body was moved before anyone took a temperature." }
+   ```
+9. Optional: a `tutorial` block turns on the in-game guide for that case, with a choice on the
+   setup page of *guided then free*, *fully guided* or *no guidance*. `tasks` teach each tool
+   once; `full` carries on to the accusation. Each task has the text to show, a `sel` (CSS
+   selectors to point at, comma separated) and a `done` condition: `{ "read": "A-1" }`,
+   `{ "highlight": true }`, `{ "step": 1 }` (zero-based, written and cited), `{ "spent": true }`,
+   `{ "spentN": "03" }`, `{ "person": "lark", "status": "Eliminated" }`, `{ "cited": ["lark"] }`
+   or `{ "accused": true }`. See `cases/SYN-MVP-000/digital.json`.
+
+10. Run **`npm run pdf`** (after `npm install` once) to build the print kit PDFs into
    `cases/<id>/print/pdf/`. Re-run it whenever a print file changes.
 
 No code changes are needed to add a case.
@@ -442,11 +499,13 @@ one per print file, plus a **player pack** (everything spoiler-free), a **sealed
 printer-only files) and an **envelope label sheet**. Players download these from each case's
 Print & play page instead of fighting browser print settings.
 
-Documents that run slightly over one A4 page are scaled down to fit (never below 80%), so every
-Authority slip and Reconsider insert is exactly one page and the page-number-to-envelope rule
-still holds. Genuinely long documents (for example the Ravensgate site plan) keep full size and
-run onto a second page. Note: the original HTML print files overflow in the same places when
-printed straight from the browser; the PDFs are the fixed version.
+Every document prints on exactly one A4 sheet, whether from the PDFs or straight from the HTML,
+so the page-number-to-envelope rule in the print guides holds. `dossier.css` uses tighter spacing
+on paper only (the screen preview is unchanged), and the few longest pages carry a `fit-NN`
+class on their `<div class="doc">` (for example `fit-85`) that scales them down on paper, never
+below 80%. When writing a new case, if a page spills onto a second sheet, add the smallest
+`fit-95` / `fit-90` / `fit-85` / `fit-80` class that makes it fit. As a safety net, the PDF
+builder also shrinks any page that still overflows.
 
 PDFs add about 2.5 MB per case to the repository (roughly 125 MB for 50 cases), which is well
 within GitHub Pages limits.

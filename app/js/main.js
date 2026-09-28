@@ -2,17 +2,20 @@
 //   #/                     case catalog
 //   #/play/<case>          setup, briefing, desk, reveal, score (by saved state)
 //   #/print/<case>         print-and-play kit
+//   #/replay/<case>        the solved file with its key clues marked
 //   #/leaderboard[/<case>] leaderboard
 //   #/r/<data>             a shared result
 
 import { h, append, clear, closeAllModals } from './util.js';
 import { loadCatalog, loadManifest, loadCaseDocs } from './docs.js';
-import { loadState } from './state.js';
+import { loadState, hasSeenSolution } from './state.js';
 import { renderHome, renderSetup, renderBriefing } from './home.js';
 import { renderPrintKit } from './printkit.js';
 import { renderLeaderboard, renderResult } from './boards.js';
 import { mountGame } from './game.js';
 import { mountSign, mountReveal, mountScore } from './reveal.js';
+import { applySettings } from './settings.js';
+import { renderReplay } from './replay.js';
 
 const app = document.getElementById('app');
 let cleanup = null;
@@ -41,12 +44,19 @@ async function route() {
     const m = await loadManifest(arg);
     document.title = `${m.title} - Project Synapse`;
     if (view === 'print') { cleanup = renderPrintKit(app, m); return; }
-    if (view !== 'play') { location.hash = '#/'; return; }
+    if (view !== 'play' && view !== 'replay') { location.hash = '#/'; return; }
 
     app.replaceChildren(h('div', { class: 'boot' }, h('span', { class: 'brand-mark lg spin' }), 'Opening the file...'));
     await loadCaseDocs(m);
     if (my !== seq) return;
     const st = loadState(arg);
+    if (view === 'replay') {
+      // Only once the solution has been seen: replay marks every key clue.
+      if (!hasSeenSolution(arg) && !(st && st.status === 'done')) { location.hash = `#/play/${arg}`; return; }
+      document.title = `Replay: ${m.title} - Project Synapse`;
+      cleanup = renderReplay(app, m, st, go);
+      return;
+    }
     const ctx = { go };
     if (!st) cleanup = renderSetup(app, m, go);
     else if (st.status === 'briefing') cleanup = renderBriefing(app, m, st, go);
@@ -57,7 +67,7 @@ async function route() {
   } catch (err) {
     console.error(err);
     const local = location.protocol === 'file:';
-    append(clear(app), h('div', { class: 'page error' },
+    append(clear(app), h('main', { class: 'page error' },
       h('div', { class: 'kicker' }, 'Something went wrong'),
       h('h1', { class: 'display sm' }, 'The file would not open.'),
       h('p', { class: 'lead' }, local
@@ -67,6 +77,7 @@ async function route() {
   }
 }
 
+applySettings();
 window.addEventListener('hashchange', route);
 route();
 

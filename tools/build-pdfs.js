@@ -53,11 +53,11 @@ const docsOf = html => {
 // below 80%, to stay legible). Longer ones flow onto a second page at full size.
 // Returns the number of documents that still need more than one page.
 const MM = 96 / 25.4;
-const PAGE_H = 267 * MM;          // A4 height minus the 16 + 14 mm margins in dossier.css
+const PAGE_H = 274 * MM;          // A4 height minus the 12 + 11 mm print margins in dossier.css
 const MIN_ZOOM = 0.8;
 async function fitDocs(page) {
   await page.emulateMediaType('print');
-  await page.setViewport({ width: Math.round(180 * MM), height: 1200 });
+  await page.setViewport({ width: Math.round(184 * MM), height: 1200 });
   return page.evaluate((PAGE_H, MIN_ZOOM) => {
     let long = 0;
     for (const d of document.querySelectorAll('body > .doc')) {

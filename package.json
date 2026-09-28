@@ -5,11 +5,14 @@
   "scripts": {
     "serve": "node tools/serve.js",
     "catalog": "node tools/build-catalog.js",
+    "portraits": "node tools/build-portraits.js",
     "pdf": "node tools/build-pdfs.js",
-    "build": "node tools/build-catalog.js && node tools/build-pdfs.js",
+    "build": "node tools/build-portraits.js && node tools/build-catalog.js && node tools/build-pdfs.js",
     "validate": "node tools/validate.js cases/SYN-MVP-001/ledger.json && node tools/validate.js cases/SYN-MVP-002/ledger.json"
   },
   "devDependencies": {
+    "@dicebear/collection": "^9.4.2",
+    "@dicebear/core": "^9.4.3",
     "puppeteer-core": "^23.11.1"
   }
 }

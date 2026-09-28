@@ -330,30 +330,61 @@
       {
         "id": "ballard",
         "name": "Ballard, Ines",
-        "role": "Named by the original finding"
+        "role": "Named by the original finding",
+        "look": {"head": "long", "face": "solemn", "skin": "edb98a", "hair": "2c1b18", "clothing": "9c7b7b"}
       },
       {
         "id": "vey",
         "name": "Vey, Halloran",
-        "role": "Shift Control Engineer"
+        "role": "Shift Control Engineer",
+        "look": {"head": "shaved2", "face": "serious", "facialHair": "full2", "skin": "ffdbb4", "hair": "724133", "clothing": "6f7f73"}
       },
       {
         "id": "okonkwo",
         "name": "Okonkwo, Dessa",
-        "role": "Maintenance Technician"
+        "role": "Maintenance Technician",
+        "look": {"head": "cornrows", "face": "tired", "skin": "694d3d", "hair": "2c1b18", "clothing": "b8a88a"}
       },
       {
         "id": "wrenn",
         "name": "Wrenn, Piotr",
-        "role": "RDSI officer"
+        "role": "RDSI officer",
+        "look": {"head": "short4", "face": "explaining", "accessories": "glasses4", "skin": "ffdbb4", "hair": "a55728", "clothing": "7d8ba3"}
       },
       {
         "id": "mbeki",
         "name": "Mbeki, Cato",
-        "role": "Assistant Operator"
+        "role": "Assistant Operator",
+        "look": {"head": "short1", "face": "blank", "skin": "ae5d29", "hair": "2c1b18", "clothing": "8a9a8c"}
       }
     ]
   },
+  "voices": {"HV": "m", "PW": "m", "DO": "f", "CM": "m"},
+  "exhibits": [
+    {"ref": "Card 0001", "name": "Credential, A. Sarn", "found": "On the deceased, clipped to belt", "time": "06:40", "icon": "card", "source": "SLIP 02"},
+    {"ref": "Card 0004", "name": "Credential, H. Vey", "found": "On his person", "time": "08:05", "icon": "card", "source": "SLIP 02"},
+    {"ref": "Card 0007", "name": "Credential, I. Ballard", "found": "Control room - desk, second drawer", "time": "10:22", "icon": "card", "source": "SLIP 02"},
+    {"ref": "Card 0022", "name": "Credential, D. Okonkwo", "found": "On her person", "time": "08:11", "icon": "card", "source": "SLIP 02"},
+    {"ref": "Card 0031", "name": "Credential, C. Mbeki", "found": "On his person", "time": "08:09", "icon": "card", "source": "SLIP 02"},
+    {"ref": "Card V-118", "name": "Credential, P. Wrenn", "found": "On his person", "time": "08:15", "icon": "card", "source": "SLIP 02"}
+  ],
+  "replay": [
+    {"doc": "B-2", "find": "It cannot be established from this report", "note": "Pathology cannot say when Ballard died. The order of the two deaths has to come from somewhere else."},
+    {"doc": "A-1", "find": "Feeder tie F-3 was closed at 06:02:14 on credential I.BALLARD", "note": "The original finding rests on her card. A card is not a person."},
+    {"doc": "D-1", "find": "02:31:08 INTAKE GATE 2 OPEN", "note": "Intake gate 2 was open only from 02:31 to 03:12 that night."},
+    {"doc": "D-2", "find": "Elevation of body 218.4 m", "note": "She was found inside the sealed gallery, downstream of gate 2."},
+    {"doc": "D-2B", "find": "while gate 2 is open will be drawn to the racks", "note": "A body only reaches panel 4 while gate 2 is open. So Ballard was in the water between 02:31 and 03:12, hours before Sarn died at 06:03."},
+    {"doc": "E-1", "find": "no control room door event of any kind", "note": "Nobody came or went from the control room between 02:29 and 05:44, and Vey never left. The F-3 tie was closed from that room."},
+    {"doc": "E-1", "find": "21:04:33 OUT C.MBEKI", "note": "Mbeki was across the footbridge in the powerhouse from 21:04 to 06:05. Cleared."},
+    {"doc": "C-3A", "find": "Permit 1145", "note": "Okonkwo was down wet well 2 on a monitored permit at the key times. Cleared."},
+    {"doc": "E-2", "find": "Piezometers P-7 to P-12", "note": "The instrument array Vey certified was never connected: a fraud he needed to keep hidden."},
+    {"doc": "SLIP 01", "find": "02:38:44", "note": "One gap all night: console 1 alarms went unanswered from 02:38 to 03:05. Vey was away from his console for 26 minutes, inside the gate 2 window."},
+    {"doc": "SLIP 02", "find": "recovered from the second drawer of the control room desk", "note": "Her card was in the control room desk drawer, not on her body. Someone else used it at 06:02."},
+    {"doc": "SLIP 04", "find": "STEP CHANGE", "note": "A debris mat formed over panel 4 at 04:12. She was already there, long before 06:02."},
+    {"doc": "SLIP 07", "find": "C-14 shown SINGLE-FED from F-5", "note": "Vey revised the drawing to hide the live second feed, F-3. Sarn isolated F-5 and trusted the drawing."},
+    {"doc": "SLIP 09", "find": "He was not in the room the card was in", "note": "Wrenn was on a recorded call from the dam crest when F-3 was closed. Cleared."},
+    {"doc": "SLIP 06", "find": "TOTAL $186,000", "note": "The motive: $186,000 paid to his spouse's company after certifications he signed."}
+  ],
   "motiveLabel": "Motive",
   "accusation": {
     "question": "The deaths of Aurelio Sarn and Ines Ballard are found to be...",
@@ -726,6 +757,63 @@
     {
       "id": "F-5",
       "name": "Regulator (RDSI)"
+    }
+  ],
+  "hintCosts": [
+    2,
+    3,
+    5
+  ],
+  "hints": [
+    {
+      "id": "order",
+      "q": "Which death came first?",
+      "needs": "B-2",
+      "steps": [
+        "Only one of the two deaths has a clock. The other has to be dated by something other than a body.",
+        "Re-read the referral (A-0). Ask how a body could possibly reach the intake gallery.",
+        "The gallery only fills while intake gate 2 is open (D-2A), and D-1 section 2 gives the gate times: 02:31 to 03:12."
+      ]
+    },
+    {
+      "id": "card",
+      "q": "Her card closed the circuit. So she did it?",
+      "needs": "D-1",
+      "steps": [
+        "A credential event records a card. It does not record a person.",
+        "Where was her card when she was found? Compare D-2 (the recovery) with C-5A (credential practice).",
+        "Authority 02, the property and credential audit, says exactly where her card was recovered."
+      ]
+    },
+    {
+      "id": "lockout",
+      "q": "Why did a correct lockout kill Sarn?",
+      "needs": "E-6",
+      "steps": [
+        "He locked out the circuit he knew about.",
+        "E-6 asks a question about the as-built drawing. E-2A says what contract RG-0419 was supposed to remove.",
+        "Authority 07 shows who amended the drawing, and when."
+      ]
+    },
+    {
+      "id": "who",
+      "q": "Who could have used her card?",
+      "needs": "E-1",
+      "steps": [
+        "Her card was used at a console. Who was in that room, and for how long?",
+        "E-1 shows the control room door did not open between 02:29 and 05:44.",
+        "A session log shows that a session is open, not that anyone is in the chair. Authority 01 checks the chair."
+      ]
+    },
+    {
+      "id": "wrenn",
+      "q": "How do I clear Piotr Wrenn?",
+      "needs": "C-4",
+      "steps": [
+        "No single record clears him.",
+        "You need him accounted for in three windows: while the gate was open, at 06:02, and whenever he was last in the control room.",
+        "Authority 09 reconciles all three records."
+      ]
     }
   ]
 }

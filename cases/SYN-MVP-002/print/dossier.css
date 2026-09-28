@@ -152,3 +152,27 @@ ol.steps > li { margin-bottom: 9pt; page-break-inside: avoid; }
   }
 }
 @media print { .screenonly { display: none; } }
+
+/* --- print fit: keep every document on one A4 sheet ----------------------
+   Tighter spacing on paper only; the screen preview above is unchanged.
+   A document that is still too long carries a "fit-NN" class that scales it
+   down slightly (never below 80%). */
+@page { margin: 12mm 13mm 11mm 13mm; }
+@media print {
+  body { font-size: 10pt; line-height: 1.38; }
+  .doc { padding-bottom: 0; }
+  p { margin: 0 0 5pt; }
+  h1 { margin-bottom: 8pt; }
+  h2 { margin: 11pt 0 4pt; }
+  h3 { margin: 8pt 0 2pt; }
+  .head { margin-bottom: 9pt; }
+  .box { margin: 7pt 0; padding: 6pt 9pt; }
+  table { margin: 4pt 0 7pt; }
+  td { padding-top: 2pt; padding-bottom: 2pt; }
+  .fields { margin-bottom: 6pt; }
+  .classbar { margin-top: 9pt; }
+  .tx .q, .tx .a { margin-bottom: 3pt; }
+  .tx .stage { margin: 3pt 0 3pt 36pt; }
+  .writebox { margin-bottom: 7pt; }
+  .fit-95 { zoom: .95; } .fit-90 { zoom: .9; } .fit-85 { zoom: .85; } .fit-80 { zoom: .8; }
+}

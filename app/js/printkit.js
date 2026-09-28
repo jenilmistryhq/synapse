@@ -22,7 +22,7 @@ async function spoilerGate(name) {
 export function renderPrintKit(app, m) {
   const k = m.printKit;
   const pdfUrl = file => `${m.base}print/pdf/${file}`;
-  const root = h('div', { class: 'page wide kit' });
+  const root = h('main', { class: 'page wide kit' });
   append(clear(app), root);
 
   const download = async (file, spoiler, label) => {

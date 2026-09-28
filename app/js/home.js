@@ -2,6 +2,8 @@
 
 import { h, icon, fmtClock, confirmModal, modal, plural, append, clear, store } from './util.js';
 import { pageNode } from './docs.js';
+import { openSettings } from './settings.js';
+import { GUIDE_MODES } from './guide.js';
 import { loadState, saveState, clearState, newState, timerNow, timerStart, remaining, hasSeenSolution } from './state.js';
 
 const TIER_ORDER = ['Easy', 'Medium', 'Hard', 'Expert'];
@@ -108,10 +110,12 @@ export function renderHome(app, catalog, go) {
   const search = h('input', { class: 'field search', type: 'search', placeholder: 'Search cases', 'aria-label': 'Search cases',
     oninput: e => { f.q = e.target.value; draw(); } });
 
-  append(clear(app), h('div', { class: 'home' },
+  append(clear(app), h('main', { class: 'home' },
     h('nav', { class: 'topnav' },
       h('a', { class: 'brand', href: '#/' }, h('span', { class: 'brand-mark' }), h('span', { class: 'brand-word' }, 'Synapse')),
-      h('a', { class: 'btn ghost sm', href: '#/leaderboard' }, icon('trophy'), 'Leaderboard')),
+      h('div', { class: 'topnav-r' },
+        h('button', { class: 'iconbtn', title: 'Settings', 'aria-label': 'Settings', onclick: () => openSettings() }, icon('gear')),
+        h('a', { class: 'btn ghost sm', href: '#/leaderboard' }, icon('trophy'), 'Leaderboard'))),
     h('header', { class: 'hero' },
       h('h1', { class: 'display' }, 'The documents don\'t lie.', h('br'), h('span', { class: 'accent' }, 'People might.')),
       h('p', { class: 'lead' }, 'Solo deductive murder mysteries built from case files: autopsies, interviews, access logs, and a budget of favours you cannot get back. Read the file. Prove who did it. Beat the clock.')),
@@ -151,6 +155,7 @@ function caseCard(c, onReset) {
     h('div', { class: 'cc-foot' },
       h('span', { class: 'cc-meta' }, icon('clock'), detail),
       st ? h('button', { class: 'cc-print', title: 'Reset this case', 'aria-label': `Reset ${c.title}`, onclick: () => onReset(c) }, icon('reset')) : null,
+      key === 'solved' ? h('a', { class: 'cc-print', href: `#/replay/${c.id}`, title: 'Replay with the key clues marked', 'aria-label': `Replay ${c.title}` }, icon('eye')) : null,
       h('a', { class: 'cc-print', href: `#/print/${c.id}`, title: 'Print & play kit', 'aria-label': `Print ${c.title}` }, icon('print')),
       h('a', { class: 'btn sm primary', href: `#/play/${c.id}` }, key === 'progress' ? 'Continue' : key === 'solved' ? 'Result' : 'Play')),
     c.note ? h('p', { class: 'note' }, c.note) : null);
@@ -159,9 +164,10 @@ function caseCard(c, onReset) {
 /* --- setup (solo) ---------------------------------------------------------------- */
 export function renderSetup(app, m, go) {
   let phased = true;
+  let guide = 'mixed';
   const replay = hasSeenSolution(m.id);
-  const start = () => { saveState(newState(m, { phased })); go(`#/play/${m.id}`); };
-  append(clear(app), h('div', { class: 'page setup' },
+  const start = () => { saveState(newState(m, { phased, guide })); go(`#/play/${m.id}`); };
+  append(clear(app), h('main', { class: 'page setup' },
     h('a', { class: 'back', href: '#/' }, icon('left'), 'All cases'),
     h('div', { class: 'kicker' }, `Case ${m.number} · ${m.tier} · ${m.time}`),
     h('h1', { class: 'display sm' }, m.title),
@@ -170,6 +176,11 @@ export function renderSetup(app, m, go) {
       h('input', { type: 'checkbox', checked: true, onchange: e => { phased = e.target.checked; } }),
       h('span', {}, h('b', {}, 'Phased release (recommended)'),
         h('span', { class: 'muted' }, `The file opens in ${m.phases.length} stages, and you write a hypothesis to unlock each one. Handing yourself everything at once removes the only pacing this game has.`))) : null,
+    m.tutorial ? h('fieldset', { class: 'card guide-pick' },
+      h('legend', {}, 'How much help do you want?'),
+      GUIDE_MODES.map(([v, label, sub]) => h('label', { class: 'guide-opt' },
+        h('input', { type: 'radio', name: 'guide', value: v, checked: v === guide, onchange: () => { guide = v; } }),
+        h('span', {}, h('b', {}, label), h('span', { class: 'muted' }, sub))))) : null,
     h('div', { class: 'card facts-card' }, h('ul', { class: 'rules' },
       h('li', {}, `${m.budget['1']} Authorities: sealed lines of inquiry you can open. They do not come back.`),
       h('li', {}, 'Two wrong accusations allowed. The third is final.'),
@@ -194,7 +205,7 @@ export function renderBriefing(app, m, st, go) {
     const ok = await confirmModal({ title: 'Back to setup?', body: h('p', {}, 'This discards the investigation you just opened.'), confirm: 'Back to setup' });
     if (ok) { clearState(m.id); go(`#/play/${m.id}`); }
   };
-  append(clear(app), h('div', { class: 'page briefing' },
+  append(clear(app), h('main', { class: 'page briefing' },
     h('a', { class: 'back', href: '#/' }, icon('left'), 'All cases'),
     h('div', { class: 'kicker' }, `Case ${m.number} · ${m.title}`),
     h('h1', { class: 'display sm' }, 'Read the briefing'),

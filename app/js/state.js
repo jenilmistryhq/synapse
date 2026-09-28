@@ -1,6 +1,7 @@
 // Game state: one saved solo investigation per case, kept in localStorage.
 
 import { store } from './util.js';
+import { deleteVoices } from './voice.js';
 
 const VERSION = 2;
 const key = id => `synapse:${id}:v${VERSION}`;
@@ -15,15 +16,15 @@ export function saveState(st) {
   if (!store.save(key(st.caseId), st)) console.warn('[synapse] could not save progress');
 }
 
-export function clearState(id) { store.remove(key(id)); }
+export function clearState(id) { store.remove(key(id)); deleteVoices(id); }
 
-export function newState(m, { phased }) {
+export function newState(m, { phased, guide }) {
   return {
     v: VERSION,
     caseId: m.id,
     createdAt: Date.now(),
     status: 'briefing',
-    setup: { phased: !!phased && !!m.phases },
+    setup: { phased: !!phased && !!m.phases, guide: m.tutorial ? (guide || 'mixed') : 'off' },
     firstAttempt: !hasSeenSolution(m.id),
     budget: m.budget['1'],
     spent: [],
@@ -76,6 +77,18 @@ export function authoritiesOpen(m, st) {
 
 export const remaining = st => st.budget - st.spent.length;
 export const wrongCount = st => st.accusations.filter(a => !a.correct && !a.final).length;
+
+/* --- hints ("Ask the Unit") -------------------------------------------------
+   st.hints maps a hint id to how many of its levels have been revealed. */
+export const hintCosts = m => m.hintCosts || [2, 3, 5];
+export function hintsTaken(m, st) {
+  let levels = 0, cost = 0;
+  for (const [id, n] of Object.entries(st.hints || {})) {
+    if (!(m.hints || []).some(x => x.id === id)) continue;
+    for (let i = 0; i < n; i++) { levels++; cost += hintCosts(m)[i] || 0; }
+  }
+  return { levels, cost };
+}
 
 /* --- first-attempt tracking (for the leaderboard) -------------------------- */
 const seenKey = 'synapse:revealed';
