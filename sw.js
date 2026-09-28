@@ -1,6 +1,6 @@
 // Offline support. Network first, so a new deploy is picked up immediately;
 // the cache is only a fallback when there is no connection.
-const CACHE = 'synapse-v5';
+const CACHE = 'synapse-v6';
 // The app shell is cached up front. Case files are cached the first time a
 // case is opened, so a case you have started keeps working offline.
 const CORE = [
@@ -35,7 +35,10 @@ self.addEventListener('fetch', e => {
   const sameOrigin = url.origin === self.location.origin;
   if (!sameOrigin) return;
   if (url.pathname.includes('/rest/v1/')) return;
-  e.respondWith(fetch(req).then(res => {
+  // Always ask the server (GitHub Pages lets browsers reuse files for 10 minutes,
+  // which would hide a new deploy). Unchanged files come back as a cheap 304.
+  const fresh = req.mode === 'navigate' ? fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }) : fetch(req, { cache: 'no-cache' });
+  e.respondWith(fresh.then(res => {
     if (res.ok || res.type === 'opaque') {
       const copy = res.clone();
       caches.open(CACHE).then(c => c.put(req, copy));
