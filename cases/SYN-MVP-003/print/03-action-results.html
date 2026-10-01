@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SYN-MVP-003 - Authority Results (Sealed)</title>
+<link rel="stylesheet" href="dossier.css">
+</head>
+<body>
+
+<div class="screenonly">
+  <b>SEALED RESULTS - print all 10 pages, then separate them WITHOUT READING THEM.</b><br>
+  One page per authority, each in an envelope marked with its number.
+</div>
+
+<!-- === 01 === -->
+<div class="doc">
+  <div class="head">
+    <div class="docref"><b>SLIP 01</b><br>AUTH 01<br>RETURNED</div>
+    <div class="agency">KeyLine Systems - Cloud Event Service</div>
+    <div class="sub">Controller K-40, door MD-1, Ashcombe Observatory · supplied direct</div>
+  </div>
+  <h1>Dome Door - Complete Event Record</h1>
+  <p class="small">Copied from the manufacturer's servers. Every event the controller sent, with
+  nothing filtered. Site users cannot alter this record.</p>
+
+  <table class="log">
+    <tr><th style="width:50pt">Seq</th><th style="width:92pt">Timestamp</th><th style="width:96pt">Event</th><th>Source</th></tr>
+    <tr><td>#4468</td><td>06 JAN 18:00:00</td><td>SELF-TEST</td><td>CONTROLLER · OK</td></tr>
+    <tr><td>#4469</td><td>06 JAN 18:00:01</td><td>LATCH ARMED</td><td>CONTROLLER</td></tr>
+    <tr><td>#4470</td><td>06 JAN 21:58:10</td><td>OPEN</td><td>KEYPAD · CODE H (HALE)</td></tr>
+    <tr><td>#4471</td><td>06 JAN 21:58:31</td><td>CLOSED</td><td>DOOR SENSOR</td></tr>
+    <tr><td><b>#4472</b></td><td><b>07 JAN 01:24:33</b></td><td><b>OPEN</b></td><td><b>KEYPAD · CODE L (LINDQVIST)</b></td></tr>
+    <tr><td><b>#4473</b></td><td><b>07 JAN 01:24:50</b></td><td><b>CLOSED</b></td><td><b>DOOR SENSOR</b></td></tr>
+    <tr><td><b>#4474</b></td><td><b>07 JAN 01:52:18</b></td><td><b>OPENED FROM INSIDE</b></td><td><b>HANDLE SENSOR</b></td></tr>
+    <tr><td><b>#4475</b></td><td><b>07 JAN 01:52:26</b></td><td><b>CLOSED</b></td><td><b>DOOR SENSOR</b></td></tr>
+    <tr><td><b>#4476</b></td><td><b>07 JAN 07:08:12</b></td><td><b>OPEN, DOOR MOVED</b></td><td><b>KEYPAD · CODE B (BRACKLEY)</b></td></tr>
+    <tr><td><b>#4477</b></td><td><b>07 JAN 07:08:44</b></td><td><b>CLOSED</b></td><td><b>DOOR SENSOR</b></td></tr>
+    <tr><td>#4478</td><td>07 JAN 07:31:05</td><td>OPEN</td><td>DOOR SENSOR · NO LATCH</td></tr>
+  </table>
+
+  <div class="box">
+    <p style="margin:0"><b>KeyLine note.</b> "DOOR MOVED" means the door sensor saw the door swing
+    open after the keypad unlocked it. A door held by the hand bolt cannot move. Six events,
+    #4472 to #4477, are missing from the site console print dated 07 JAN 09:40 (user T.BRACKLEY,
+    filtered view). Filters are set by the site administrator.</p>
+  </div>
+  <div class="classbar"><span>Authority 01 · Returned</span><span>Cloud door record</span></div>
+</div>
+
+<!-- === 02 === -->
+<div class="doc">
+  <div class="head">
+    <div class="docref"><b>SLIP 02</b><br>AUTH 02<br>RETURNED</div>
+    <div class="agency">Aldenmoor Metropolitan Police · Digital Forensics</div>
+    <div class="sub">Control-room workstation CR-01</div>
+  </div>
+  <h1>Workstation Session Log</h1>
+
+  <table class="log">
+    <tr><th style="width:70pt">Time</th><th>Event</th></tr>
+    <tr><td>23:35:12</td><td>User I.LINDQVIST signs in.</td></tr>
+    <tr><td>23:35 - 01:23</td><td>Keyboard and mouse use, steady.</td></tr>
+    <tr><td><b>01:23:40</b></td><td><b>Last keyboard or mouse input.</b></td></tr>
+    <tr><td><b>01:38:40</b></td><td><b>Screen locked automatically after 15 minutes with no input.</b></td></tr>
+    <tr><td><b>02:06:30</b></td><td><b>Screen unlocked. Password: I.LINDQVIST.</b></td></tr>
+    <tr><td>02:06 - 03:01</td><td>Browser: web searches, see below.</td></tr>
+    <tr><td>03:01:55</td><td>User signs out.</td></tr>
+  </table>
+
+  <table class="log">
+    <tr><th style="width:70pt">Time</th><th>Searches typed</th></tr>
+    <tr><td>02:11</td><td>"can blood be detected on brass after cleaning"</td></tr>
+    <tr><td>02:19</td><td>"keyline k-40 delete event"</td></tr>
+  </table>
+
+  <p class="small">The imaging sequence finished at 01:20 (D-2). Nobody used this workstation for 43
+  minutes after 01:23.</p>
+  <div class="classbar"><span>Authority 02 · Returned</span><span>Workstation log</span></div>
+</div>
+
+<!-- === 03 === -->
+<div class="doc">
+  <div class="head">
+    <div class="docref"><b>SLIP 03</b><br>AUTH 03<br>RETURNED</div>
+    <div class="agency">Forensic Science Service</div>
+    <div class="sub">Exhibit EX-01 · brass counterweight</div>
+  </div>
+  <h1>The Counterweight</h1>
+  <p>Brass, 2.1 kg. The grip end is 34 mm across, knurled in a fine criss-cross pattern.</p>
+  <ul>
+    <li>The surface has been wiped with a solvent. Visible blood: none.</li>
+    <li>Inside the knurling, a chemical test finds <b>human blood. DNA: Edmund HALE.</b></li>
+    <li>Two scalp hairs trapped in the knurling. <b>Microscopy: consistent with Edmund HALE.</b></li>
+    <li>No identifiable fingerprints. The grip was wiped.</li>
+  </ul>
+  <div class="box">
+    <p style="margin:0"><b>Comparison.</b> The 34 mm knurled grip matches the size and pattern of the
+    depressed fracture on the crown of the head (B-1, injury 2).</p>
+  </div>
+  <div class="classbar"><span>Authority 03 · Returned</span><span>Counterweight</span></div>
+</div>
+
+<!-- === 04 === -->
+<div class="doc">
+  <div class="head">
+    <div class="docref"><b>SLIP 04</b><br>AUTH 04<br>RETURNED</div>
+    <div class="agency">Bank and Carrier Disclosures</div>
+    <div class="sub">T. Brackley</div>
+  </div>
+  <h1>Bank &amp; Telephone Records - Brackley</h1>
+
+  <h2>Mobile telephone</h2>
+  <table class="log">
+    <tr><th style="width:92pt">Timestamp</th><th>Call</th></tr>
+    <tr><td>06 JAN 18:22</td><td>OUT · to Ashcombe Garage · 2 min</td></tr>
+    <tr><td><b>07 JAN 03:18</b></td><td><b>IN · from I. LINDQVIST (mobile) · 9 min</b></td></tr>
+    <tr><td>07 JAN 07:14</td><td>OUT · 999 · 4 min</td></tr>
+  </table>
+
+  <h2>Current account</h2>
+  <table class="log">
+    <tr><th style="width:92pt">Timestamp</th><th>Credit</th><th>Reference</th></tr>
+    <tr><td><b>07 JAN 06:41</b></td><td><b>$4,000.00 from I. LINDQVIST</b></td><td>"boiler"</td></tr>
+  </table>
+
+  <p class="small">No other credit from Dr Lindqvist in the account's history. The observatory's
+  boiler was serviced in October and is paid for by the university.</p>
+  <div class="classbar"><span>Authority 04 · Returned</span><span>Brackley records</span></div>
+</div>
+
+<!-- === 05 === -->
+<div class="doc">
+  <div class="head">
+    <div class="docref"><b>SLIP 05</b><br>AUTH 05<br>RETURNED</div>
+    <div class="agency">Aldenmoor Metropolitan Police · Digital Forensics</div>
+    <div class="sub">Exhibit EX-02 · Professor Hale's laptop</div>
+  </div>
+  <h1>Unsent Draft, Last Saved 01:16</h1>
+
+  <div class="box">
+    <p class="small" style="margin:0 0 6pt"><b>To:</b> the Editor, Monthly Notices &nbsp; <b>Re:</b>
+    Lindqvist et al., "A new long-period comet, C/2025-K4"</p>
+    <p style="margin:0 0 6pt">"I asked to see the raw frames from the discovery night. The
+    timestamps in the submitted images do not match this observatory's mount log: on the night
+    claimed, the telescope was pointed at a different part of the sky. I believe the discovery
+    images were assembled from another survey's public data."</p>
+    <p style="margin:0">"I will put this to Dr Lindqvist myself tonight, and send this letter in
+    the morning whatever he says."</p>
+  </div>
+
+  <p class="small">Document created 04 JAN. Last saved 07 JAN 01:16:22. Never sent.</p>
+  <div class="classbar"><span>Authority 05 · Returned</span><span>Laptop</span></div>
+</div>
+
+<!-- === 06 === -->
+<div class="doc">
+  <div class="head">
+    <div class="docref"><b>SLIP 06</b><br>AUTH 06<br>RETURNED</div>
+    <div class="agency">Airline and Hotel Records</div>
+    <div class="sub">Dr M. Okafor</div>
+  </div>
+  <h1>Okafor - Travel</h1>
+  <table class="log">
+    <tr><th style="width:92pt">Date</th><th>Record</th></tr>
+    <tr><td>05 JAN 14:05</td><td>Flight Aldenmoor to Geneva, boarded.</td></tr>
+    <tr><td>05 - 09 JAN</td><td>Hotel Cornavin, Geneva. Room key used 06 JAN 23:52 and 07 JAN 07:30.</td></tr>
+    <tr><td>06 JAN 20:00 - 22:40</td><td>Conference dinner, Geneva. Seating plan and photographs.</td></tr>
+  </table>
+  <p class="small">She was 900 km away. This confirms what D-3 already shows: she never entered the
+  building.</p>
+  <div class="classbar"><span>Authority 06 · Returned</span><span>Okafor travel</span></div>
+</div>
+
+<!-- === 07 === -->
+<div class="doc">
+  <div class="head">
+    <div class="docref"><b>SLIP 07</b><br>AUTH 07<br>RETURNED</div>
+    <div class="agency">Householder Disclosure</div>
+    <div class="sub">Doorbell camera, Hallow Lane</div>
+  </div>
+  <h1>Mrs Hale's Doorbell Camera</h1>
+  <table class="log">
+    <tr><th style="width:70pt">Time</th><th>Recorded</th></tr>
+    <tr><td>18:10</td><td>Mrs Hale's car arrives and parks on the drive.</td></tr>
+    <tr><td>00:31</td><td>Mrs Hale opens the front door and lets a cat in.</td></tr>
+    <tr><td>06:55</td><td>Mrs Hale collects the milk.</td></tr>
+  </table>
+  <p class="small">The car does not move between 18:10 and 08:40. The drive is the only way out.</p>
+  <div class="classbar"><span>Authority 07 · Returned</span><span>Doorbell camera</span></div>
+</div>
+
+<!-- === 08 === -->
+<div class="doc">
+  <div class="head">
+    <div class="docref"><b>SLIP 08</b><br>AUTH 08<br>RETURNED</div>
+    <div class="agency">Valley Buses</div>
+    <div class="sub">Route 9, last service, 06 JAN</div>
+  </div>
+  <h1>Nowak - Bus CCTV &amp; Ticket</h1>
+  <table class="log">
+    <tr><th style="width:70pt">Time</th><th>Record</th></tr>
+    <tr><td>23:52</td><td>Student pass K.NOWAK scanned, Observatory Road stop.</td></tr>
+    <tr><td>00:09</td><td>Leaves the bus at Mill Street, 11 km from the observatory.</td></tr>
+  </table>
+  <p class="small">The 23:52 was the last bus. There is no service back until 06:40. She has no
+  car.</p>
+  <div class="classbar"><span>Authority 08 · Returned</span><span>Bus records</span></div>
+</div>
+
+<!-- === 09 === -->
+<div class="doc">
+  <div class="head">
+    <div class="docref"><b>SLIP 09</b><br>AUTH 09<br>RETURNED</div>
+    <div class="agency">Home Office Pathologist</div>
+    <div class="sub">Review of OCME 26-0031</div>
+  </div>
+  <h1>Second Opinion - Head Injuries</h1>
+  <p>Injury 2, on the crown, is a <b>blow from above with a heavy object with a round, patterned
+  face</b>. It was struck first, while he was standing or sitting. It would have stunned him at
+  once.</p>
+  <p>Injury 1, at the back of the head, is consistent with falling backwards onto the floor plate
+  after the first blow.</p>
+  <p><b>A fall cannot cause both.</b> This was not an accident.</p>
+  <div class="classbar"><span>Authority 09 · Returned</span><span>Second pathologist</span></div>
+</div>
+
+<!-- === 10 === -->
+<div class="doc">
+  <div class="head">
+    <div class="docref"><b>SLIP 10</b><br>AUTH 10<br>RETURNED</div>
+    <div class="agency">Ashcombe Observatory Archive</div>
+    <div class="sub">Weather station, 06 - 07 JAN</div>
+  </div>
+  <h1>Weather &amp; Sky</h1>
+  <table class="log">
+    <tr><th style="width:70pt">Time</th><th>Reading</th></tr>
+    <tr><td>22:00</td><td>-2.1 C · clear · wind 3 km/h</td></tr>
+    <tr><td>01:00</td><td>-3.0 C · clear · wind 2 km/h</td></tr>
+    <tr><td>04:00</td><td>-3.4 C · clear · wind 1 km/h</td></tr>
+  </table>
+  <p class="small">A clear, still, cold night. The best seeing of the winter. Nothing here bears on
+  how he died.</p>
+  <div class="classbar"><span>Authority 10 · Returned</span><span>Weather</span></div>
+</div>
+
+</body>
+</html>

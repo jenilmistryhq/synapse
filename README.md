@@ -3,13 +3,14 @@
 Print-and-play deductive murder mysteries for **1–6 detectives**, no facilitator required — and,
 eventually, an engine that generates them.
 
-**Three cases are complete and playable**, including a short training case.
+**Four cases are complete and playable**, from a short training case to an Expert file.
 
 | | Case | Tier | Time | Sheets | The experiment |
 |---|---|---|---|---|---|
 | **00** | The Consignment Watch | EASY | 15-25 min | 22 | The tutorial. A small theft, with an optional in-game guide. |
 | **01** | [The Halvorsen Bequest](#part-one--how-to-play-case-01) | MEDIUM | 90–120 min | 33 | Shared information. *Is deduction from documents fun?* |
 | **02** | [The Ravensgate Interlock](#part-one-b--case-02-the-ravensgate-interlock) | HARD | 120–160 min | 53 | Split information. *Does asymmetry between players add anything?* |
+| **03** | The Ashcombe Dome | EXPERT | 120-180 min | 41 | A locked-room murder with two culprits and a forged document. *Can players learn to distrust a record?* |
 
 **New to it? Play Case 00 first** (in the web app a guide walks you through the desk), then
 Case 01. Case 01 is the control condition, and Case 02 assumes you know how it works.

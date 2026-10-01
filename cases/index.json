@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-01T09:39:32.019Z",
+  "generated": "2026-10-01T11:18:08.938Z",
   "cases": [
     {
       "id": "SYN-MVP-000",
@@ -30,6 +30,16 @@
       "tagline": "A storm, a dam, two deaths. The file says murder-suicide.",
       "hook": "A storm cuts the road to a hydroelectric dam and seals six people in with each other. By dawn two are dead: a manager electrocuted at a switchgear cabinet, and a control engineer drowned in the intake gallery. Her credential card opened his cabinet and closed the circuit that killed him. The police found murder-suicide and closed the file in nineteen days.",
       "note": "Play Case 01 first. This one opens with a crime already solved."
+    },
+    {
+      "id": "SYN-MVP-003",
+      "number": "03",
+      "title": "The Ashcombe Dome",
+      "tier": "Expert",
+      "time": "120-180 min",
+      "tagline": "A dead astronomer in a dome bolted from the inside. The door log agrees. Should it?",
+      "hook": "The director of a hilltop observatory is found at the foot of a ladder in a telescope dome that the caretaker had to force open. The file says he fell in the dark. The pathologist is not so sure, and the door log is a little too tidy. This is an Expert file: not every document in it is honest, and the truth may need more than one name.",
+      "note": "Expert. Two people are responsible, and one document is forged."
     }
   ]
 }

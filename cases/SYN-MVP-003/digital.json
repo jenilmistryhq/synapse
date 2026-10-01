@@ -1,0 +1,214 @@
+{
+  "id": "SYN-MVP-003",
+  "number": "03",
+  "title": "The Ashcombe Dome",
+  "tier": "Expert",
+  "time": "120-180 min",
+  "tagline": "A dead astronomer in a dome bolted from the inside. The door log agrees. Should it?",
+  "hook": "The director of a hilltop observatory is found at the foot of a ladder in a telescope dome that the caretaker had to force open. The file says he fell in the dark. The pathologist is not so sure, and the door log is a little too tidy. This is an Expert file: not every document in it is honest, and the truth may need more than one name.",
+  "note": "Expert. Two people are responsible, and one document is forged.",
+  "sources": {
+    "base": "print/01-base-dossier.html",
+    "play": "print/02-play-materials.html",
+    "results": "print/03-action-results.html",
+    "sealed": "print/04-envelope-s1.html"
+  },
+  "menu": { "src": "play", "page": 1 },
+  "sheetPage": { "src": "play", "page": 2 },
+  "slips": { "src": "results" },
+  "budget": { "1": 5, "2": 5, "3": 6, "4": 6, "5": 6, "6": 6 },
+  "advice": "Before you spend, ask what in the file made you want it, and whether you already hold the answer. Clearing a person you have already cleared is a luxury.",
+  "groups": { "base": "Base dossier" },
+  "documents": [
+    { "id": "BRIEF", "kind": "brief", "title": "Briefing - Terms of Reference", "src": "play", "pages": [0] },
+    { "id": "A-1", "kind": "base", "title": "Sudden Death Report & Coroner's Referral", "src": "base", "pages": [0] },
+    { "id": "B-1", "kind": "base", "title": "Post-Mortem Examination", "src": "base", "pages": [1] },
+    { "id": "C-1", "kind": "base", "title": "Statement: T. Brackley, Caretaker", "src": "base", "pages": [2] },
+    { "id": "C-2", "kind": "base", "title": "Statement: Dr I. Lindqvist, Visiting Researcher", "src": "base", "pages": [3] },
+    { "id": "C-3", "kind": "base", "title": "Statement: Dr M. Okafor, Deputy Director", "src": "base", "pages": [4] },
+    { "id": "C-4", "kind": "base", "title": "Statement: E. Hale, Wife of the Deceased", "src": "base", "pages": [5] },
+    { "id": "C-5", "kind": "base", "title": "Statement: K. Nowak, Doctoral Student", "src": "base", "pages": [6] },
+    { "id": "D-1", "kind": "base", "title": "Dome Door Lock Log (printed by T. Brackley)", "src": "base", "pages": [7] },
+    { "id": "D-2", "kind": "base", "title": "Telescope Control Log", "src": "base", "pages": [8] },
+    { "id": "D-3", "kind": "base", "title": "Main Building Card Access Log", "src": "base", "pages": [9] },
+    { "id": "E-1", "kind": "base", "title": "Scene & Exhibits Report", "src": "base", "pages": [10] }
+  ],
+  "persons": {
+    "label": "Findings on each person",
+    "hint": "Record each as Cleared, Suspect, Killer or Accomplice, with the evidence you rely on. A person is cleared only when a document puts them beyond the dome.",
+    "statuses": ["Open", "Cleared", "Suspect", "Killer", "Accomplice"],
+    "list": [
+      { "id": "brackley", "name": "Brackley, Thomas", "role": "Caretaker",
+        "look": {"head": "noHair2", "face": "serious", "facialHair": "full3", "skin": "edb98a", "hair": "e8e1e1", "clothing": "6f7f73"} },
+      { "id": "lindqvist", "name": "Lindqvist, Dr Ivo", "role": "Visiting researcher",
+        "look": {"head": "short5", "face": "blank", "accessories": "glasses5", "skin": "ffdbb4", "hair": "d6b370", "clothing": "7d8ba3"} },
+      { "id": "okafor", "name": "Okafor, Dr Miriam", "role": "Deputy director",
+        "look": {"head": "bun2", "face": "serious", "accessories": "glasses2", "skin": "694d3d", "hair": "2c1b18", "clothing": "9c7b7b"} },
+      { "id": "ehale", "name": "Hale, Ellen", "role": "Wife of the deceased",
+        "look": {"head": "grayMedium", "face": "solemn", "skin": "ffdbb4", "hair": "e8e1e1", "clothing": "8c8198"} },
+      { "id": "nowak", "name": "Nowak, Kasia", "role": "Doctoral student",
+        "look": {"head": "mediumBangs", "face": "tired", "skin": "ffdbb4", "hair": "a55728", "clothing": "8a9a8c"} }
+    ]
+  },
+  "voices": {"TB": "m", "IL": "m", "MO": "f", "EH": "f", "KN": "f"},
+  "exhibits": [
+    {"ref": "EX-01", "name": "Brass telescope counterweight, 34 mm knurled grip", "found": "Counterweight rack on the platform - the only clean one of four", "icon": "item", "source": "E-1"},
+    {"ref": "EX-02", "name": "Laptop, Prof. Hale, open and asleep", "found": "Platform desk", "icon": "tablet", "source": "E-1"},
+    {"ref": "EX-03", "name": "Spectacles, Prof. Hale, one arm bent", "found": "Floor, under the platform", "icon": "glasses", "source": "E-1"},
+    {"ref": "EX-04", "name": "Flat steel bar, 600 mm", "found": "Corridor outside the dome door", "icon": "key", "source": "E-1"},
+    {"ref": "EX-05", "name": "Bolt keeper with two screws", "found": "Dome floor, inside the door", "icon": "item", "source": "E-1"}
+  ],
+  "replay": [
+    {"doc": "B-1", "find": "A circular depressed fracture, 34 mm across", "note": "Two head injuries on opposite sides of the skull. A fall strikes once."},
+    {"doc": "E-1", "find": "No fitting on the ladder or platform rail carries a knurled or criss-cross surface.", "note": "So the patterned wound did not come from the ladder."},
+    {"doc": "E-1", "find": "The other three are dusty; this one is clean.", "note": "The weapon: a 34 mm knurled counterweight, wiped and put back."},
+    {"doc": "D-2", "find": "Manual stop. Sidereal tracking resumed.", "note": "Hale was alive at 01:37, using the hand paddle in the dome."},
+    {"doc": "E-1", "find": "The splintering of the frame is on the inside face.", "note": "The door was levered from inside the room. The locked room was staged."},
+    {"doc": "D-1", "find": "#4478", "note": "The forged log jumps from #4471 to #4478: six events are missing."},
+    {"doc": "D-1", "find": "Event count for period: 11", "note": "And its own footer counts 11 events while it shows five."},
+    {"doc": "SLIP 01", "find": "07 JAN 01:24:33", "note": "The full record: Lindqvist's code opened the dome at 01:24."},
+    {"doc": "SLIP 01", "find": "OPEN, DOOR MOVED", "note": "At 07:08 Brackley's code opened the door and it swung open. It was never bolted."},
+    {"doc": "C-2", "find": "I was at my desk the whole time.", "note": "Lindqvist's account fails against the door record and his idle workstation."},
+    {"doc": "SLIP 02", "find": "Last keyboard or mouse input.", "note": "Nobody touched his workstation from 01:23 to 02:06."},
+    {"doc": "SLIP 04", "find": "$4,000.00 from I. LINDQVIST", "note": "The price of the cover-up, paid at 06:41, before the 'discovery'."},
+    {"doc": "SLIP 05", "find": "I will put this to Dr Lindqvist myself tonight", "note": "The motive: Hale was about to expose the faked comet discovery."}
+  ],
+  "motiveLabel": "Motive (optional - scores nothing)",
+  "accusation": {
+    "question": "On the evidence recorded, the death of Edmund Hale was...",
+    "determination": "murder",
+    "options": [
+      { "id": "accident", "type": "accident", "label": "An accident", "sub": "He fell from the ladder. The original finding stands.", "final": true },
+      { "id": "lindqvist-brackley", "type": "murder", "label": "Murder by Ivo Lindqvist, covered up by Thomas Brackley", "sub": "Two people responsible" },
+      { "id": "lindqvist", "type": "murder", "label": "Murder by Ivo Lindqvist, acting alone", "sub": "Visiting researcher",
+        "reconsider": { "id": "R/ALONE", "title": "Reconsider - One name", "src": "sealed", "page": 0 } },
+      { "id": "brackley", "type": "murder", "label": "Murder by Thomas Brackley", "sub": "Caretaker",
+        "reconsider": { "id": "R/BRACKLEY", "title": "Reconsider - Brackley", "src": "sealed", "page": 1 } },
+      { "id": "okafor", "type": "murder", "label": "Murder by Dr Miriam Okafor", "sub": "Deputy director",
+        "reconsider": { "id": "R/OKAFOR", "title": "Reconsider - Okafor", "src": "sealed", "page": 2 } },
+      { "id": "ehale", "type": "murder", "label": "Murder by Ellen Hale", "sub": "Wife of the deceased",
+        "reconsider": { "id": "R/EHALE", "title": "Reconsider - E. Hale", "src": "sealed", "page": 3 } },
+      { "id": "nowak", "type": "murder", "label": "Murder by Kasia Nowak", "sub": "Doctoral student",
+        "reconsider": { "id": "R/NOWAK", "title": "Reconsider - Nowak", "src": "sealed", "page": 4 } }
+    ]
+  },
+  "phases": [
+    { "docs": ["BRIEF", "A-1", "B-1"], "read": "A-1 and B-1", "authorities": false,
+      "prompt": "Accident or not? Write down what in B-1 does not fit a fall." },
+    { "docs": ["C-1", "C-2", "C-3", "C-4", "C-5", "D-1", "D-2"], "read": "the five statements (C-1 to C-5), D-1 and D-2", "authorities": true,
+      "prompt": "When was he last alive, and who could have been in the dome? Is every record here complete?" },
+    { "docs": ["D-3", "E-1"], "read": "D-3, E-1 and everything remaining", "authorities": true, "prompt": null }
+  ],
+  "reveal": {
+    "src": "sealed",
+    "cover": 5,
+    "pages": [6, 7, 8],
+    "scoringPage": 9,
+    "steps": [
+      { "sheet": "step:0", "checks": [{ "id": "c1", "kind": "step", "points": 5, "label": "Step 1 - Not a fall: two injuries, the patterned weapon, cited" }] },
+      { "sheet": "step:1", "checks": [{ "id": "c2", "kind": "step", "points": 5, "label": "Step 2 - Died between 01:37 and 01:52, cited" }] },
+      { "sheet": "step:2", "checks": [{ "id": "c3", "kind": "step", "points": 5, "label": "Step 3 - The door was forced from inside, cited" }] },
+      { "sheet": "step:3", "checks": [{ "id": "c4", "kind": "step", "points": 10, "label": "Step 4 - D-1 identified as a filtered, incomplete log, cited" }] },
+      { "sheet": "step:4", "checks": [{ "id": "c5", "kind": "step", "points": 5, "label": "Step 5 - Lindqvist in the dome 01:24 to 01:52, cited" }] },
+      { "sheet": "step:5", "checks": [{ "id": "c6", "kind": "step", "points": 10, "label": "Step 6 - Brackley staged the door and forged the log, cited" }] },
+      { "sheet": "persons", "checks": [
+        { "id": "e1", "kind": "person", "points": 5, "label": "Okafor cleared with evidence" },
+        { "id": "e2", "kind": "person", "points": 5, "label": "Ellen Hale cleared with evidence" },
+        { "id": "e3", "kind": "person", "points": 5, "label": "Nowak cleared with evidence" }
+      ] },
+      { "sheet": "motive", "checks": [], "note": "Motive scores nothing, but this one is the whole reason." },
+      { "sheet": "verdict" },
+      { "sheet": "epilogue" }
+    ]
+  },
+  "scoring": {
+    "determination": { "label": "Determination recorded as murder", "points": 5 },
+    "culprit": { "label": "Both named correctly: the killer and the cover-up", "points": 10 },
+    "wrong": { "label": "Wrong accusation", "points": -10 },
+    "cleanSweep": { "label": "Clean Sweep - all six steps, all three cleared, correct first time", "points": 15 },
+    "unspent": { "label": "Unspent authority", "points": 2 },
+    "bands": [
+      { "min": 75, "title": "Case closed - commendation", "text": "Both charged, and the file holds." },
+      { "min": 60, "title": "Charged", "text": "The right people, with enough working to justify it." },
+      { "min": 45, "title": "Referred", "text": "The Crown will take it, and will want more." },
+      { "min": 25, "title": "No further action", "text": "You saw through the room. You cannot show who." },
+      { "min": -999, "title": "The file stays closed", "text": "An old man fell off a ladder in the dark." }
+    ]
+  },
+  "debrief": [
+    "When did you first stop trusting D-1, and was it the sequence numbers or the footer?",
+    "Did you spend an Authority clearing someone the file had already cleared?",
+    "Was naming two people harder than finding one?"
+  ],
+  "rules": [
+    "The documents don't lie. People might. So might a printout: ask who supplied each record, and whether it is complete.",
+    "The whole file is yours, in three phases. The tension is in what you spend, not what you hide.",
+    "You have a fixed number of Authorities and they do not come back. Several return nothing you need.",
+    "Write your working on the Resolution Sheet as you establish it, with document references. Anything not written before the final accusation scores nothing.",
+    "You get two wrong accusations. Each costs 10 points and opens a Reconsider envelope naming the gap in your theory. The third accusation is final.",
+    "When you are done, break the seal on Envelope S-1 and read it in order."
+  ],
+  "printKit": {
+    "sheets": "41 A4 sheets",
+    "envelopes": "16 envelopes: 10 numbered 01-10, 5 marked RECONSIDER, 1 marked S-1",
+    "guide": "print/PRINT-GUIDE.md",
+    "files": [
+      { "src": "base", "name": "01 Base dossier", "pages": 11, "spoiler": false, "what": "The case file. Read all of it, and trust it a little less than usual." },
+      { "src": "play", "name": "02 Play materials", "pages": 4, "spoiler": false, "what": "Briefing, Authority menu, Case Resolution Sheet." },
+      { "src": "results", "name": "03 Authority results", "pages": 10, "spoiler": true, "what": "Separate without reading. One page per envelope, numbered 01-10." },
+      { "src": "sealed", "name": "04 Reconsider and Envelope S-1", "pages": 10, "spoiler": true, "what": "Pages 1-5 seal separately (Reconsider). Pages 6-10 seal together (S-1)." }
+    ],
+    "checklist": [
+      "Print the Player pack",
+      "Someone who is NOT playing prints the Sealed pack face-down",
+      "Put Authority results 01-10 in 10 numbered envelopes, one page each, unread",
+      "Seal the 5 Reconsider inserts separately (One name, Brackley, Okafor, E. Hale, Nowak)",
+      "Seal the 5 pages of Envelope S-1 together, cover facing out",
+      "Stick on the envelope labels and find two pencils"
+    ]
+  },
+  "order": 3,
+  "hintCosts": [3, 4, 6],
+  "hints": [
+    {
+      "id": "fall", "q": "Was it really a fall?", "needs": "B-1",
+      "steps": [
+        "Count the head injuries in B-1, and note where on the skull each one is.",
+        "Injury 2 has a pattern. E-1.3 says what the ladder's surfaces look like.",
+        "E-1.2: one counterweight has a 34 mm knurled grip, and it is the only clean one. Authority 03 or 09 confirms it."
+      ]
+    },
+    {
+      "id": "room", "q": "How was the room locked?", "needs": "D-1",
+      "steps": [
+        "Ask who said the door was bolted, and who forced it. Then read E-1.1 about the damage.",
+        "The splinters and the pry marks are on the inside. A door forced from the corridor is damaged on the outside.",
+        "Authority 01 shows what the door did at 07:08 when Brackley's code opened it."
+      ]
+    },
+    {
+      "id": "forged", "q": "Which document can't be trusted?", "needs": "D-1",
+      "steps": [
+        "One record was printed for the police by a person in this file. Which one, and by whom?",
+        "The lock numbers every event in order. Read D-1's sequence column, then its footer.",
+        "D-1 jumps from #4471 to #4478 and shows five events of eleven. Authority 01 is the full record."
+      ]
+    },
+    {
+      "id": "who", "q": "Who was in the dome?", "needs": "D-2",
+      "steps": [
+        "D-2 tells you when Hale was last alive and when the imaging finished. Compare that with C-2.",
+        "Lindqvist says he watched every frame until about two. The sequence finished at 01:20.",
+        "Authorities 01 and 02 together put him in the dome from 01:24 to 01:52."
+      ]
+    },
+    {
+      "id": "why", "q": "Why would anyone help cover it up?", "needs": "C-1",
+      "steps": [
+        "Brackley told the police nobody rang him that night. Can you check?",
+        "Authority 04: his telephone and his bank account.",
+        "A call from Lindqvist at 03:18, and $4,000 from Lindqvist at 06:41, before the body was 'found'."
+      ]
+    }
+  ]
+}

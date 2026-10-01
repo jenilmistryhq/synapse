@@ -207,6 +207,8 @@ body.desk-lock #toasts { bottom: 24px; }
 .tier { font: 600 11px/1 var(--f-cond); letter-spacing: .16em; text-transform: uppercase; padding: 5px 9px; border-radius: 99px; border: 1px solid; }
 .t-medium { color: var(--amber); border-color: rgba(230,176,74,.45); }
 .t-hard { color: #f08a78; border-color: rgba(216,74,51,.5); }
+.t-easy { color: var(--green); border-color: rgba(121,184,134,.5); background: var(--green-soft); }
+.t-expert { color: #c9a7f2; border-color: rgba(176,132,232,.5); background: rgba(176,132,232,.1); }
 .cc-mode { font: 500 12px/1 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .tagline { font-size: 16px; color: var(--ink); margin: 0 0 10px; }
 .hook { font-size: 14.5px; color: var(--ink2); margin: 0 0 16px; }
@@ -1228,3 +1230,11 @@ body.reduce-motion .guide-flash { animation: none; outline: 3px solid #e6b04a; o
 .board-count { margin: 0 0 8px; font-size: 13px; }
 .board tr.gap td { padding: 2px 14px; text-align: center; color: var(--muted); letter-spacing: .3em; }
 .board tr.pinned td { background: var(--amber-soft); border-top: 1px dashed var(--line2); }
+
+/* --- findings: killer and accomplice (Case 03) --- */
+.hand-select.s-killer { color: #a3261a; } .hand-select.s-accomplice { color: #b3540f; }
+.status-pill.s-killer { background: var(--red-soft); color: #f08a78; } .status-pill.s-accomplice { background: rgba(214,120,40,.16); color: #f0a868; }
+.poi-card.s-killer .poi-stamp, .bc-stamp.s-killer { color: #a3261a; } .poi-card.s-accomplice .poi-stamp, .bc-stamp.s-accomplice { color: #b3540f; }
+.pc-body .hand-select.s-killer { color: #f08a78; } .pc-body .hand-select.s-accomplice { color: #f0a868; }
+body.colour-safe .hand-select.s-killer, body.colour-safe .poi-card.s-killer .poi-stamp { color: #b35900; }
+body.colour-safe .hand-select.s-accomplice, body.colour-safe .poi-card.s-accomplice .poi-stamp { color: #7a5c00; }

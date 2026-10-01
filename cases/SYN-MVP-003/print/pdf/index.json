@@ -1,0 +1,72 @@
+{
+  "case": "SYN-MVP-003",
+  "built": "2026-10-01T11:11:03.121Z",
+  "files": [
+    {
+      "src": "base",
+      "file": "01-base-dossier.pdf",
+      "bytes": 290902,
+      "pages": 11,
+      "spoiler": false
+    },
+    {
+      "src": "play",
+      "file": "02-play-materials.pdf",
+      "bytes": 181151,
+      "pages": 4,
+      "spoiler": false
+    },
+    {
+      "src": "results",
+      "file": "03-action-results.pdf",
+      "bytes": 254893,
+      "pages": 10,
+      "spoiler": true
+    },
+    {
+      "src": "sealed",
+      "file": "04-envelope-s1.pdf",
+      "bytes": 207557,
+      "pages": 10,
+      "spoiler": true
+    }
+  ],
+  "packs": [
+    {
+      "id": "player",
+      "file": "player-pack.pdf",
+      "bytes": 361302,
+      "pages": 15,
+      "spoiler": false
+    },
+    {
+      "id": "sealed",
+      "file": "sealed-pack.pdf",
+      "bytes": 353324,
+      "pages": 20,
+      "spoiler": true
+    },
+    {
+      "id": "labels",
+      "file": "envelope-labels.pdf",
+      "bytes": 94640,
+      "pages": 2,
+      "labels": 16,
+      "spoiler": false
+    },
+    {
+      "id": "zip-player",
+      "file": "SYN-MVP-003-player-kit.zip",
+      "bytes": 641326,
+      "files": 6,
+      "spoiler": false
+    },
+    {
+      "id": "zip-all",
+      "file": "SYN-MVP-003-complete-kit.zip",
+      "bytes": 1202547,
+      "files": 9,
+      "spoiler": true
+    }
+  ]
+}
