@@ -7,6 +7,7 @@
     "catalog": "node tools/build-catalog.js",
     "portraits": "node tools/build-portraits.js",
     "pdf": "node tools/build-pdfs.js",
+    "zip": "node tools/build-zips.js",
     "build": "node tools/build-portraits.js && node tools/build-catalog.js && node tools/build-pdfs.js",
     "validate": "node tools/validate.js cases/SYN-MVP-001/ledger.json && node tools/validate.js cases/SYN-MVP-002/ledger.json"
   },

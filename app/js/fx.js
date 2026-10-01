@@ -29,7 +29,7 @@ export function openEnvelope({ kicker = 'Sealed', label, sub, tone = '', button 
       setTimeout(() => {
         ov.classList.remove('in');
         setTimeout(() => { ov.remove(); resolve(); }, 260);
-      }, reducedMotion() ? 60 : 1150);
+      }, reducedMotion() ? 60 : 1800);
     };
     btn.addEventListener('click', open);
     env.addEventListener('click', open);

@@ -1,47 +1,91 @@
 // The leaderboard page and the public page a shared result link opens.
 
-import { h, icon, fmtClock, append, clear, store } from './util.js';
-import { topScores, isGlobal } from './leaderboard.js';
+import { h, icon, fmtClock, append, clear, store, plural } from './util.js';
+import { caseBoard, overallBoard, myRanks, isGlobal, CASE_TOP, OVERALL_TOP } from './leaderboard.js';
 import { decodeResult } from './share.js';
 
 const NAME_KEY = 'synapse:name';
 const LAST_BOARD = 'synapse:board';
 
-export function renderLeaderboard(app, catalog, caseId, go) {
+export function renderLeaderboard(app, catalog, which, go) {
   const cases = catalog.cases;
-  const current = cases.find(c => c.id === caseId) || cases.find(c => c.id === store.load(LAST_BOARD)) || cases[0];
-  store.save(LAST_BOARD, current.id);
-  const me = (store.load(NAME_KEY) || '').toLowerCase();
-  const body = h('div', { class: 'board-body' }, h('div', { class: 'boot inline' }, h('span', { class: 'brand-mark spin' }), 'Loading scores...'));
+  const pick = which || store.load(LAST_BOARD) || 'overall';
+  const current = pick === 'overall' ? null : cases.find(c => c.id === pick) || null;
+  store.save(LAST_BOARD, current ? current.id : 'overall');
+  const meName = store.load(NAME_KEY) || '';
+  const me = meName.toLowerCase();
+  const loading = () => h('div', { class: 'boot inline' }, h('span', { class: 'brand-mark spin' }), 'Loading scores...');
+  const body = h('div', { class: 'board-body' }, loading());
+  const mine = h('div', { class: 'card board-me' }, loading());
 
-  const picker = h('select', { class: 'field board-pick', 'aria-label': 'Choose a case', onchange: e => go(`#/leaderboard/${e.target.value}`) },
+  const picker = h('select', { class: 'field board-pick', 'aria-label': 'Choose a leaderboard', onchange: e => go(`#/leaderboard/${e.target.value}`) },
+    h('option', { value: 'overall' }, `Overall · every case (top ${OVERALL_TOP})`),
     cases.map(c => h('option', { value: c.id }, `Case ${c.number} · ${c.title}`)));
-  picker.value = current.id;
+  picker.value = current ? current.id : 'overall';
 
   append(clear(app), h('main', { class: 'page wide' },
     h('a', { class: 'back', href: '#/' }, icon('left'), 'All cases'),
     h('div', { class: 'kicker' }, isGlobal() ? 'Global leaderboard' : 'Leaderboard · this device'),
-    h('h1', { class: 'display sm' }, 'Best reviews'),
-    h('p', { class: 'lead' }, 'Ranked by score, then by time on the clock. Only a first attempt at a case can be posted.'),
-    h('div', { class: 'board-top' }, picker, h('a', { class: 'btn primary', href: `#/play/${current.id}` }, 'Play this case', icon('arrow'))),
-    !isGlobal() ? h('div', { class: 'callout' }, 'These are the scores posted from this browser. When the site owner connects the shared leaderboard, everyone\'s scores appear here.') : null,
-    body));
+    h('h1', { class: 'display sm' }, current ? 'Best reviews' : 'Top detectives'),
+    h('p', { class: 'lead' }, current
+      ? `The top ${CASE_TOP} on this case. Each detective's best run counts, ranked by score, then by time on the clock.`
+      : `The top ${OVERALL_TOP} across every case. Each detective's best score on each case is added up; ties go to the shorter total time.`),
+    h('div', { class: 'board-top' }, picker, current ? h('a', { class: 'btn primary', href: `#/play/${current.id}` }, 'Play this case', icon('arrow')) : null),
+    !isGlobal() ? h('div', { class: 'callout' }, "These are the scores posted from this browser. When the site owner connects the shared leaderboard, everyone's scores appear here.") : null,
+    mine, body));
 
-  topScores(current.id).then(rows => {
-    if (!rows.length) {
-      body.replaceChildren(h('div', { class: 'empty' }, h('p', {}, 'No scores yet for this case.'), h('a', { class: 'btn sm', href: `#/play/${current.id}` }, 'Be the first')));
+  const row = (r, extra = '') => h('tr', { class: `${r.rank <= 3 ? `top top${r.rank}` : ''} ${r.name.toLowerCase() === me ? 'me' : ''} ${extra}` },
+    h('td', { class: 'n rank' }, r.rank <= 3 ? h('span', { class: 'medal' }, r.rank) : r.rank),
+    h('td', { class: 'who' }, r.name, current && !r.correct ? h('span', { class: 'tag' }, 'Wrong finding') : null),
+    h('td', { class: 'n mono strong' }, r.score),
+    current ? h('td', { class: 'hide-sm muted' }, r.band) : h('td', { class: 'n hide-sm muted' }, plural(r.cases || 1, 'case')),
+    h('td', { class: 'n mono' }, fmtClock(r.time_ms)),
+    h('td', { class: 'n hide-sm muted' }, new Date(r.created_at).toLocaleDateString()));
+
+  function drawTable(board, meRow) {
+    if (!board.rows.length) {
+      body.replaceChildren(h('div', { class: 'empty' }, h('p', {}, current ? 'No scores yet for this case.' : 'No scores yet.'),
+        h('a', { class: 'btn sm', href: current ? `#/play/${current.id}` : '#/' }, current ? 'Be the first' : 'Pick a case')));
       return;
     }
-    body.replaceChildren(h('table', { class: 'board' },
-      h('thead', {}, h('tr', {}, h('th', { class: 'n' }, '#'), h('th', {}, 'Detective'), h('th', { class: 'n' }, 'Score'), h('th', { class: 'hide-sm' }, 'Finding'), h('th', { class: 'n' }, 'Time'), h('th', { class: 'n hide-sm' }, 'Date'))),
-      h('tbody', {}, rows.map((r, i) => h('tr', { class: `${i < 3 ? `top top${i + 1}` : ''} ${r.name.toLowerCase() === me ? 'me' : ''}` },
-        h('td', { class: 'n rank' }, i < 3 ? h('span', { class: 'medal' }, i + 1) : i + 1),
-        h('td', { class: 'who' }, r.name, !r.correct ? h('span', { class: 'tag' }, 'Wrong finding') : null),
-        h('td', { class: 'n mono strong' }, r.score),
-        h('td', { class: 'hide-sm muted' }, r.band),
-        h('td', { class: 'n mono' }, fmtClock(r.time_ms)),
-        h('td', { class: 'n hide-sm muted' }, new Date(r.created_at).toLocaleDateString()))))));
+    const inTop = meRow && board.rows.some(r => r.name.toLowerCase() === me);
+    body.replaceChildren(
+      h('p', { class: 'board-count muted' }, `${plural(board.players, 'detective')} ranked${board.players > board.rows.length ? `, showing the top ${board.rows.length}` : ''}.`),
+      h('table', { class: 'board' },
+        h('thead', {}, h('tr', {}, h('th', { class: 'n' }, '#'), h('th', {}, 'Detective'), h('th', { class: 'n' }, 'Score'),
+          current ? h('th', { class: 'hide-sm' }, 'Finding') : h('th', { class: 'n hide-sm' }, 'Cases'),
+          h('th', { class: 'n' }, current ? 'Time' : 'Total time'), h('th', { class: 'n hide-sm' }, current ? 'Date' : 'Last played'))),
+        h('tbody', {}, board.rows.map(r => row(r)),
+          meRow && !inTop ? [h('tr', { class: 'gap', 'aria-hidden': 'true' }, h('td', { colspan: 6 }, '...')), row(meRow, 'pinned')] : null)));
+  }
+
+  function drawMine(ranks) {
+    if (!meName) {
+      mine.replaceChildren(h('div', { class: 'card-h' }, icon('trophy'), 'Where you stand'),
+        h('p', { class: 'muted' }, 'Post a score after you solve a case and your rankings show up here.'));
+      return;
+    }
+    const caseRows = cases.filter(c => ranks.cases[c.id]).map(c => ({ c, r: ranks.cases[c.id] }));
+    const o = ranks.overall;
+    mine.replaceChildren(
+      h('div', { class: 'card-h' }, icon('trophy'), 'Where you stand', h('span', { class: 'muted' }, `as ${meName}`)),
+      h('div', { class: 'me-grid' },
+        h('a', { class: `me-cell ${!current ? 'on' : ''}`, href: '#/leaderboard/overall' },
+          h('span', { class: 'me-k' }, 'Overall'),
+          o ? [h('b', {}, `#${o.rank}`), h('span', { class: 'me-s' }, `of ${o.players} · ${o.score} pts`)] : h('span', { class: 'me-s' }, 'Not ranked yet')),
+        caseRows.map(({ c, r }) => h('a', { class: `me-cell ${current && current.id === c.id ? 'on' : ''}`, href: `#/leaderboard/${c.id}` },
+          h('span', { class: 'me-k' }, `Case ${c.number}`),
+          h('b', {}, `#${r.rank}`), h('span', { class: 'me-s' }, `of ${r.players} · ${r.score} pts`)))),
+      ...(caseRows.length ? [] : [h('p', { class: 'muted small' }, 'You have not posted a score yet.')]));
+  }
+
+  const boardP = current ? caseBoard(current.id) : overallBoard();
+  const mineP = meName ? myRanks(meName) : Promise.resolve({ overall: null, cases: {} });
+  Promise.all([boardP, mineP]).then(([board, ranks]) => {
+    drawMine(ranks);
+    drawTable(board, current ? ranks.cases[current.id] : ranks.overall);
   }).catch(err => {
+    mine.replaceChildren();
     body.replaceChildren(h('div', { class: 'callout warn' }, String(err.message || err)));
   });
   return () => {};

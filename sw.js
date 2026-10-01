@@ -1,6 +1,6 @@
 // Offline support. Network first, so a new deploy is picked up immediately;
 // the cache is only a fallback when there is no connection.
-const CACHE = 'synapse-v6';
+const CACHE = 'synapse-v7';
 // The app shell is cached up front. Case files are cached the first time a
 // case is opened, so a case you have started keeps working offline.
 const CORE = [

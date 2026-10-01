@@ -380,11 +380,21 @@ well for this:
 1. Create a project at [supabase.com](https://supabase.com).
 2. Open **SQL Editor**, paste the whole of [`tools/leaderboard.sql`](tools/leaderboard.sql), and
    run it. It creates the `scores` table, allows the public to read scores and add new ones (but
-   never edit or delete), and adds a database-side swear filter as a backstop.
+   never edit or delete), adds a database-side swear filter as a backstop, and creates the two
+   read-only ranking views the leaderboard page uses. Already set up? Run the file again: it is
+   safe to re-run, and it adds the ranking views.
 3. In **Settings > API**, copy the **Project URL** and the **anon public** key into
    [`app/config.js`](app/config.js). Commit and push.
 
 The anon key is meant to be public; the table's row-level security is what protects it.
+
+**How ranking works.** A detective is a name (capitals ignored). On each case, their best run
+counts: highest score, then the fastest time. The page shows the **top 25 on each case** and the
+**top 100 overall**, where overall adds up each detective's best score on every case they have
+played (ties go to the shorter total time). **Where you stand** shows your own rank on every case
+you have posted, and overall, for the name you post under on that device; if you are outside the
+top list, your row is pinned underneath it. Without Supabase, the same rules apply to the scores
+saved in that browser.
 
 **Honest limits.** Scores are calculated in the player's browser and part of the score is
 self-assessed during the S-1 reveal, so a determined person could post a fake score. The
@@ -498,6 +508,11 @@ No code changes are needed to add a case.
 one per print file, plus a **player pack** (everything spoiler-free), a **sealed pack** (the
 printer-only files) and an **envelope label sheet**. Players download these from each case's
 Print & play page instead of fighting browser print settings.
+
+It then packs two **.zip** downloads per case (`tools/build-zips.js`, no extra packages):
+`<id>-player-kit.zip` with every spoiler-free PDF and the print guide, and
+`<id>-complete-kit.zip` with the sealed pages too, which the site only hands out after the same
+spoiler warning as the sealed pack. `npm run zip` rebuilds just the zips from existing PDFs.
 
 Every document prints on exactly one A4 sheet, whether from the PDFs or straight from the HTML,
 so the page-number-to-envelope rule in the print guides holds. `dossier.css` uses tighter spacing

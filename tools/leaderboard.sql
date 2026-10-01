@@ -107,3 +107,39 @@ revoke all on function public.scores_before_insert() from public, anon, authenti
 drop trigger if exists scores_before_insert on public.scores;
 create trigger scores_before_insert before insert on public.scores
   for each row execute function public.scores_before_insert();
+
+-- 5. Rankings. A detective is a name, case-insensitive. On each case their best
+--    run counts (highest score, then fastest). Overall, their best runs on every
+--    case are added up. Both views are read-only and run with the reader's own
+--    rights (security_invoker), so they show nothing the scores table does not.
+create or replace view public.case_ranks with (security_invoker = on) as
+with best as (
+  select distinct on (case_id, lower(name))
+    case_id, name, lower(name) as lname, score, time_ms, band, correct, created_at
+  from public.scores
+  order by case_id, lower(name), score desc, time_ms asc, created_at asc
+)
+select case_id, name, lname, score, time_ms, band, correct, created_at,
+  rank() over (partition by case_id order by score desc, time_ms asc)::int as rank,
+  count(*) over (partition by case_id)::int as players
+from best;
+
+create or replace view public.overall_ranks with (security_invoker = on) as
+with best as (
+  select distinct on (case_id, lower(name))
+    case_id, name, lower(name) as lname, score, time_ms, created_at
+  from public.scores
+  order by case_id, lower(name), score desc, time_ms asc, created_at asc
+), per as (
+  select lname, (array_agg(name order by created_at desc))[1] as name,
+    sum(score)::int as score, sum(time_ms)::bigint as time_ms,
+    count(*)::int as cases, max(created_at) as created_at
+  from best group by lname
+)
+select name, lname, score, time_ms, cases, created_at,
+  rank() over (order by score desc, time_ms asc)::int as rank,
+  count(*) over ()::int as players
+from per;
+
+revoke all on public.case_ranks, public.overall_ranks from public, anon, authenticated;
+grant select on public.case_ranks, public.overall_ranks to anon, authenticated;

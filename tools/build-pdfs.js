@@ -160,6 +160,7 @@ function labelsHtml(m, menuRows) {
     index.packs.push({ id: 'labels', file: 'envelope-labels.pdf', bytes: lr.bytes, pages: lr.pages, labels: rows.length + m.accusation.options.filter(o => o.reconsider).length + 1, spoiler: false });
 
     fs.writeFileSync(path.join(outDir, 'index.json'), JSON.stringify(index, null, 2) + '\n');
+    require('./build-zips').buildCase(id); // the .zip downloads, from the PDFs just written
     const total = [...index.files, ...index.packs].reduce((a, x) => a + x.bytes, 0);
     console.log(`${id}: ${index.files.length} files + ${index.packs.length} packs, ${(total / 1024).toFixed(0)} KB`);
     built++;

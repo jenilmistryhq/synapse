@@ -60,6 +60,20 @@
       "pages": 3,
       "labels": 17,
       "spoiler": false
+    },
+    {
+      "id": "zip-player",
+      "file": "SYN-MVP-002-player-kit.zip",
+      "bytes": 1186200,
+      "files": 7,
+      "spoiler": false
+    },
+    {
+      "id": "zip-all",
+      "file": "SYN-MVP-002-complete-kit.zip",
+      "bytes": 1912143,
+      "files": 10,
+      "spoiler": true
     }
   ]
 }

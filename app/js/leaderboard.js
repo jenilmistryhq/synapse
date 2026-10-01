@@ -88,21 +88,94 @@ export async function submitScore(entry) {
     if (res.status === 429 || /too many/i.test(text)) throw new Error('Too many scores posted from this network. Try again later.');
     throw new Error(/name/i.test(text) ? 'The leaderboard rejected that name.' : `The leaderboard could not save this score (${res.status}).`);
   }
-  return { global: true, rank: await globalRank(entry).catch(() => null) };
+  const mine = await myRanks(entry.name).catch(() => null);
+  return { global: true, rank: mine && mine.cases[entry.case_id] ? mine.cases[entry.case_id].rank : null };
 }
 
-async function globalRank(e) {
-  const filter = `case_id=eq.${encodeURIComponent(e.case_id)}&or=(score.gt.${e.score},and(score.eq.${e.score},time_ms.lt.${e.time_ms}))`;
-  const res = await request(api(`scores?select=id&${filter}`), { method: 'HEAD', headers: headers({ Prefer: 'count=exact' }) });
-  const n = parseInt((res.headers.get('content-range') || '').split('/')[1], 10);
-  return Number.isFinite(n) ? n + 1 : null;
+/* --- rankings --------------------------------------------------------------------
+   The same rules as the case_ranks and overall_ranks views in tools/leaderboard.sql:
+   a detective is a name (any capitals); on each case their best run counts; overall,
+   their best runs on every case are added up. Equal score and time share a rank. */
+
+export const CASE_TOP = 25;
+export const OVERALL_TOP = 100;
+const lname = n => String(n || '').toLowerCase();
+
+function cleanRank(r) {
+  if (!r || typeof r !== 'object') return null;
+  const int = (v, lo, hi) => (Number.isInteger(v) && v >= lo && v <= hi ? v : null);
+  const name = typeof r.name === 'string' && /^[A-Za-z0-9 _.-]{2,20}$/.test(r.name) ? r.name : null;
+  const score = int(r.score, -100000, 100000), time = Number.isFinite(r.time_ms) && r.time_ms >= 0 ? Math.round(r.time_ms) : null;
+  const rank = int(r.rank, 1, 1e7), players = int(r.players, 1, 1e7);
+  if (!name || score === null || time === null || !rank || !players) return null;
+  return {
+    name, score, time_ms: time, rank, players,
+    case_id: typeof r.case_id === 'string' && /^[A-Z0-9-]{3,32}$/.test(r.case_id) ? r.case_id : undefined,
+    cases: int(r.cases, 1, 1000) || undefined,
+    band: typeof r.band === 'string' ? r.band.slice(0, 40) : '',
+    correct: r.correct === true,
+    created_at: typeof r.created_at === 'string' && !Number.isNaN(Date.parse(r.created_at)) ? r.created_at : new Date(0).toISOString(),
+  };
 }
 
-export async function topScores(caseId, limit = 50) {
-  if (!isGlobal()) return localScores(caseId).slice(0, limit);
-  const q = `scores?select=name,score,time_ms,band,correct,accusations,authorities,created_at&case_id=eq.${encodeURIComponent(caseId)}&order=score.desc,time_ms.asc&limit=${Math.min(100, limit | 0)}`;
-  const res = await request(api(q), { headers: headers() });
+function ranked(rows) {
+  rows.sort((a, b) => byRank(a, b) || a.created_at.localeCompare(b.created_at));
+  rows.forEach((r, i) => { const p = rows[i - 1]; r.rank = p && p.score === r.score && p.time_ms === r.time_ms ? p.rank : i + 1; r.players = rows.length; });
+  return rows;
+}
+function localBest() {
+  const best = new Map();
+  for (const r of localAll()) {
+    const k = `${r.case_id}|${lname(r.name)}`, b = best.get(k);
+    if (!b || byRank(r, b) < 0 || (byRank(r, b) === 0 && r.created_at < b.created_at)) best.set(k, r);
+  }
+  return [...best.values()];
+}
+const localCase = caseId => ranked(localBest().filter(r => r.case_id === caseId).map(r => ({ ...r })));
+function localOverall() {
+  const per = new Map();
+  for (const r of localBest()) {
+    const k = lname(r.name), p = per.get(k) || { name: r.name, score: 0, time_ms: 0, cases: 0, created_at: r.created_at };
+    p.score += r.score; p.time_ms += r.time_ms; p.cases++;
+    if (r.created_at > p.created_at) { p.created_at = r.created_at; p.name = r.name; }
+    per.set(k, p);
+  }
+  return ranked([...per.values()]);
+}
+
+async function view(path) {
+  const res = await request(api(path), { headers: headers() });
   if (!res.ok) throw new Error(`Could not load the leaderboard (${res.status}).`);
   const rows = await res.json().catch(() => []);
-  return Array.isArray(rows) ? rows.map(cleanRow).filter(Boolean) : [];
+  return Array.isArray(rows) ? rows.map(cleanRank).filter(Boolean) : [];
+}
+const CASE_COLS = 'select=case_id,name,score,time_ms,band,correct,created_at,rank,players';
+const ALL_COLS = 'select=name,score,time_ms,cases,created_at,rank,players';
+
+// The top of one case: { rows, players }
+export async function caseBoard(caseId, limit = CASE_TOP) {
+  if (!isGlobal()) { const all = localCase(caseId); return { rows: all.slice(0, limit), players: all.length }; }
+  const rows = await view(`case_ranks?${CASE_COLS}&case_id=eq.${encodeURIComponent(caseId)}&order=rank.asc,created_at.asc&limit=${limit | 0}`);
+  return { rows, players: rows.length ? rows[0].players : 0 };
+}
+
+// The top across every case: { rows, players }
+export async function overallBoard(limit = OVERALL_TOP) {
+  if (!isGlobal()) { const all = localOverall(); return { rows: all.slice(0, limit), players: all.length }; }
+  const rows = await view(`overall_ranks?${ALL_COLS}&order=rank.asc,created_at.asc&limit=${limit | 0}`);
+  return { rows, players: rows.length ? rows[0].players : 0 };
+}
+
+// Where one detective stands: { overall: row | null, cases: { [caseId]: row } }
+export async function myRanks(name) {
+  const me = lname(name);
+  if (!/^[a-z0-9 _.-]{2,20}$/.test(me)) return { overall: null, cases: {} };
+  if (!isGlobal()) {
+    const cases = {};
+    for (const id of new Set(localAll().map(r => r.case_id))) { const r = localCase(id).find(x => lname(x.name) === me); if (r) cases[id] = r; }
+    return { overall: localOverall().find(x => lname(x.name) === me) || null, cases };
+  }
+  const q = encodeURIComponent(me);
+  const [rows, all] = await Promise.all([view(`case_ranks?${CASE_COLS}&lname=eq.${q}`), view(`overall_ranks?${ALL_COLS}&lname=eq.${q}`)]);
+  return { overall: all[0] || null, cases: Object.fromEntries(rows.filter(r => r.case_id).map(r => [r.case_id, r])) };
 }

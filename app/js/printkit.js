@@ -27,7 +27,8 @@ export function renderPrintKit(app, m) {
 
   const download = async (file, spoiler, label) => {
     if (spoiler && !(await spoilerGate(label))) return;
-    const a = h('a', { href: pdfUrl(file), download: `${m.id}-${file}` });
+    // zips are already named after the case
+    const a = h('a', { href: pdfUrl(file), download: file.endsWith('.zip') ? file : `${m.id}-${file}` });
     document.body.append(a); a.click(); a.remove();
     toast(`Downloading ${label}`);
   };
@@ -52,6 +53,15 @@ export function renderPrintKit(app, m) {
     const byFile = src => index && index.files.find(x => x.src === src);
     const pack = id => index && index.packs.find(x => x.id === id);
     const player = pack('player'), sealed = pack('sealed'), labels = pack('labels');
+    const zipPlayer = pack('zip-player'), zipAll = pack('zip-all');
+    const zipCard = (zipPlayer || zipAll) ? h('div', { class: 'card zip-card' },
+      h('div', { class: 'card-h' }, icon('download'), 'Download as .zip'),
+      h('p', { class: 'muted zip-note' }, 'Every PDF for this case, plus the print guide, in one file.'),
+      h('div', { class: 'zip-row' },
+        zipPlayer ? h('button', { class: 'btn primary', onclick: () => download(zipPlayer.file, false, 'Player files (.zip)') },
+          icon('download'), h('span', {}, 'Player files', h('small', {}, `${zipPlayer.files} files · ${kb(zipPlayer.bytes)} · no spoilers`))) : null,
+        zipAll ? h('button', { class: 'btn ghost', onclick: () => download(zipAll.file, true, 'The complete kit (.zip)') },
+          icon('lock'), h('span', {}, 'Complete kit', h('small', {}, `${zipAll.files} files · ${kb(zipAll.bytes)} · includes sealed pages`))) : null)) : null;
     const done = store.load(`synapse:kit:${m.id}`) || [];
 
     const packCard = (p, { title, text, icon: ic, spoiler, extra }) => h('div', { class: `pack ${spoiler ? 'spoiler' : ''}` },
@@ -85,6 +95,7 @@ export function renderPrintKit(app, m) {
       index === null ? h('div', { class: 'callout warn' }, 'The PDFs for this case have not been built yet. Run "npm run pdf" in the project folder, or use the HTML files below.') : null,
       h('div', { class: 'kit-layout' },
         h('div', { class: 'kit-main' },
+          zipCard,
           h('h2', { class: 'section-h' }, 'The kit'),
           packCard(player, { title: 'Player pack', icon: 'file', text: 'The case file, briefing, Authority menu and Resolution Sheet. Everyone at the table may read all of it.',
             extra: h('button', { class: 'btn ghost', onclick: () => preview(k.files.find(f => !f.spoiler)) }, icon('eye'), 'Preview') }),

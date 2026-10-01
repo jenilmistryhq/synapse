@@ -207,8 +207,9 @@ export function computeScore(m, st) {
   const lines = [];
   const determined = opt.type === m.accusation.determination;
   const correct = determined && !opt.reconsider;
-  lines.push({ label: sc.determination.label, pts: determined ? sc.determination.points : 0 });
-  lines.push({ label: sc.culprit.label, pts: correct ? sc.culprit.points : 0 });
+  const dbl = !!(m.reveal.double && st.setup && st.setup.phased);
+  lines.push({ label: sc.determination.label, pts: determined ? sc.determination.points : 0, max: sc.determination.points });
+  lines.push({ label: sc.culprit.label, pts: correct ? sc.culprit.points : 0, max: sc.culprit.points });
   let allSteps = true, allPersons = true;
   for (const step of m.reveal.steps) {
     for (const c of step.checks || []) {
@@ -216,24 +217,27 @@ export function computeScore(m, st) {
       if (c.kind === 'step' && !got) allSteps = false;
       if (c.kind === 'person' && !got) allPersons = false;
       const x2 = got && m.reveal.double && c.kind === 'step' && st.reveal.doubles[c.id];
-      lines.push({ label: c.label + (x2 ? ' (x2)' : ''), pts: got ? c.points * (x2 ? 2 : 1) : 0 });
+      lines.push({ label: c.label + (x2 ? ' (x2)' : ''), pts: got ? c.points * (x2 ? 2 : 1) : 0, max: c.points * (dbl && c.kind === 'step' ? 2 : 1) });
     }
   }
   const wrong = wrongCount(st);
-  if (wrong) lines.push({ label: `${sc.wrong.label} x${wrong}`, pts: sc.wrong.points * wrong });
+  if (wrong) lines.push({ label: `${sc.wrong.label} x${wrong}`, pts: sc.wrong.points * wrong, max: 0 });
   const sweep = allSteps && allPersons && wrong === 0 && correct;
-  lines.push({ label: sc.cleanSweep.label, pts: sweep ? sc.cleanSweep.points : 0 });
+  lines.push({ label: sc.cleanSweep.label, pts: sweep ? sc.cleanSweep.points : 0, max: sc.cleanSweep.points });
   const unspent = st.budget - st.spent.length;
-  lines.push({ label: `${sc.unspent.label} x${unspent}`, pts: unspent * sc.unspent.points });
+  lines.push({ label: `${sc.unspent.label} x${unspent}`, pts: unspent * sc.unspent.points, bonus: true });
   const hints = hintsTaken(m, st);
-  if (hints.levels) lines.push({ label: `Advice from the Unit x${hints.levels}`, pts: -hints.cost });
+  if (hints.levels) lines.push({ label: `Advice from the Unit x${hints.levels}`, pts: -hints.cost, max: 0 });
   const total = lines.reduce((a, l) => a + l.pts, 0);
+  // The most a perfect review earns. Unspent Authorities are a bonus on top.
+  const max = lines.reduce((a, l) => a + (l.max || 0), 0);
   const band = sc.bands.find(b => total >= b.min) || sc.bands[sc.bands.length - 1];
-  return { lines, total, band, correct };
+  return { lines, total, band, correct, max };
 }
 
 export function mountScore(root, m, st, { go }) {
-  const sc = st.score || computeScore(m, st);
+  // Recomputed from the saved state, so older saves also get the maximum.
+  const sc = computeScore(m, st);
   const opt = optionOf(m, st.final.option);
   const totalEl = h('div', { class: 'score-total' }, '0');
   const result = () => ({
@@ -321,14 +325,20 @@ export function mountScore(root, m, st, { go }) {
   append(clear(root), h('main', { class: 'scene score' }, h('div', { class: 'stage-inner' },
     h('div', { class: 'kicker' }, `Case ${m.number} · ${m.title} · Scored`),
     h('div', { class: 'score-hero' },
-      h('div', {}, totalEl, h('div', { class: 'score-l' }, 'points')),
+      h('div', {}, totalEl, h('div', { class: 'score-l' }, `of ${sc.max} points`)),
       h('div', { class: 'band' }, h('div', { class: 'band-stamp' }, sc.band.title), h('p', {}, sc.band.text),
-        h('p', { class: 'score-time' }, icon('clock'), `${fmtClock(st.final.at)} on the clock`))),
+        h('p', { class: 'score-time' }, icon('clock'), `${fmtClock(st.final.at)} on the clock`),
+        h('ol', { class: 'band-ladder', 'aria-label': 'Score bands' }, m.scoring.bands.map(b => h('li', { class: b === sc.band ? 'here' : '' },
+          h('span', {}, b.title), h('b', {}, b.min <= -999 ? `below ${m.scoring.bands[m.scoring.bands.length - 2].min}` : `${b.min}+`)))))),
     h('div', { class: 'score-grid' },
       h('div', { class: 'card' },
         h('div', { class: 'card-h' }, icon('sheet'), 'Score the file, not the guess'),
-        h('table', { class: 'score-table' }, sc.lines.map(l => h('tr', { class: l.pts ? '' : 'zero' }, h('td', {}, l.label), h('td', { class: 'n' }, l.pts > 0 ? `+${l.pts}` : String(l.pts)))),
-          h('tr', { class: 'sum' }, h('td', {}, 'Total'), h('td', { class: 'n' }, String(sc.total))))),
+        h('table', { class: 'score-table' },
+          h('tr', { class: 'head' }, h('th', {}, 'Item'), h('th', { class: 'n' }, 'Earned'), h('th', { class: 'n' }, 'Possible')),
+          sc.lines.map(l => h('tr', { class: l.pts ? '' : 'zero' }, h('td', {}, l.label), h('td', { class: 'n' }, l.pts > 0 ? `+${l.pts}` : String(l.pts)),
+            h('td', { class: 'n muted' }, l.bonus ? 'bonus' : l.max ? String(l.max) : '-'))),
+          h('tr', { class: 'sum' }, h('td', {}, 'Total'), h('td', { class: 'n' }, String(sc.total)), h('td', { class: 'n' }, String(sc.max)))),
+        h('p', { class: 'hint' }, `A perfect review scores ${sc.max}, plus ${m.scoring.unspent.points} for each Authority you leave unspent.`)),
       h('div', { class: 'score-side' },
         postCard,
         h('div', { class: 'card' },
