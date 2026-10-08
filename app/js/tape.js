@@ -31,7 +31,28 @@ NATURAL_DEFAULTS.n = [...NATURAL_DEFAULTS.f, ...NATURAL_DEFAULTS.m];
 
 let naturalWorker = null, naturalRequestId = 0;
 const naturalPending = new Map(), naturalProgress = new Set();
-function requestNaturalSpeech(text, voice, speed) {
+const naturalQueue = [];
+let naturalActiveId = null;
+const naturalWarmScheduled = new Set();
+let audioCacheDb = null, audioCacheWrites = 0;
+const AUDIO_CACHE_DB = 'synapse-natural-voice-v1';
+const AUDIO_CACHE_LIMIT = 80 * 1024 * 1024;
+
+function pumpNaturalQueue() {
+  if (naturalActiveId !== null || !naturalWorker || !naturalQueue.length) return;
+  naturalQueue.sort((a, b) => a.priority - b.priority || a.order - b.order);
+  const job = naturalQueue.shift();
+  naturalActiveId = job.id;
+  try { naturalWorker.postMessage({ type: 'synthesize', id: job.id, text: job.text, voice: job.voice, speed: job.speed }); }
+  catch (error) {
+    naturalActiveId = null;
+    naturalPending.get(job.id)?.reject(error);
+    naturalPending.delete(job.id);
+    pumpNaturalQueue();
+  }
+}
+
+function requestNaturalSpeech(text, voice, speed, priority = 0) {
   if (!naturalWorker) {
     try { naturalWorker = new Worker(new URL('./tape-tts-worker.js', import.meta.url), { type: 'module' }); }
     catch (error) { return Promise.reject(error); }
@@ -43,18 +64,150 @@ function requestNaturalSpeech(text, voice, speed) {
       naturalPending.delete(data.id);
       if (data.type === 'audio') pending.resolve({ pcm: new Float32Array(data.pcm), sampleRate: data.sampleRate });
       else pending.reject(new Error(data.message || 'Natural voice could not be loaded.'));
+      if (naturalActiveId === data.id) naturalActiveId = null;
+      pumpNaturalQueue();
     });
     naturalWorker.addEventListener('error', event => {
       naturalPending.forEach(p => p.reject(new Error(event.message || 'Natural voice worker stopped.')));
       naturalPending.clear();
+      naturalQueue.length = 0;
+      naturalActiveId = null;
       naturalWorker = null;
     });
   }
   const id = ++naturalRequestId;
   return new Promise((resolve, reject) => {
     naturalPending.set(id, { resolve, reject });
-    naturalWorker.postMessage({ type: 'synthesize', id, text, voice, speed });
+    naturalQueue.push({ id, text, voice, speed, priority, order: id });
+    pumpNaturalQueue();
   });
+}
+
+function speechCacheId(caseId, text, voice, speed) {
+  const value = `kokoro-82m-q8-v1|${caseId}|${voice}|${speed.toFixed(3)}|${text}`;
+  let a = 0x811c9dc5, b = 0x9e3779b9;
+  for (let i = 0; i < value.length; i++) {
+    const c = value.charCodeAt(i);
+    a = Math.imul(a ^ c, 0x01000193);
+    b = Math.imul(b ^ (c + i), 0x85ebca6b);
+  }
+  return `${(a >>> 0).toString(16)}${(b >>> 0).toString(16)}`;
+}
+
+function openAudioCache() {
+  if (!('indexedDB' in window)) return Promise.resolve(null);
+  if (!audioCacheDb) audioCacheDb = new Promise(resolve => {
+    const request = indexedDB.open(AUDIO_CACHE_DB, 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains('audio')) {
+        const store = db.createObjectStore('audio', { keyPath: 'id' });
+        store.createIndex('lastUsed', 'lastUsed');
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = request.onblocked = () => resolve(null);
+  });
+  return audioCacheDb;
+}
+
+async function readCachedSpeech(id) {
+  try {
+    const db = await openAudioCache();
+    if (!db) return null;
+    const item = await new Promise(resolve => {
+      const tx = db.transaction('audio', 'readonly');
+      const req = tx.objectStore('audio').get(id);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
+    });
+    if (!item) return null;
+    item.lastUsed = Date.now();
+    const tx = db.transaction('audio', 'readwrite');
+    tx.objectStore('audio').put(item);
+    return { pcm: new Float32Array(item.pcm), sampleRate: item.sampleRate };
+  } catch { return null; }
+}
+
+async function trimAudioCache(db) {
+  try {
+    const items = await new Promise(resolve => {
+      const req = db.transaction('audio', 'readonly').objectStore('audio').getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => resolve([]);
+    });
+    let bytes = items.reduce((sum, item) => sum + (item.bytes || 0), 0);
+    if (bytes <= AUDIO_CACHE_LIMIT) return;
+    items.sort((a, b) => a.lastUsed - b.lastUsed);
+    const tx = db.transaction('audio', 'readwrite'), store = tx.objectStore('audio');
+    for (const item of items) {
+      if (bytes <= AUDIO_CACHE_LIMIT) break;
+      store.delete(item.id);
+      bytes -= item.bytes || 0;
+    }
+  } catch {}
+}
+
+async function cacheSpeech(id, audio) {
+  try {
+    const db = await openAudioCache();
+    if (!db) return;
+    const pcm = audio.pcm.buffer.slice(audio.pcm.byteOffset, audio.pcm.byteOffset + audio.pcm.byteLength);
+    const tx = db.transaction('audio', 'readwrite');
+    tx.objectStore('audio').put({ id, pcm, sampleRate: audio.sampleRate, bytes: pcm.byteLength, lastUsed: Date.now() });
+    tx.oncomplete = () => { if (++audioCacheWrites % 8 === 0) trimAudioCache(db); };
+  } catch {}
+}
+
+async function cachedOrGenerate(text, voice, speed, caseId, priority = 0) {
+  const id = speechCacheId(caseId, text, voice, speed);
+  const cached = await readCachedSpeech(id);
+  if (cached) return cached;
+  const audio = await requestNaturalSpeech(text, voice, speed, priority);
+  cacheSpeech(id, audio);
+  return audio;
+}
+
+// Build a first-listen cache as soon as an interview transcript is opened.
+// Speech chunks covering the opening ~55% of each statement are queued first;
+// the rest is idle-priority work.
+export function warmTapeSpeech(root, { voices = {}, caseId = 'case' } = {}) {
+  let engine = 'natural';
+  try { engine = localStorage.getItem(ENGINE_KEY + caseId) === 'device' ? 'device' : 'natural'; } catch {}
+  if (engine !== 'natural') return;
+  const lines = [...root.querySelectorAll('.q, .a, .stage')].filter(el => !el.classList.contains('stage') && el.querySelector('.spk'));
+  const codes = [...new Set(lines.map(el => el.querySelector('.spk')?.textContent?.trim()).filter(Boolean))];
+  const cast = castVoices(codes, voices, availableVoices(), loadCast(caseId), engine);
+  const textOf = el => [...el.children].filter(child => !child.classList.contains('spk')).map(child => child.textContent).join(' ').replace(/\s+/g, ' ').trim();
+  const speedFor = code => { const part = cast.get(code); return Math.max(0.88, Math.min(1.12, part ? part.rate : 1)); };
+  const early = [], later = [];
+  for (const line of lines) {
+    const code = line.querySelector('.spk')?.textContent?.trim() || '';
+    const part = cast.get(code);
+    if (!part?.modelVoice) continue;
+    const text = textOf(line), parts = chunks(text);
+    const targetChars = text.length * 0.55;
+    let earlyChars = 0, earlyCount = 0;
+    while (earlyCount < parts.length && (earlyCount === 0 || earlyChars < targetChars)) earlyChars += parts[earlyCount++].length;
+    parts.forEach((phrase, index) => (index < earlyCount ? early : later).push({ phrase, voice: part.modelVoice, speed: speedFor(code) }));
+  }
+  const schedule = (items, priority) => {
+    const jobs = [];
+    for (const item of items) {
+      const id = speechCacheId(caseId, item.phrase, item.voice, item.speed);
+      if (naturalWarmScheduled.has(id)) continue;
+      naturalWarmScheduled.add(id);
+      const job = readCachedSpeech(id).then(cached => {
+        if (cached) return;
+        return requestNaturalSpeech(item.phrase, item.voice, item.speed, priority)
+          .then(audio => cacheSpeech(id, audio));
+      }).catch(() => {}).finally(() => naturalWarmScheduled.delete(id));
+      jobs.push(job);
+    }
+    return Promise.all(jobs);
+  };
+  // Let the opening parts finish before filling the lower-priority remainder.
+  schedule(early, 5).then(() => schedule(later, 20));
 }
 
 // Some online voices stop after about 15 seconds, so long answers are spoken
@@ -142,7 +295,7 @@ export function createTape(root, { voices = {}, caseId = 'case', label = 'Interv
   const castRows = new Map();
   const castPanel = h('details', { class: 'tape-cast' },
     h('summary', {}, `Cast voices - ${codes.length} speakers`),
-    h('p', { class: 'tape-cast-help' }, 'Natural voices run on this device after a one-time download. Transcript text is not sent to a speech service. Choose a voice for each person, or leave Auto on.'),
+    h('p', { class: 'tape-cast-help' }, 'Natural voices run on this device after a one-time download. Opening an interview prepares about 55% of each statement first, then fills the rest in the background. Audio stays in this browser (up to 80 MB); transcript text is not sent to a speech service. Choose a voice for each person, or leave Auto on.'),
     ...codes.map(code => {
       const select = h('select', { 'aria-label': `Voice for ${code}`, onchange: e => {
         if (e.target.value) prefs[code] = e.target.value; else delete prefs[code];
@@ -246,8 +399,17 @@ export function createTape(root, { voices = {}, caseId = 'case', label = 'Interv
       if (tok !== seq) return;
       if (j >= parts.length) { next(); return; }
       if (part && part.modelVoice) {
-        status.textContent = 'Preparing natural voice...';
-        requestNaturalSpeech(parts[j], part.modelVoice, Math.max(0.88, Math.min(1.12, rate * part.rate)))
+        const speed = Math.max(0.88, Math.min(1.12, rate * part.rate));
+        const cacheId = speechCacheId(caseId, parts[j], part.modelVoice, speed);
+        status.textContent = 'Loading saved voice...';
+        readCachedSpeech(cacheId).then(cached => {
+          if (cached) return cached;
+          status.textContent = 'Preparing natural voice...';
+          return requestNaturalSpeech(parts[j], part.modelVoice, speed, 0).then(audio => {
+            cacheSpeech(cacheId, audio);
+            return audio;
+          });
+        })
           .then(({ pcm, sampleRate }) => playPcm(pcm, sampleRate, tok))
           .then(() => { if (tok === seq) timer = setTimeout(() => speakPart(j + 1), 140); })
           .catch(error => {

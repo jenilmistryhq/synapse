@@ -14,7 +14,7 @@ import { runTour } from './tour.js';
 import { openSettings, getSettings, setSetting } from './settings.js';
 import { portrait, fullName, surname, mentions } from './people.js';
 import { visibleExhibits, evidenceBag } from './exhibits.js';
-import { tapeSupported, hasTranscript, createTape } from './tape.js';
+import { tapeSupported, hasTranscript, createTape, warmTapeSpeech } from './tape.js';
 import { openBoard, boardSummary } from './board.js';
 import { mountGuide } from './guide.js';
 import { makeRoomCode, makePeerId, validRoomCode, openPeerRoom } from './peer.js';
@@ -59,6 +59,16 @@ export function mountGame(root, m, st, { go }) {
     st.spent.forEach(s => add(`SLIP ${s.n}`));
     st.accusations.forEach(a => a.reconsider && add(a.reconsider));
     return ids;
+  }
+  // The case's public pages are already loaded. Prepare interviews the player
+  // can currently access while they investigate, so Play is ready when they
+  // reach a statement. Later phased files warm when first opened.
+  for (const id of available()) {
+    const d = reg.get(id);
+    const sourcePages = (d.pages || []).map(pi => m._pages[d.src]?.[pi]).filter(Boolean);
+    if (!sourcePages.some(hasTranscript)) continue;
+    const transcript = h('div', {}, sourcePages.map(page => page.cloneNode(true)));
+    warmTapeSpeech(transcript, { voices: m.voices || {}, caseId: m.id });
   }
   const refOf = id => { const d = reg.get(id); return d.kind === 'slip' ? `Authority ${d.n}` : d.kind === 'reconsider' ? 'Reconsider' : d.id; };
 
@@ -443,6 +453,7 @@ export function mountGame(root, m, st, { go }) {
     const pageIndex = Math.min(focusPage.get(id) || 0, Math.max(0, pages.length - 1));
     if (focusPages) pages.forEach((p, i) => { p.hidden = i !== pageIndex; });
     const paper = h('div', { class: 'paper rd-paper', style: { zoom: getSettings().docZoom } }, pages);
+    if (hasTranscript(paper)) warmTapeSpeech(paper, { voices: m.voices || {}, caseId: m.id });
     const pageNav = focusPages ? h('div', { class: 'rd-page-nav', 'aria-label': 'Page by page reading' },
       h('button', { class: 'btn ghost sm', disabled: pageIndex === 0, onclick: () => { focusPage.set(id, pageIndex - 1); renderReader(); } }, icon('left'), 'Previous page'),
       h('span', { class: 'mono' }, `Page ${pageIndex + 1} of ${pages.length}`),
