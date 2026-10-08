@@ -1,0 +1,36 @@
+# Supabase pauses a free project after a week with no activity. This reads the
+# leaderboard twice a week so it stays awake. It uses the same public URL and anon
+# key the site already publishes in app/config.js, so no secrets are needed.
+name: Keep the leaderboard awake
+
+on:
+  schedule:
+    - cron: '17 6 * * 1,4'   # Mondays and Thursdays, 06:17 UTC
+  workflow_dispatch:          # and a "Run workflow" button in the Actions tab
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: app/config.js
+          sparse-checkout-cone-mode: false
+      - name: Read the leaderboard once
+        run: |
+          url=$(grep -oE "url: *'[^']*'" app/config.js | sed -E "s/url: *'([^']*)'/\1/")
+          key=$(grep -oE "key: *'[^']*'" app/config.js | sed -E "s/key: *'([^']*)'/\1/")
+          if [ -z "$url" ] || [ -z "$key" ]; then
+            echo "No leaderboard configured in app/config.js. Nothing to keep awake."
+            exit 0
+          fi
+          code=$(curl -s -o body.json -w '%{http_code}' --max-time 30 "$url/rest/v1/overall_ranks?select=rank&limit=1&apikey=$key")
+          echo "Supabase answered HTTP $code: $(head -c 200 body.json)"
+          if [ "$code" != "200" ]; then
+            echo "::warning::The leaderboard did not answer normally. If the project is paused, restore it in the Supabase dashboard."
+            exit 1
+          fi

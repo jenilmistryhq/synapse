@@ -24,12 +24,18 @@ create table if not exists public.scores (
 
 create index if not exists scores_rank on public.scores (case_id, score desc, time_ms asc);
 
+-- The device key that owns the name (see section 6). Written on insert, never readable.
+alter table public.scores add column if not exists owner text;
+alter table public.scores drop constraint if exists scores_owner_format;
+alter table public.scores add constraint scores_owner_format check (owner is null or owner ~ '^[a-f0-9]{32}$');
+
 -- 1. Privileges: Supabase grants broad rights to the API roles by default.
 --    Take them all back, then give exactly what the game needs. Inserting is
 --    limited to the game's columns, so nobody can choose id or created_at.
 revoke all on public.scores from public, anon, authenticated;
-grant select on public.scores to anon, authenticated;
-grant insert (case_id, name, score, time_ms, band, correct, accusations, authorities)
+grant select (id, case_id, name, score, time_ms, band, correct, accusations, authorities, created_at)
+  on public.scores to anon, authenticated;
+grant insert (case_id, name, score, time_ms, band, correct, accusations, authorities, owner)
   on public.scores to anon, authenticated;
 
 -- 2. Row-level security: read everything, add rows, never edit or delete.
@@ -143,3 +149,57 @@ from per;
 
 revoke all on public.case_ranks, public.overall_ranks from public, anon, authenticated;
 grant select on public.case_ranks, public.overall_ranks to anon, authenticated;
+
+-- 6. Name ownership. The first post under a name claims it for that device's key
+--    (a random 32-character code the app keeps in the browser). Later posts under
+--    the same name, capitals ignored, must carry the same key. Only a hash of the
+--    key is stored, in a table the API cannot read. Rows posted before this
+--    section existed carry no key; the name's first keyed post claims it.
+create table if not exists public.names (
+  lname      text        primary key,
+  key_hash   text        not null,
+  claimed_at timestamptz not null default now()
+);
+alter table public.names enable row level security;
+revoke all on public.names from public, anon, authenticated;
+
+create or replace function public.scores_claim_name() returns trigger
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare
+  h text;
+  held text;
+begin
+  if new.owner is null then
+    raise exception 'A detective key is required to post' using errcode = 'P0001';
+  end if;
+  h := md5('synapse-owner:' || new.owner);
+  select key_hash into held from names where lname = lower(new.name);
+  if held is null then
+    insert into names (lname, key_hash) values (lower(new.name), h) on conflict (lname) do nothing;
+    select key_hash into held from names where lname = lower(new.name);
+  end if;
+  if held <> h then
+    raise exception 'That name belongs to another detective' using errcode = 'P0001';
+  end if;
+  return new;
+end $$;
+
+revoke all on function public.scores_claim_name() from public, anon, authenticated;
+drop trigger if exists scores_claim_name on public.scores;
+create trigger scores_claim_name before insert on public.scores
+  for each row execute function public.scores_claim_name();
+
+-- 7. How hard each case is, from everyone's posted runs: shown on the case cards.
+create or replace view public.case_stats with (security_invoker = on) as
+select case_id,
+  count(*)::int                                                        as runs,
+  count(distinct lower(name))::int                                     as players,
+  round(avg(score))::int                                               as avg_score,
+  round(100.0 * avg(case when correct then 1 else 0 end))::int         as solved_pct,
+  round(100.0 * avg(case when correct and accusations = 1 then 1 else 0 end))::int as first_time_pct,
+  (percentile_cont(0.5) within group (order by time_ms))::bigint       as median_ms
+from public.scores
+group by case_id;
+
+revoke all on public.case_stats from public, anon, authenticated;
+grant select on public.case_stats to anon, authenticated;

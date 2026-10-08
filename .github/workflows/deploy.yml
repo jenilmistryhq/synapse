@@ -1,0 +1,80 @@
+# Publishes the site to GitHub Pages on every push to main. The print kit PDFs and
+# zips are built here, from the HTML print files, instead of being committed.
+#
+# One-time setup: Settings > Pages > Build and deployment > Source: "GitHub Actions".
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # The print files are set in Arial, Courier New, Georgia and Times New Roman.
+      # Microsoft's core fonts have the same letter widths as on Windows and Mac,
+      # so every page still fits one A4 sheet.
+      - name: Fonts for the PDFs
+        run: |
+          echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | sudo debconf-set-selections
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ttf-mscorefonts-installer fontconfig > /dev/null
+          fc-cache -f > /dev/null
+          fc-list | grep -ciE "arial|courier new|georgia|times new roman"
+
+      - name: Check every case
+        run: node tools/build-catalog.js
+
+      - name: Build the PDFs and zips
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: node tools/build-pdfs.js
+
+      - name: Assemble the site
+        run: node tools/build-site.js
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      # Preview cards for shared results, and for the home page.
+      - name: Link previews
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+          SITE_URL: ${{ steps.pages.outputs.base_url }}
+        run: node tools/build-share.js _site
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

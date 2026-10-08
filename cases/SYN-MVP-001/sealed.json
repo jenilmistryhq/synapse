@@ -1,0 +1,235 @@
+{
+  "determination": "unlawful",
+  "options": {
+    "accidental": {"type": "accidental"},
+    "marchetti": {"type": "unlawful"},
+    "pryce": {"type": "unlawful", "reconsider": {"id": "R/PRYCE", "title": "Reconsider - Pryce", "src": "sealed", "page": 0}},
+    "kovaleski": {
+      "type": "unlawful",
+      "reconsider": {"id": "R/KOVALESKI", "title": "Reconsider - Kovaleski", "src": "sealed", "page": 1}
+    },
+    "ferraro": {"type": "unlawful", "reconsider": {"id": "R/FERRARO", "title": "Reconsider - Ferraro", "src": "sealed", "page": 2}}
+  },
+  "reveal": {
+    "src": "sealed",
+    "cover": 3,
+    "pages": [4,5,6],
+    "scoringPage": 7,
+    "steps": [
+      {
+        "sheet": "step:0",
+        "checks": [
+          {
+            "id": "c1",
+            "auto": {"cites": [["B-1"]]},
+            "kind": "step",
+            "points": 5,
+            "label": "Step 1 - Cause: hypoxic asphyxia, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "step:1",
+        "checks": [
+          {
+            "id": "c2",
+            "auto": {"cites": [["B-1"],["A-1", "D-1"]]},
+            "kind": "step",
+            "points": 5,
+            "label": "Step 2 - Time of death corrected to about 22:06, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "step:2",
+        "checks": [
+          {
+            "id": "c3",
+            "auto": {"cites": [["SLIP 11"]]},
+            "kind": "step",
+            "points": 5,
+            "label": "Step 3 - Mechanism: manual discharge, interlock overridden, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "step:3",
+        "checks": [
+          {
+            "id": "c4",
+            "auto": {"cites": [["E-1"]]},
+            "kind": "step",
+            "points": 5,
+            "label": "Step 4 - Means: the Level-4 roster narrows it to two, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "step:4",
+        "checks": [
+          {
+            "id": "c5",
+            "auto": {"cites": [["SLIP 01", "D-1"]]},
+            "kind": "step",
+            "points": 5,
+            "label": "Step 5 - Opportunity: Level D entry 21:32 and exit 22:34, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "step:5",
+        "checks": [
+          {
+            "id": "c6",
+            "auto": {"cites": [["SLIP 08"]]},
+            "kind": "step",
+            "points": 5,
+            "label": "Step 6 - Contradiction: the dinner is corroborated only to 20:20, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "persons",
+        "checks": [
+          {
+            "id": "e1",
+            "auto": {"person": "ferraro", "status": "Eliminated", "cites": [["E-1", "SLIP 10"]]},
+            "kind": "person",
+            "points": 5,
+            "label": "Ferraro eliminated with evidence"
+          },
+          {
+            "id": "e2",
+            "auto": {"person": "kovaleski", "status": "Eliminated", "cites": [["D-1", "SLIP 09"]]},
+            "kind": "person",
+            "points": 5,
+            "label": "Kovaleski eliminated with evidence, against the corrected window"
+          },
+          {
+            "id": "e3",
+            "auto": {"person": "pryce", "status": "Eliminated", "cites": [["SLIP 03"],["SLIP 11"],["SLIP 01"]]},
+            "kind": "person",
+            "points": 5,
+            "label": "Pryce eliminated with evidence (all three documents cited)"
+          }
+        ]
+      },
+      {"sheet": "motive", "checks": [], "note": "Motive scores nothing here, but the file is thin without it."},
+      {"sheet": "verdict"},
+      {"sheet": "epilogue"}
+    ]
+  },
+  "scoring": {
+    "determination": {"label": "Determination recorded as unlawful killing", "points": 5},
+    "culprit": {"label": "Correct culprit named", "points": 10},
+    "wrong": {"label": "Wrong accusation", "points": -10},
+    "cleanSweep": {"label": "Clean Sweep - all six steps, all three eliminations, correct first time", "points": 10},
+    "unspent": {"label": "Unspent authority", "points": 2},
+    "bands": [
+      {
+        "min": 65,
+        "title": "Case closed - commendation",
+        "text": "Charged, and the file will survive a defence barrister."
+      },
+      {"min": 50, "title": "Charged", "text": "The right person, and enough working to justify it."},
+      {"min": 35, "title": "Referred", "text": "The Crown will take it and will not enjoy it."},
+      {"min": 20, "title": "No further action", "text": "You know. You cannot show it."},
+      {
+        "min": -999,
+        "title": "The file stays closed",
+        "text": "Accidental death. The estate absorbs the loss and the killer retires to the coast."
+      }
+    ]
+  },
+  "replay": [
+    {
+      "doc": "A-1",
+      "find": "paramedics relocated the male to the B2 corridor",
+      "note": "The body was carried out of Cold Store 3 at 00:11, before anyone took a temperature."
+    },
+    {
+      "doc": "A-1",
+      "find": "B2 CORRIDOR, OUTSIDE COLD STORE 3",
+      "note": "So the 20.8 C ambient reading is the warm corridor, not the store he lay in."
+    },
+    {
+      "doc": "B-1",
+      "find": "per responding officer intake form",
+      "note": "The autopsy used that corridor reading. The arithmetic is right; the input is wrong, so its 19:41 time of death is wrong."
+    },
+    {
+      "doc": "D-1",
+      "find": "Vault Climate Telemetry",
+      "note": "Cold Store 3 held 6 C all evening. At 6 C a body cools far more slowly: he died between about 21:45 and 22:25."
+    },
+    {
+      "doc": "D-1",
+      "find": "HALVORSEN_DISCREPANCY_v4",
+      "note": "Renn saved a report at 21:51. He was alive and working, which fits the corrected window."
+    },
+    {
+      "doc": "D-1",
+      "find": "Discrete events logged, reporting period",
+      "note": "Two events on the oxygen-reduction system that night, and the extract does not say what they were."
+    },
+    {
+      "doc": "E-1",
+      "find": "requires a Level-4 credential presented at that panel",
+      "note": "A manual discharge needs a Level-4 credential at the corridor panel. Only Marchetti and Pryce hold one."
+    },
+    {
+      "doc": "D-1",
+      "find": "21:26:44 OUT L.KOVALESKI",
+      "note": "Against the corrected window, Kovaleski had already left the vault level at 21:26."
+    },
+    {
+      "doc": "E-1",
+      "find": "Run Sheet, D. Ferraro",
+      "note": "Ferraro was on the ferry crossing all evening, far from the building."
+    },
+    {
+      "doc": "SLIP 11",
+      "find": "MANUAL DISCHARGE INITIATED",
+      "note": "21:58:41: the gas was discharged by hand at panel B2-P1 with the occupancy interlock overridden. This is how he died."
+    },
+    {
+      "doc": "SLIP 03",
+      "find": "21:44:11 CP-7 Level D loading bay",
+      "note": "Pryce was at the Level D loading bay at 21:44 and 22:02, and the stairwell door never opened. He could not reach the panel."
+    },
+    {
+      "doc": "SLIP 01",
+      "find": "21:32:18 IN V.MARCHETTI",
+      "note": "Marchetti, supposedly at a dinner, came in through the Level D service door at 21:32 and left at 22:34."
+    },
+    {
+      "doc": "SLIP 08",
+      "find": "Last retained photograph including Ms Marchetti",
+      "note": "Her dinner alibi runs out at 20:20. It only ever covered the false time of death."
+    },
+    {
+      "doc": "SLIP 06",
+      "find": "TOTAL $412,000",
+      "note": "The motive: $412,000 from secretly selling four Halvorsen prints."
+    },
+    {
+      "doc": "E-1",
+      "find": "Item sought, not recovered",
+      "note": "Her mistake: she took his tablet, but the report was already saved on the server."
+    }
+  ],
+  "debrief": [
+    "How long did the file's own time of death go unquestioned at your table? That number is the case.",
+    "Was the moment it broke an 'aha' or a shrug?",
+    "Did the Authority limit ever hurt? If nobody agonised over a choice, the budget is too generous."
+  ],
+  "badges": [
+    {
+      "id": "thermometer",
+      "icon": "eye",
+      "title": "The right thermometer",
+      "text": "Corrected the time of death in The Halvorsen Bequest.",
+      "when": {"check": "c2"}
+    }
+  ]
+}

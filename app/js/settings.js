@@ -3,6 +3,7 @@
 
 import { h, modal, store, toast } from './util.js';
 import { soundOn, setSound, sfx } from './sfx.js';
+import { detectiveKey, formatKey, setDetectiveKey } from './leaderboard.js';
 
 const KEY = 'synapse:settings';
 export const DOC_SIZES = [['0.8', 'Small'], ['0.9', 'Smaller'], ['1', 'Normal'], ['1.1', 'Larger'], ['1.25', 'Large'], ['1.4', 'Extra large'], ['1.6', 'Huge']];
@@ -33,6 +34,27 @@ export function openSettings({ onChange } = {}) {
   size.value = String(s.docZoom);
   size.addEventListener('change', () => { setSetting('docZoom', parseFloat(size.value)); if (onChange) onChange(); });
 
+  // The detective key proves a leaderboard name is yours. It is shown, copied and
+  // replaced here; it never appears on the leaderboard.
+  function keyRow() {
+    const code = h('code', { class: 'key-code' }, formatKey(detectiveKey()));
+    const input = h('input', { class: 'field key-in', hidden: true, placeholder: 'xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx', 'aria-label': 'Detective key from another device', spellcheck: 'false', autocomplete: 'off' });
+    const msg = h('span', { class: 'key-msg', 'aria-live': 'polite' });
+    const use = h('button', { class: 'btn sm ghost', onclick: () => {
+      if (input.hidden) { input.hidden = false; input.focus(); use.textContent = 'Save key'; return; }
+      if (!setDetectiveKey(input.value)) { msg.textContent = 'That is not a detective key. It has 32 letters and digits.'; return; }
+      code.textContent = formatKey(detectiveKey()); input.value = ''; input.hidden = true; use.textContent = 'Use a key from another device';
+      msg.textContent = 'Saved. Scores from this browser now post under that key.';
+    } }, 'Use a key from another device');
+    const copy = h('button', { class: 'btn sm', onclick: async () => {
+      try { await navigator.clipboard.writeText(formatKey(detectiveKey())); msg.textContent = 'Copied.'; } catch { msg.textContent = 'Select the key and copy it.'; }
+    } }, 'Copy');
+    return h('div', { class: 'set-row key-row' },
+      h('div', {}, h('b', {}, 'Detective key'),
+        h('span', {}, 'Proves your leaderboard name is yours. To post under the same name on another device, copy this key there. Keep it private.')),
+      h('div', { class: 'key-box' }, code, h('div', { class: 'key-acts' }, copy, use), input, msg));
+  }
+
   modal({
     kicker: 'Settings', title: 'How the game looks and sounds', className: 'settings-modal',
     body: h('div', { class: 'settings' },
@@ -41,6 +63,7 @@ export function openSettings({ onChange } = {}) {
       row('Reduce animations', 'Fewer moving parts: no card lifts, spins or stamps.', toggle(s.reduceMotion, v => setSetting('reduceMotion', v), 'Reduce animations')),
       row('Colour-blind friendly colours', 'Blue and orange instead of green and red for findings and results.', toggle(s.colourSafe, v => setSetting('colourSafe', v), 'Colour-blind friendly colours')),
       row('Plain text instead of handwriting', 'Your notes and sheet entries in a clear typeface.', toggle(s.plainHand, v => setSetting('plainHand', v), 'Plain text instead of handwriting')),
+      keyRow(),
       h('p', { class: 'hint' }, 'Settings are saved in this browser. To make everything on screen bigger, use your browser zoom (Ctrl and +, or Cmd and + on a Mac).')),
     actions: [
       { label: 'Reset to defaults', kind: 'ghost', onClick: () => {

@@ -14,103 +14,21 @@
     "results": "print/04-action-results.html",
     "sealed": "print/05-envelope-s1.html"
   },
-  "menu": {
-    "src": "play",
-    "page": 2
-  },
-  "sheetPage": {
-    "src": "play",
-    "page": 3
-  },
-  "slips": {
-    "src": "results"
-  },
-  "budget": {
-    "1": 5,
-    "2": 5,
-    "3": 6,
-    "4": 6,
-    "5": 7,
-    "6": 7
-  },
+  "menu": {"src": "play", "page": 2},
+  "sheetPage": {"src": "play", "page": 3},
+  "slips": {"src": "results"},
+  "budget": {"1": 5, "2": 5, "3": 6, "4": 6, "5": 7, "6": 7},
   "advice": "Four of these twelve return nothing you do not already have. They are not traps; they are the ordinary shape of an investigation. Before you spend, point at the document that made you want it. If you cannot, read further first.",
-  "groups": {
-    "base": "Case Board"
-  },
+  "groups": {"base": "Case Board"},
   "documents": [
-    {
-      "id": "BRIEF",
-      "kind": "brief",
-      "title": "Briefing - Terms of Reference",
-      "src": "play",
-      "pages": [
-        0
-      ]
-    },
-    {
-      "id": "RULES",
-      "kind": "brief",
-      "title": "Conduct of the Case Conference",
-      "src": "play",
-      "pages": [
-        1
-      ]
-    },
-    {
-      "id": "A-0",
-      "kind": "base",
-      "title": "RDSI Note of Dissent - Referral",
-      "src": "board",
-      "pages": [
-        0
-      ]
-    },
-    {
-      "id": "A-1",
-      "kind": "base",
-      "title": "Investigation Summary - Case Closed",
-      "src": "board",
-      "pages": [
-        1
-      ]
-    },
-    {
-      "id": "A-2",
-      "kind": "base",
-      "title": "Site Plan, Persons & Storm Chronology",
-      "src": "board",
-      "pages": [
-        2
-      ]
-    },
-    {
-      "id": "B-1",
-      "kind": "base",
-      "title": "Autopsy: A. Sarn",
-      "src": "board",
-      "pages": [
-        3
-      ]
-    },
-    {
-      "id": "B-2",
-      "kind": "base",
-      "title": "Autopsy: I. Ballard",
-      "src": "board",
-      "pages": [
-        4
-      ]
-    },
-    {
-      "id": "D-1",
-      "kind": "base",
-      "title": "SCADA Core Extract",
-      "src": "board",
-      "pages": [
-        5,
-        6
-      ]
-    },
+    {"id": "BRIEF", "kind": "brief", "title": "Briefing - Terms of Reference", "src": "play", "pages": [0]},
+    {"id": "RULES", "kind": "brief", "title": "Conduct of the Case Conference", "src": "play", "pages": [1]},
+    {"id": "A-0", "kind": "base", "title": "RDSI Note of Dissent - Referral", "src": "board", "pages": [0]},
+    {"id": "A-1", "kind": "base", "title": "Investigation Summary - Case Closed", "src": "board", "pages": [1]},
+    {"id": "A-2", "kind": "base", "title": "Site Plan, Persons & Storm Chronology", "src": "board", "pages": [2]},
+    {"id": "B-1", "kind": "base", "title": "Autopsy: A. Sarn", "src": "board", "pages": [3]},
+    {"id": "B-2", "kind": "base", "title": "Autopsy: I. Ballard", "src": "board", "pages": [4]},
+    {"id": "D-1", "kind": "base", "title": "SCADA Core Extract", "src": "board", "pages": [5,6]},
     {
       "id": "F-1",
       "kind": "file",
@@ -118,9 +36,7 @@
       "cover": true,
       "title": "File F-1 - Control & Operations",
       "src": "files",
-      "pages": [
-        0
-      ]
+      "pages": [0]
     },
     {
       "id": "C-1",
@@ -128,9 +44,7 @@
       "file": "F-1",
       "title": "Statement: H. Vey, Shift Control Engineer",
       "src": "files",
-      "pages": [
-        1
-      ]
+      "pages": [1]
     },
     {
       "id": "C-5",
@@ -138,9 +52,7 @@
       "file": "F-1",
       "title": "Statement: C. Mbeki, Assistant Operator",
       "src": "files",
-      "pages": [
-        2
-      ]
+      "pages": [2]
     },
     {
       "id": "D-1A",
@@ -148,9 +60,7 @@
       "file": "F-1",
       "title": "Console 1 - Operator Session Record",
       "src": "files",
-      "pages": [
-        3
-      ]
+      "pages": [3]
     },
     {
       "id": "F-2",
@@ -159,29 +69,16 @@
       "cover": true,
       "title": "File F-2 - Hydrology & Recovery",
       "src": "files",
-      "pages": [
-        4
-      ]
+      "pages": [4]
     },
-    {
-      "id": "D-2",
-      "kind": "file",
-      "file": "F-2",
-      "title": "Recovery Report: I. Ballard",
-      "src": "files",
-      "pages": [
-        5
-      ]
-    },
+    {"id": "D-2", "kind": "file", "file": "F-2", "title": "Recovery Report: I. Ballard", "src": "files", "pages": [5]},
     {
       "id": "D-2A",
       "kind": "file",
       "file": "F-2",
       "title": "Intake Gallery - Hydrological Statement",
       "src": "files",
-      "pages": [
-        6
-      ]
+      "pages": [6]
     },
     {
       "id": "D-2B",
@@ -189,9 +86,7 @@
       "file": "F-2",
       "title": "Forebay and Gallery - Flow Conditions",
       "src": "files",
-      "pages": [
-        7
-      ]
+      "pages": [7]
     },
     {
       "id": "F-3",
@@ -200,9 +95,7 @@
       "cover": true,
       "title": "File F-3 - Mechanical & Maintenance",
       "src": "files",
-      "pages": [
-        8
-      ]
+      "pages": [8]
     },
     {
       "id": "C-3",
@@ -210,9 +103,7 @@
       "file": "F-3",
       "title": "Statement: D. Okonkwo, Maintenance Technician",
       "src": "files",
-      "pages": [
-        9
-      ]
+      "pages": [9]
     },
     {
       "id": "C-3A",
@@ -220,20 +111,9 @@
       "file": "F-3",
       "title": "Confined Space Permits & Monitor Telemetry",
       "src": "files",
-      "pages": [
-        10
-      ]
+      "pages": [10]
     },
-    {
-      "id": "E-6",
-      "kind": "file",
-      "file": "F-3",
-      "title": "Cabinet C-14 - Plant Report",
-      "src": "files",
-      "pages": [
-        11
-      ]
-    },
+    {"id": "E-6", "kind": "file", "file": "F-3", "title": "Cabinet C-14 - Plant Report", "src": "files", "pages": [11]},
     {
       "id": "F-4",
       "kind": "file",
@@ -241,9 +121,7 @@
       "cover": true,
       "title": "File F-4 - Site Security & Personnel",
       "src": "files",
-      "pages": [
-        12
-      ]
+      "pages": [12]
     },
     {
       "id": "E-1",
@@ -251,9 +129,7 @@
       "file": "F-4",
       "title": "Door Logs - Control Room & Footbridge",
       "src": "files",
-      "pages": [
-        13
-      ]
+      "pages": [13]
     },
     {
       "id": "E-1A",
@@ -261,9 +137,7 @@
       "file": "F-4",
       "title": "Roster, Shift Pattern & Key Register",
       "src": "files",
-      "pages": [
-        14
-      ]
+      "pages": [14]
     },
     {
       "id": "C-5A",
@@ -271,9 +145,7 @@
       "file": "F-4",
       "title": "Credential Practice at Ravensgate",
       "src": "files",
-      "pages": [
-        15
-      ]
+      "pages": [15]
     },
     {
       "id": "F-5",
@@ -282,9 +154,7 @@
       "cover": true,
       "title": "File F-5 - Regulator (RDSI)",
       "src": "files",
-      "pages": [
-        16
-      ]
+      "pages": [16]
     },
     {
       "id": "E-2",
@@ -292,40 +162,22 @@
       "file": "F-5",
       "title": "RDSI Inspection - Junction Box JB-7",
       "src": "files",
-      "pages": [
-        17
-      ]
+      "pages": [17]
     },
-    {
-      "id": "E-2A",
-      "kind": "file",
-      "file": "F-5",
-      "title": "Contract RG-0419",
-      "src": "files",
-      "pages": [
-        18
-      ]
-    },
+    {"id": "E-2A", "kind": "file", "file": "F-5", "title": "Contract RG-0419", "src": "files", "pages": [18]},
     {
       "id": "C-4",
       "kind": "file",
       "file": "F-5",
       "title": "Statement: P. Wrenn, RDSI Officer",
       "src": "files",
-      "pages": [
-        19
-      ]
+      "pages": [19]
     }
   ],
   "persons": {
     "label": "Persons",
     "hint": "Record a finding for every person, with the evidence you rely on. The original finding named Ines Ballard.",
-    "statuses": [
-      "Open",
-      "Cleared",
-      "Suspect",
-      "Culprit"
-    ],
+    "statuses": ["Open", "Cleared", "Suspect", "Culprit"],
     "list": [
       {
         "id": "ballard",
@@ -337,7 +189,14 @@
         "id": "vey",
         "name": "Vey, Halloran",
         "role": "Shift Control Engineer",
-        "look": {"head": "shaved2", "face": "serious", "facialHair": "full2", "skin": "ffdbb4", "hair": "724133", "clothing": "6f7f73"}
+        "look": {
+          "head": "shaved2",
+          "face": "serious",
+          "facialHair": "full2",
+          "skin": "ffdbb4",
+          "hair": "724133",
+          "clothing": "6f7f73"
+        }
       },
       {
         "id": "okonkwo",
@@ -349,7 +208,14 @@
         "id": "wrenn",
         "name": "Wrenn, Piotr",
         "role": "RDSI officer",
-        "look": {"head": "short4", "face": "explaining", "accessories": "glasses4", "skin": "ffdbb4", "hair": "a55728", "clothing": "7d8ba3"}
+        "look": {
+          "head": "short4",
+          "face": "explaining",
+          "accessories": "glasses4",
+          "skin": "ffdbb4",
+          "hair": "a55728",
+          "clothing": "7d8ba3"
+        }
       },
       {
         "id": "mbeki",
@@ -361,320 +227,96 @@
   },
   "voices": {"HV": "m", "PW": "m", "DO": "f", "CM": "m"},
   "exhibits": [
-    {"ref": "Card 0001", "name": "Credential, A. Sarn", "found": "On the deceased, clipped to belt", "time": "06:40", "icon": "card", "source": "SLIP 02"},
-    {"ref": "Card 0004", "name": "Credential, H. Vey", "found": "On his person", "time": "08:05", "icon": "card", "source": "SLIP 02"},
-    {"ref": "Card 0007", "name": "Credential, I. Ballard", "found": "Control room - desk, second drawer", "time": "10:22", "icon": "card", "source": "SLIP 02"},
-    {"ref": "Card 0022", "name": "Credential, D. Okonkwo", "found": "On her person", "time": "08:11", "icon": "card", "source": "SLIP 02"},
-    {"ref": "Card 0031", "name": "Credential, C. Mbeki", "found": "On his person", "time": "08:09", "icon": "card", "source": "SLIP 02"},
-    {"ref": "Card V-118", "name": "Credential, P. Wrenn", "found": "On his person", "time": "08:15", "icon": "card", "source": "SLIP 02"}
-  ],
-  "replay": [
-    {"doc": "B-2", "find": "It cannot be established from this report", "note": "Pathology cannot say when Ballard died. The order of the two deaths has to come from somewhere else."},
-    {"doc": "A-1", "find": "Feeder tie F-3 was closed at 06:02:14 on credential I.BALLARD", "note": "The original finding rests on her card. A card is not a person."},
-    {"doc": "D-1", "find": "02:31:08 INTAKE GATE 2 OPEN", "note": "Intake gate 2 was open only from 02:31 to 03:12 that night."},
-    {"doc": "D-2", "find": "Elevation of body 218.4 m", "note": "She was found inside the sealed gallery, downstream of gate 2."},
-    {"doc": "D-2B", "find": "while gate 2 is open will be drawn to the racks", "note": "A body only reaches panel 4 while gate 2 is open. So Ballard was in the water between 02:31 and 03:12, hours before Sarn died at 06:03."},
-    {"doc": "E-1", "find": "no control room door event of any kind", "note": "Nobody came or went from the control room between 02:29 and 05:44, and Vey never left. The F-3 tie was closed from that room."},
-    {"doc": "E-1", "find": "21:04:33 OUT C.MBEKI", "note": "Mbeki was across the footbridge in the powerhouse from 21:04 to 06:05. Cleared."},
-    {"doc": "C-3A", "find": "Permit 1145", "note": "Okonkwo was down wet well 2 on a monitored permit at the key times. Cleared."},
-    {"doc": "E-2", "find": "Piezometers P-7 to P-12", "note": "The instrument array Vey certified was never connected: a fraud he needed to keep hidden."},
-    {"doc": "SLIP 01", "find": "02:38:44", "note": "One gap all night: console 1 alarms went unanswered from 02:38 to 03:05. Vey was away from his console for 26 minutes, inside the gate 2 window."},
-    {"doc": "SLIP 02", "find": "recovered from the second drawer of the control room desk", "note": "Her card was in the control room desk drawer, not on her body. Someone else used it at 06:02."},
-    {"doc": "SLIP 04", "find": "STEP CHANGE", "note": "A debris mat formed over panel 4 at 04:12. She was already there, long before 06:02."},
-    {"doc": "SLIP 07", "find": "C-14 shown SINGLE-FED from F-5", "note": "Vey revised the drawing to hide the live second feed, F-3. Sarn isolated F-5 and trusted the drawing."},
-    {"doc": "SLIP 09", "find": "He was not in the room the card was in", "note": "Wrenn was on a recorded call from the dam crest when F-3 was closed. Cleared."},
-    {"doc": "SLIP 06", "find": "TOTAL $186,000", "note": "The motive: $186,000 paid to his spouse's company after certifications he signed."}
+    {
+      "ref": "Card 0001",
+      "name": "Credential, A. Sarn",
+      "found": "On the deceased, clipped to belt",
+      "time": "06:40",
+      "icon": "card",
+      "source": "SLIP 02"
+    },
+    {
+      "ref": "Card 0004",
+      "name": "Credential, H. Vey",
+      "found": "On his person",
+      "time": "08:05",
+      "icon": "card",
+      "source": "SLIP 02"
+    },
+    {
+      "ref": "Card 0007",
+      "name": "Credential, I. Ballard",
+      "found": "Control room - desk, second drawer",
+      "time": "10:22",
+      "icon": "card",
+      "source": "SLIP 02"
+    },
+    {
+      "ref": "Card 0022",
+      "name": "Credential, D. Okonkwo",
+      "found": "On her person",
+      "time": "08:11",
+      "icon": "card",
+      "source": "SLIP 02"
+    },
+    {
+      "ref": "Card 0031",
+      "name": "Credential, C. Mbeki",
+      "found": "On his person",
+      "time": "08:09",
+      "icon": "card",
+      "source": "SLIP 02"
+    },
+    {
+      "ref": "Card V-118",
+      "name": "Credential, P. Wrenn",
+      "found": "On his person",
+      "time": "08:15",
+      "icon": "card",
+      "source": "SLIP 02"
+    }
   ],
   "motiveLabel": "Motive",
   "accusation": {
     "question": "The deaths of Aurelio Sarn and Ines Ballard are found to be...",
-    "determination": "third-party",
     "options": [
       {
         "id": "original",
-        "type": "original",
         "label": "Murder-suicide, as originally found",
-        "sub": "Ines Ballard killed Aurelio Sarn, then drowned herself.",
-        "reconsider": {
-          "id": "R/BALLARD",
-          "title": "Reconsider - the original finding",
-          "src": "sealed",
-          "page": 0
-        }
+        "sub": "Ines Ballard killed Aurelio Sarn, then drowned herself."
       },
-      {
-        "id": "vey",
-        "type": "third-party",
-        "label": "Double unlawful killing by Halloran Vey",
-        "sub": "Shift Control Engineer"
-      },
-      {
-        "id": "okonkwo",
-        "type": "third-party",
-        "label": "Double unlawful killing by Dessa Okonkwo",
-        "sub": "Maintenance Technician",
-        "reconsider": {
-          "id": "R/OKONKWO",
-          "title": "Reconsider - Okonkwo",
-          "src": "sealed",
-          "page": 1
-        }
-      },
-      {
-        "id": "wrenn",
-        "type": "third-party",
-        "label": "Double unlawful killing by Piotr Wrenn",
-        "sub": "RDSI officer",
-        "reconsider": {
-          "id": "R/WRENN",
-          "title": "Reconsider - Wrenn",
-          "src": "sealed",
-          "page": 2
-        }
-      },
-      {
-        "id": "mbeki",
-        "type": "third-party",
-        "label": "Double unlawful killing by Cato Mbeki",
-        "sub": "Assistant Operator",
-        "reconsider": {
-          "id": "R/MBEKI",
-          "title": "Reconsider - Mbeki",
-          "src": "sealed",
-          "page": 3
-        }
-      }
+      {"id": "vey", "label": "Double unlawful killing by Halloran Vey", "sub": "Shift Control Engineer"},
+      {"id": "okonkwo", "label": "Double unlawful killing by Dessa Okonkwo", "sub": "Maintenance Technician"},
+      {"id": "wrenn", "label": "Double unlawful killing by Piotr Wrenn", "sub": "RDSI officer"},
+      {"id": "mbeki", "label": "Double unlawful killing by Cato Mbeki", "sub": "Assistant Operator"}
     ]
   },
   "phases": [
     {
-      "docs": [
-        "BRIEF",
-        "RULES",
-        "A-0",
-        "A-1",
-        "A-2",
-        "B-1",
-        "B-2",
-        "D-1"
-      ],
+      "docs": ["BRIEF", "RULES", "A-0", "A-1", "A-2", "B-1", "B-2", "D-1"],
       "read": "the Case Board only",
       "authorities": false,
       "prompt": "Which of the two deaths came first, and why do you think so?"
     },
     {
-      "docs": [
-        "file:F-2"
-      ],
+      "docs": ["file:F-2"],
       "read": "File F-2 (Hydrology)",
       "authorities": true,
       "prompt": "Give a time window for Ines Ballard entering the water."
     },
     {
-      "docs": [
-        "file:F-1"
-      ],
+      "docs": ["file:F-1"],
       "read": "File F-1 (Control)",
       "authorities": true,
       "prompt": "Who could have been at console 1 at 06:02?"
     },
     {
-      "docs": [
-        "file:F-4"
-      ],
+      "docs": ["file:F-4"],
       "read": "File F-4 (Security)",
       "authorities": true,
       "prompt": "Where was her credential card, and who could reach it?"
     },
-    {
-      "docs": [
-        "file:F-3",
-        "file:F-5"
-      ],
-      "read": "Files F-3 and F-5",
-      "authorities": true,
-      "prompt": null
-    }
-  ],
-  "reveal": {
-    "src": "sealed",
-    "cover": 4,
-    "pages": [
-      5,
-      6,
-      7
-    ],
-    "scoringPage": 8,
-    "double": true,
-    "steps": [
-      {
-        "sheet": "step:0",
-        "checks": [
-          {
-            "id": "c1",
-            "kind": "step",
-            "points": 5,
-            "label": "Step 1 - Both causes of death, cited"
-          }
-        ]
-      },
-      {
-        "sheet": "step:1",
-        "checks": [
-          {
-            "id": "c2",
-            "kind": "step",
-            "points": 5,
-            "label": "Step 2 - Ballard in the water 02:31-03:12, by the gate argument"
-          }
-        ]
-      },
-      {
-        "sheet": "step:2",
-        "checks": [
-          {
-            "id": "c3",
-            "kind": "step",
-            "points": 5,
-            "label": "Step 3 - A credential event is not a person, cited"
-          }
-        ]
-      },
-      {
-        "sheet": "step:3",
-        "checks": [
-          {
-            "id": "c4",
-            "kind": "step",
-            "points": 5,
-            "label": "Step 4 - F-3, undocumented and never decommissioned, cited"
-          }
-        ]
-      },
-      {
-        "sheet": "step:4",
-        "checks": [
-          {
-            "id": "c5",
-            "kind": "step",
-            "points": 5,
-            "label": "Step 5 - Control room sole occupancy 02:29-05:44, cited"
-          }
-        ]
-      },
-      {
-        "sheet": "step:5",
-        "checks": [
-          {
-            "id": "c6",
-            "kind": "step",
-            "points": 5,
-            "label": "Step 6 - The 02:38-03:04 acknowledgement gap, cited"
-          }
-        ]
-      },
-      {
-        "sheet": "persons",
-        "checks": [
-          {
-            "id": "e1",
-            "kind": "person",
-            "points": 10,
-            "label": "Ines Ballard exonerated with evidence"
-          },
-          {
-            "id": "e2",
-            "kind": "person",
-            "points": 5,
-            "label": "Mbeki cleared with evidence"
-          },
-          {
-            "id": "e3",
-            "kind": "person",
-            "points": 5,
-            "label": "Okonkwo cleared with evidence"
-          },
-          {
-            "id": "e4",
-            "kind": "person",
-            "points": 5,
-            "label": "Wrenn cleared - all three records cited"
-          }
-        ]
-      },
-      {
-        "sheet": "motive",
-        "checks": [
-          {
-            "id": "m1",
-            "kind": "other",
-            "points": 5,
-            "label": "Motive established"
-          }
-        ]
-      },
-      {
-        "sheet": "verdict"
-      },
-      {
-        "sheet": "epilogue"
-      }
-    ]
-  },
-  "scoring": {
-    "determination": {
-      "label": "Finding recorded as double unlawful killing",
-      "points": 5
-    },
-    "culprit": {
-      "label": "Correct culprit named",
-      "points": 10
-    },
-    "wrong": {
-      "label": "Wrong accusation",
-      "points": -10
-    },
-    "cleanSweep": {
-      "label": "Clean Sweep - six steps, four persons resolved, correct first time",
-      "points": 15
-    },
-    "unspent": {
-      "label": "Unspent authority",
-      "points": 2
-    },
-    "doubleLabel": "Established before the last phase opened",
-    "bands": [
-      {
-        "min": 100,
-        "title": "Commendation",
-        "text": "Charged, and the file will survive anything a defence barrister does to it."
-      },
-      {
-        "min": 75,
-        "title": "Charged",
-        "text": "The right man, and enough working to justify it."
-      },
-      {
-        "min": 50,
-        "title": "Referred",
-        "text": "The Crown will take it. Ms Ballard's name is cleared, which was the more urgent thing."
-      },
-      {
-        "min": 25,
-        "title": "Open verdict",
-        "text": "The original finding is quashed and nothing replaces it. Better than nothing, and not by much."
-      },
-      {
-        "min": -999,
-        "title": "The finding stands",
-        "text": "The file closes as it closed before, and Ines Ballard remains, on the public record, a woman who killed her manager and drowned herself."
-      }
-    ]
-  },
-  "debrief": [
-    "At which phase did you first doubt the sequence of the two deaths? That moment is the case.",
-    "Did the phase gates help you think, or did you want everything at once?",
-    "Did the Authority limit ever hurt? If nobody agonised over a choice, the budget is too generous."
+    {"docs": ["file:F-3", "file:F-5"], "read": "Files F-3 and F-5", "authorities": true, "prompt": null}
   ],
   "rules": [
     "The documents don't lie. People might. If a statement and a log disagree, the log is right.",
@@ -738,37 +380,19 @@
   },
   "order": 2,
   "files": [
-    {
-      "id": "F-1",
-      "name": "Control & Operations"
-    },
-    {
-      "id": "F-2",
-      "name": "Hydrology & Recovery"
-    },
-    {
-      "id": "F-3",
-      "name": "Mechanical & Maintenance"
-    },
-    {
-      "id": "F-4",
-      "name": "Site Security & Personnel"
-    },
-    {
-      "id": "F-5",
-      "name": "Regulator (RDSI)"
-    }
+    {"id": "F-1", "name": "Control & Operations"},
+    {"id": "F-2", "name": "Hydrology & Recovery"},
+    {"id": "F-3", "name": "Mechanical & Maintenance"},
+    {"id": "F-4", "name": "Site Security & Personnel"},
+    {"id": "F-5", "name": "Regulator (RDSI)"}
   ],
-  "hintCosts": [
-    2,
-    3,
-    5
-  ],
+  "hintCosts": [2,3,5],
   "hints": [
     {
       "id": "order",
       "q": "Which death came first?",
       "needs": "B-2",
+      "for": {"steps": [1]},
       "steps": [
         "Only one of the two deaths has a clock. The other has to be dated by something other than a body.",
         "Re-read the referral (A-0). Ask how a body could possibly reach the intake gallery.",
@@ -779,6 +403,7 @@
       "id": "card",
       "q": "Her card closed the circuit. So she did it?",
       "needs": "D-1",
+      "for": {"steps": [2]},
       "steps": [
         "A credential event records a card. It does not record a person.",
         "Where was her card when she was found? Compare D-2 (the recovery) with C-5A (credential practice).",
@@ -789,6 +414,7 @@
       "id": "lockout",
       "q": "Why did a correct lockout kill Sarn?",
       "needs": "E-6",
+      "for": {"steps": [3]},
       "steps": [
         "He locked out the circuit he knew about.",
         "E-6 asks a question about the as-built drawing. E-2A says what contract RG-0419 was supposed to remove.",
@@ -799,6 +425,7 @@
       "id": "who",
       "q": "Who could have used her card?",
       "needs": "E-1",
+      "for": {"steps": [4]},
       "steps": [
         "Her card was used at a console. Who was in that room, and for how long?",
         "E-1 shows the control room door did not open between 02:29 and 05:44.",
@@ -809,11 +436,14 @@
       "id": "wrenn",
       "q": "How do I clear Piotr Wrenn?",
       "needs": "C-4",
+      "for": {"persons": ["wrenn"]},
       "steps": [
         "No single record clears him.",
         "You need him accounted for in three windows: while the gate was open, at 06:02, and whenever he was last in the control room.",
         "Authority 09 reconciles all three records."
       ]
     }
-  ]
+  ],
+  "reveal": {"double": true},
+  "scoring": {"doubleLabel": "Established before the last phase opened"}
 }

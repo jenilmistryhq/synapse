@@ -80,7 +80,9 @@ export function renderLeaderboard(app, catalog, which, go) {
   }
 
   const boardP = current ? caseBoard(current.id) : overallBoard();
-  const mineP = meName ? myRanks(meName) : Promise.resolve({ overall: null, cases: {} });
+  // On the overall board your own row is often already in the top list.
+  const mineP = !meName ? Promise.resolve({ overall: null, cases: {} })
+    : current ? myRanks(meName) : boardP.then(board => myRanks(meName, { overallRows: board.rows }));
   Promise.all([boardP, mineP]).then(([board, ranks]) => {
     drawMine(ranks);
     drawTable(board, current ? ranks.cases[current.id] : ranks.overall);

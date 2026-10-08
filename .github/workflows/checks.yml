@@ -1,0 +1,52 @@
+# Runs on every push and pull request. A red cross on a commit means a case or the
+# app is broken; the log says which, and in which case.
+name: Checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Every script parses
+        run: |
+          for f in app/js/*.js app/config.js sw.js tools/*.js tests/*.js; do
+            node --check "$f" || exit 1
+          done
+
+      - name: Every case is valid
+        run: node tools/build-catalog.js
+
+      - name: The case list is up to date
+        run: |
+          if ! git diff --quiet -I '"generated"' -- cases/index.json; then
+            echo "::error::cases/index.json is out of date. Run 'npm run catalog' and commit the result."
+            git diff -I '"generated"' -- cases/index.json | head -40
+            exit 1
+          fi
+
+      - name: Every case plays end to end
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: node tests/smoke.js

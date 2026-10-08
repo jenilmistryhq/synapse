@@ -13,140 +13,66 @@
     "results": "print/03-action-results.html",
     "sealed": "print/04-envelope-s1.html"
   },
-  "menu": {
-    "src": "play",
-    "page": 1
-  },
-  "sheetPage": {
-    "src": "play",
-    "page": 2
-  },
-  "slips": {
-    "src": "results"
-  },
-  "budget": {
-    "1": 6,
-    "2": 6,
-    "3": 7,
-    "4": 7,
-    "5": 8,
-    "6": 8
-  },
+  "menu": {"src": "play", "page": 1},
+  "sheetPage": {"src": "play", "page": 2},
+  "slips": {"src": "results"},
+  "budget": {"1": 6, "2": 6, "3": 7, "4": 7, "5": 8, "6": 8},
   "advice": "Every one of these was suggested by something already in the file. Before you spend, ask what in the closed file made you want it - and if you cannot answer, spend it on something you can answer for.",
-  "groups": {
-    "base": "Base dossier"
-  },
+  "groups": {"base": "Base dossier"},
   "documents": [
-    {
-      "id": "BRIEF",
-      "kind": "brief",
-      "title": "Briefing - Terms of Reference",
-      "src": "play",
-      "pages": [
-        0
-      ]
-    },
-    {
-      "id": "A-1",
-      "kind": "base",
-      "title": "Incident Dispatch & First Responder Report",
-      "src": "base",
-      "pages": [
-        0
-      ]
-    },
-    {
-      "id": "B-1",
-      "kind": "base",
-      "title": "Autopsy Protocol",
-      "src": "base",
-      "pages": [
-        1,
-        2
-      ]
-    },
-    {
-      "id": "C-1",
-      "kind": "base",
-      "title": "Interview: V. Marchetti, Facility Director",
-      "src": "base",
-      "pages": [
-        3
-      ]
-    },
-    {
-      "id": "C-2",
-      "kind": "base",
-      "title": "Interview: O. Pryce, Night Security",
-      "src": "base",
-      "pages": [
-        4
-      ]
-    },
-    {
-      "id": "C-3",
-      "kind": "base",
-      "title": "Interview: Dr L. Kovaleski, Conservator",
-      "src": "base",
-      "pages": [
-        5
-      ]
-    },
-    {
-      "id": "C-4",
-      "kind": "base",
-      "title": "Interview: D. Ferraro, Contract Handler",
-      "src": "base",
-      "pages": [
-        6
-      ]
-    },
-    {
-      "id": "D-1",
-      "kind": "base",
-      "title": "Facility Systems Extract",
-      "src": "base",
-      "pages": [
-        7,
-        8
-      ]
-    },
-    {
-      "id": "E-1",
-      "kind": "base",
-      "title": "Records & Exhibits",
-      "src": "base",
-      "pages": [
-        9
-      ]
-    }
+    {"id": "BRIEF", "kind": "brief", "title": "Briefing - Terms of Reference", "src": "play", "pages": [0]},
+    {"id": "A-1", "kind": "base", "title": "Incident Dispatch & First Responder Report", "src": "base", "pages": [0]},
+    {"id": "B-1", "kind": "base", "title": "Autopsy Protocol", "src": "base", "pages": [1,2]},
+    {"id": "C-1", "kind": "base", "title": "Interview: V. Marchetti, Facility Director", "src": "base", "pages": [3]},
+    {"id": "C-2", "kind": "base", "title": "Interview: O. Pryce, Night Security", "src": "base", "pages": [4]},
+    {"id": "C-3", "kind": "base", "title": "Interview: Dr L. Kovaleski, Conservator", "src": "base", "pages": [5]},
+    {"id": "C-4", "kind": "base", "title": "Interview: D. Ferraro, Contract Handler", "src": "base", "pages": [6]},
+    {"id": "D-1", "kind": "base", "title": "Facility Systems Extract", "src": "base", "pages": [7,8]},
+    {"id": "E-1", "kind": "base", "title": "Records & Exhibits", "src": "base", "pages": [9]}
   ],
   "persons": {
     "label": "Eliminations",
     "hint": "A suspect is eliminated only when a document places them beyond the act, and only against the time of death you have established - not the one you were handed.",
-    "statuses": [
-      "Open",
-      "Eliminated",
-      "Suspect"
-    ],
+    "statuses": ["Open", "Eliminated", "Suspect"],
     "list": [
       {
         "id": "marchetti",
         "name": "Marchetti, Vivienne",
         "role": "Facility Director",
-        "look": {"head": "mediumStraight", "face": "calm", "accessories": "glasses2", "skin": "edb98a", "hair": "4a312c", "clothing": "7d8ba3"}
+        "look": {
+          "head": "mediumStraight",
+          "face": "calm",
+          "accessories": "glasses2",
+          "skin": "edb98a",
+          "hair": "4a312c",
+          "clothing": "7d8ba3"
+        }
       },
       {
         "id": "pryce",
         "name": "Pryce, Oskar",
         "role": "Night Security Supervisor",
-        "look": {"head": "short2", "face": "serious", "facialHair": "moustache3", "skin": "ffdbb4", "hair": "724133", "clothing": "6f7f73"}
+        "look": {
+          "head": "short2",
+          "face": "serious",
+          "facialHair": "moustache3",
+          "skin": "ffdbb4",
+          "hair": "724133",
+          "clothing": "6f7f73"
+        }
       },
       {
         "id": "kovaleski",
         "name": "Kovaleski, Dr Lena",
         "role": "Staff Conservator",
-        "look": {"head": "bun", "face": "serious", "accessories": "glasses", "skin": "ffdbb4", "hair": "b58143", "clothing": "8a9a8c"}
+        "look": {
+          "head": "bun",
+          "face": "serious",
+          "accessories": "glasses",
+          "skin": "ffdbb4",
+          "hair": "b58143",
+          "clothing": "8a9a8c"
+        }
       },
       {
         "id": "ferraro",
@@ -158,282 +84,67 @@
   },
   "voices": {"OP": "m", "VM": "f", "LK": "f"},
   "exhibits": [
-    {"ref": "EX-01", "name": "Personal oxygen monitor, Meridian issue, unit 06", "found": "Charging cradle, B2 anteroom - fully charged, not deployed", "icon": "gauge", "source": "E-1"},
-    {"ref": "EX-02", "name": "Spectacles, folded", "found": "Breast pocket of deceased", "icon": "glasses", "source": "E-1"},
+    {
+      "ref": "EX-01",
+      "name": "Personal oxygen monitor, Meridian issue, unit 06",
+      "found": "Charging cradle, B2 anteroom - fully charged, not deployed",
+      "icon": "gauge",
+      "source": "E-1"
+    },
+    {
+      "ref": "EX-02",
+      "name": "Spectacles, folded",
+      "found": "Breast pocket of deceased",
+      "icon": "glasses",
+      "source": "E-1"
+    },
     {"ref": "EX-03", "name": "Overcoat, wool, grey", "found": "Hook, B2 anteroom", "icon": "coat", "source": "E-1"},
-    {"ref": "EX-04", "name": "Lanyard and staff badge, cred. 1049", "found": "On deceased", "icon": "badge", "source": "E-1"},
-    {"ref": "Sought", "name": "Tablet computer, carried by the deceased at all times", "found": "Not in Cold Store 3, the B2 anteroom, the conservation lab, his office, his vehicle or his home", "icon": "tablet", "source": "E-1", "missing": true}
-  ],
-  "replay": [
-    {"doc": "A-1", "find": "paramedics relocated the male to the B2 corridor", "note": "The body was carried out of Cold Store 3 at 00:11, before anyone took a temperature."},
-    {"doc": "A-1", "find": "B2 CORRIDOR, OUTSIDE COLD STORE 3", "note": "So the 20.8 C ambient reading is the warm corridor, not the store he lay in."},
-    {"doc": "B-1", "find": "per responding officer intake form", "note": "The autopsy used that corridor reading. The arithmetic is right; the input is wrong, so its 19:41 time of death is wrong."},
-    {"doc": "D-1", "find": "Vault Climate Telemetry", "note": "Cold Store 3 held 6 C all evening. At 6 C a body cools far more slowly: he died between about 21:45 and 22:25."},
-    {"doc": "D-1", "find": "HALVORSEN_DISCREPANCY_v4", "note": "Renn saved a report at 21:51. He was alive and working, which fits the corrected window."},
-    {"doc": "D-1", "find": "Discrete events logged, reporting period", "note": "Two events on the oxygen-reduction system that night, and the extract does not say what they were."},
-    {"doc": "E-1", "find": "requires a Level-4 credential presented at that panel", "note": "A manual discharge needs a Level-4 credential at the corridor panel. Only Marchetti and Pryce hold one."},
-    {"doc": "D-1", "find": "21:26:44 OUT L.KOVALESKI", "note": "Against the corrected window, Kovaleski had already left the vault level at 21:26."},
-    {"doc": "E-1", "find": "Run Sheet, D. Ferraro", "note": "Ferraro was on the ferry crossing all evening, far from the building."},
-    {"doc": "SLIP 11", "find": "MANUAL DISCHARGE INITIATED", "note": "21:58:41: the gas was discharged by hand at panel B2-P1 with the occupancy interlock overridden. This is how he died."},
-    {"doc": "SLIP 03", "find": "21:44:11 CP-7 Level D loading bay", "note": "Pryce was at the Level D loading bay at 21:44 and 22:02, and the stairwell door never opened. He could not reach the panel."},
-    {"doc": "SLIP 01", "find": "21:32:18 IN V.MARCHETTI", "note": "Marchetti, supposedly at a dinner, came in through the Level D service door at 21:32 and left at 22:34."},
-    {"doc": "SLIP 08", "find": "Last retained photograph including Ms Marchetti", "note": "Her dinner alibi runs out at 20:20. It only ever covered the false time of death."},
-    {"doc": "SLIP 06", "find": "TOTAL $412,000", "note": "The motive: $412,000 from secretly selling four Halvorsen prints."},
-    {"doc": "E-1", "find": "Item sought, not recovered", "note": "Her mistake: she took his tablet, but the report was already saved on the server."}
+    {
+      "ref": "EX-04",
+      "name": "Lanyard and staff badge, cred. 1049",
+      "found": "On deceased",
+      "icon": "badge",
+      "source": "E-1"
+    },
+    {
+      "ref": "Sought",
+      "name": "Tablet computer, carried by the deceased at all times",
+      "found": "Not in Cold Store 3, the B2 anteroom, the conservation lab, his office, his vehicle or his home",
+      "icon": "tablet",
+      "source": "E-1",
+      "missing": true
+    }
   ],
   "motiveLabel": "Motive (optional - scores nothing, but the file is thin without it)",
   "accusation": {
     "question": "On the evidence recorded, the death of Tobias Renn was...",
-    "determination": "unlawful",
     "options": [
       {
         "id": "accidental",
-        "type": "accidental",
         "label": "An accident",
         "sub": "The original finding stands. Nobody is named.",
         "final": true
       },
-      {
-        "id": "marchetti",
-        "type": "unlawful",
-        "label": "Unlawful killing by Vivienne Marchetti",
-        "sub": "Facility Director"
-      },
-      {
-        "id": "pryce",
-        "type": "unlawful",
-        "label": "Unlawful killing by Oskar Pryce",
-        "sub": "Night Security Supervisor",
-        "reconsider": {
-          "id": "R/PRYCE",
-          "title": "Reconsider - Pryce",
-          "src": "sealed",
-          "page": 0
-        }
-      },
-      {
-        "id": "kovaleski",
-        "type": "unlawful",
-        "label": "Unlawful killing by Dr Lena Kovaleski",
-        "sub": "Staff Conservator",
-        "reconsider": {
-          "id": "R/KOVALESKI",
-          "title": "Reconsider - Kovaleski",
-          "src": "sealed",
-          "page": 1
-        }
-      },
-      {
-        "id": "ferraro",
-        "type": "unlawful",
-        "label": "Unlawful killing by Danny Ferraro",
-        "sub": "Contract handler",
-        "reconsider": {
-          "id": "R/FERRARO",
-          "title": "Reconsider - Ferraro",
-          "src": "sealed",
-          "page": 2
-        }
-      }
+      {"id": "marchetti", "label": "Unlawful killing by Vivienne Marchetti", "sub": "Facility Director"},
+      {"id": "pryce", "label": "Unlawful killing by Oskar Pryce", "sub": "Night Security Supervisor"},
+      {"id": "kovaleski", "label": "Unlawful killing by Dr Lena Kovaleski", "sub": "Staff Conservator"},
+      {"id": "ferraro", "label": "Unlawful killing by Danny Ferraro", "sub": "Contract handler"}
     ]
   },
   "phases": [
     {
-      "docs": [
-        "BRIEF",
-        "A-1",
-        "B-1"
-      ],
+      "docs": ["BRIEF", "A-1", "B-1"],
       "read": "A-1 and B-1",
       "authorities": false,
       "prompt": "Write down your working time of death, and which suspects are plausible."
     },
     {
-      "docs": [
-        "C-1",
-        "C-2",
-        "C-3",
-        "C-4",
-        "D-1"
-      ],
+      "docs": ["C-1", "C-2", "C-3", "C-4", "D-1"],
       "read": "the four interviews (C-1 to C-4) and D-1",
       "authorities": true,
       "prompt": "Revise both in writing: your time of death, and your plausible suspects. Authorities are now open."
     },
-    {
-      "docs": [
-        "E-1"
-      ],
-      "read": "E-1 and everything remaining",
-      "authorities": true,
-      "prompt": null
-    }
-  ],
-  "reveal": {
-    "src": "sealed",
-    "cover": 3,
-    "pages": [
-      4,
-      5,
-      6
-    ],
-    "scoringPage": 7,
-    "steps": [
-      {
-        "sheet": "step:0",
-        "checks": [
-          {
-            "id": "c1",
-            "kind": "step",
-            "points": 5,
-            "label": "Step 1 - Cause: hypoxic asphyxia, cited"
-          }
-        ]
-      },
-      {
-        "sheet": "step:1",
-        "checks": [
-          {
-            "id": "c2",
-            "kind": "step",
-            "points": 5,
-            "label": "Step 2 - Time of death corrected to about 22:06, cited"
-          }
-        ]
-      },
-      {
-        "sheet": "step:2",
-        "checks": [
-          {
-            "id": "c3",
-            "kind": "step",
-            "points": 5,
-            "label": "Step 3 - Mechanism: manual discharge, interlock overridden, cited"
-          }
-        ]
-      },
-      {
-        "sheet": "step:3",
-        "checks": [
-          {
-            "id": "c4",
-            "kind": "step",
-            "points": 5,
-            "label": "Step 4 - Means: the Level-4 roster narrows it to two, cited"
-          }
-        ]
-      },
-      {
-        "sheet": "step:4",
-        "checks": [
-          {
-            "id": "c5",
-            "kind": "step",
-            "points": 5,
-            "label": "Step 5 - Opportunity: Level D entry 21:32 and exit 22:34, cited"
-          }
-        ]
-      },
-      {
-        "sheet": "step:5",
-        "checks": [
-          {
-            "id": "c6",
-            "kind": "step",
-            "points": 5,
-            "label": "Step 6 - Contradiction: the dinner is corroborated only to 20:20, cited"
-          }
-        ]
-      },
-      {
-        "sheet": "persons",
-        "checks": [
-          {
-            "id": "e1",
-            "kind": "person",
-            "points": 5,
-            "label": "Ferraro eliminated with evidence"
-          },
-          {
-            "id": "e2",
-            "kind": "person",
-            "points": 5,
-            "label": "Kovaleski eliminated with evidence, against the corrected window"
-          },
-          {
-            "id": "e3",
-            "kind": "person",
-            "points": 5,
-            "label": "Pryce eliminated with evidence (all three documents cited)"
-          }
-        ]
-      },
-      {
-        "sheet": "motive",
-        "checks": [],
-        "note": "Motive scores nothing here, but the file is thin without it."
-      },
-      {
-        "sheet": "verdict"
-      },
-      {
-        "sheet": "epilogue"
-      }
-    ]
-  },
-  "scoring": {
-    "determination": {
-      "label": "Determination recorded as unlawful killing",
-      "points": 5
-    },
-    "culprit": {
-      "label": "Correct culprit named",
-      "points": 10
-    },
-    "wrong": {
-      "label": "Wrong accusation",
-      "points": -10
-    },
-    "cleanSweep": {
-      "label": "Clean Sweep - all six steps, all three eliminations, correct first time",
-      "points": 10
-    },
-    "unspent": {
-      "label": "Unspent authority",
-      "points": 2
-    },
-    "bands": [
-      {
-        "min": 65,
-        "title": "Case closed - commendation",
-        "text": "Charged, and the file will survive a defence barrister."
-      },
-      {
-        "min": 50,
-        "title": "Charged",
-        "text": "The right person, and enough working to justify it."
-      },
-      {
-        "min": 35,
-        "title": "Referred",
-        "text": "The Crown will take it and will not enjoy it."
-      },
-      {
-        "min": 20,
-        "title": "No further action",
-        "text": "You know. You cannot show it."
-      },
-      {
-        "min": -999,
-        "title": "The file stays closed",
-        "text": "Accidental death. The estate absorbs the loss and the killer retires to the coast."
-      }
-    ]
-  },
-  "debrief": [
-    "How long did the file's own time of death go unquestioned at your table? That number is the case.",
-    "Was the moment it broke an 'aha' or a shrug?",
-    "Did the Authority limit ever hurt? If nobody agonised over a choice, the budget is too generous."
+    {"docs": ["E-1"], "read": "E-1 and everything remaining", "authorities": true, "prompt": null}
   ],
   "rules": [
     "The documents don't lie. People might. Every untruth in the transcripts can be caught by a document. If a statement and a log disagree, the log is right.",
@@ -489,16 +200,13 @@
     ]
   },
   "order": 1,
-  "hintCosts": [
-    2,
-    3,
-    5
-  ],
+  "hintCosts": [2,3,5],
   "hints": [
     {
       "id": "tod",
       "q": "When did Tobias Renn really die?",
       "needs": "B-1",
+      "for": {"steps": [1]},
       "steps": [
         "The autopsy did its arithmetic perfectly. Check the inputs it was given, and where each one was measured.",
         "Compare where the ambient temperature was taken (A-1, Scene Conditions) with the temperature of the room he lay in all evening (D-1, section 2).",
@@ -509,6 +217,7 @@
       "id": "accident",
       "q": "Was it really an accident?",
       "needs": "D-1",
+      "for": {"steps": [0,2]},
       "steps": [
         "A room held at 15% oxygen does not fall further on its own. Something in the file is counting events.",
         "D-1 section 3 says the life-safety controller logged two discrete events, and the full log is not in the extract.",
@@ -519,6 +228,7 @@
       "id": "means",
       "q": "Who could have done it?",
       "needs": "E-1",
+      "for": {"steps": [3]},
       "steps": [
         "Whoever did it needed a particular kind of access to the suppression system.",
         "E-1.1 lists who can override the occupancy interlock. There are very few names.",
@@ -529,6 +239,7 @@
       "id": "clear",
       "q": "How do I clear a suspect?",
       "needs": "C-1",
+      "for": {"persons": ["ferraro", "kovaleski", "pryce"]},
       "steps": [
         "A suspect is cleared only against the time of death you have established, not the one printed in the file.",
         "Ferraro is the easy one: E-1.2. Kovaleski badged out of B2 at 21:26 (D-1 section 1), which only clears her if he died later than that.",
@@ -539,6 +250,7 @@
       "id": "authorities",
       "q": "Which Authorities are worth spending?",
       "needs": "D-1",
+      "for": {"steps": [4,5]},
       "steps": [
         "Every useful Authority is pointed at by something already in the file. D-1 section 5 lists what the extract left out.",
         "Some add nothing new: a second toxicology panel will not change the cause of death, and corroborating an alibi you already hold is a luxury.",

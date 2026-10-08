@@ -125,7 +125,7 @@ function labelsHtml(m, menuRows) {
     if (only && id !== only) continue;
     const mPath = path.join(casesDir, id, 'digital.json');
     if (!fs.existsSync(mPath)) continue;
-    const m = JSON.parse(fs.readFileSync(mPath, 'utf8'));
+    const m = require('./case-files.js').readCase(path.join(casesDir, id));
     if (!m.printKit) continue;
     const printDir = path.join(casesDir, id, 'print');
     const outDir = path.join(printDir, 'pdf');

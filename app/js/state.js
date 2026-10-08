@@ -64,7 +64,7 @@ export const isPhased = (m, st) => !!(st.setup.phased && m.phases);
 
 // Is the file still in pieces? (Where a case doubles early steps, they score x2.)
 export function fileStillSplit(m, st) {
-  return !!(m.reveal.double && isPhased(m, st) && st.phase < m.phases.length);
+  return !!(m.reveal && m.reveal.double && isPhased(m, st) && st.phase < m.phases.length);
 }
 
 export function authoritiesOpen(m, st) {

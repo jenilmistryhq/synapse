@@ -3,7 +3,7 @@
 // the clipboard and notebook dock beside it so you can write while you read.
 
 import { h, $$, icon, fmtClock, debounce, toast, modal, confirmModal, calc, plural } from './util.js';
-import { renderPages, rangeToOffsets, wrapRange, pageNode } from './docs.js';
+import { renderPages, rangeToOffsets, wrapRange, pageNode, loadSlips, loadSealed } from './docs.js';
 import {
   saveState, clearState, timerNow, timerStart, timerStop, timerRebase, timerRunning,
   authoritiesOpen, remaining, fileStillSplit, isPhased, hintCosts, hintsTaken,
@@ -17,6 +17,7 @@ import { visibleExhibits, evidenceBag } from './exhibits.js';
 import { tapeSupported, hasTranscript, createTape } from './tape.js';
 import { openBoard, boardSummary } from './board.js';
 import { mountGuide } from './guide.js';
+import { makeRoomCode, makePeerId, validRoomCode, openPeerRoom } from './peer.js';
 
 const ZOOMS = [0.8, 0.9, 1, 1.1, 1.25, 1.4, 1.6];
 const tilt = id => { let x = 0; for (const ch of id) x = (x * 31 + ch.charCodeAt(0)) % 997; return ((x % 7) - 3) * 0.45; };
@@ -32,7 +33,8 @@ export function mountGame(root, m, st, { go }) {
   if (st.timer.auto) timerStart(st);
   document.body.classList.add('desk-lock');
 
-  const save = debounce(() => saveState(st), 300);
+  let peerRoom = null, peerCode = '', groupStatusText = '', groupTransition = false;
+  const save = debounce(() => { saveState(st); if (peerRoom) peerRoom.publish(); }, 300);
   const saveNow = () => save.flush();
 
   /* --- shell ---------------------------------------------------------------- */
@@ -76,6 +78,7 @@ export function mountGame(root, m, st, { go }) {
           Array.from({ length: st.budget }, (_, i) => h('i', { class: i < left ? 'on' : '' })), h('b', {}, left)),
         h('span', { class: `tries ${tries === 1 ? 'final' : ''}`, title: 'Accusations left. The third is final.' }, icon('accuse'), h('b', {}, tries === 1 ? 'Final' : tries))),
       h('div', { class: 'dk-actions' },
+        h('button', { class: `btn sm ${peerRoom ? 'primary' : 'ghost'} group-room-btn`, onclick: openGroupRoom, title: 'Share this investigation with your group' }, icon('users'), h('span', {}, peerRoom ? 'Group' : 'Group play')),
         h('button', { class: 'iconbtn', title: soundOn() ? 'Mute sounds' : 'Turn sounds on', 'aria-label': 'Toggle sound', onclick: () => { setSound(!soundOn()); renderTop(); if (soundOn()) sfx.tick(); } }, icon(soundOn() ? 'sound' : 'mute')),
         h('button', { class: 'iconbtn', title: 'Settings', 'aria-label': 'Settings', onclick: () => openSettings({ onChange: () => { renderTop(); if (ui.reader) $$('.rd-paper', reader).forEach(p => { p.style.zoom = getSettings().docZoom; }); } }) }, icon('gear')),
         h('button', { class: 'iconbtn', title: 'Rules and help', 'aria-label': 'Rules and help', onclick: showHelp }, icon('help')),
@@ -85,6 +88,69 @@ export function mountGame(root, m, st, { go }) {
   function toggleTimer() {
     if (timerRunning(st)) { timerStop(st); toast('Clock paused'); } else { timerStart(st); toast('Clock running'); }
     sfx.tick(); saveNow(); renderTop();
+  }
+
+  function openGroupRoom() {
+    const status = h('p', { class: 'group-status', role: 'status', 'aria-live': 'polite' }, peerRoom ? (groupStatusText || 'Room connected.') : 'Open a room or join one with an invite code.');
+    const invite = h('input', { class: 'field group-code', readonly: true, value: peerRoom && peerRoom.role === 'host' ? peerCode : '', 'aria-label': 'Room invite code', placeholder: 'Your room code will appear here', hidden: !(peerRoom && peerRoom.role === 'host') });
+    const joinCode = h('input', { class: 'field group-code', maxlength: 45, placeholder: 'Paste the 45-character invite code', 'aria-label': 'Invite code' });
+    const copy = h('button', { class: 'btn ghost sm', hidden: !invite.value, onclick: async () => { try { await navigator.clipboard.writeText(invite.value); toast('Invite code copied.'); } catch { invite.select(); toast('Select and copy the invite code.'); } } }, 'Copy code');
+    const actions = [];
+    let dialog;
+    if (!peerRoom) {
+      actions.push({ label: 'Open a group room', kind: 'primary', onClick: async () => {
+        const code = makeRoomCode();
+        status.textContent = 'Opening the room…';
+        try {
+          peerRoom = await openPeerRoom({ roomCode: code, peerId: makePeerId(), host: true, state: st, statuses: m.persons.statuses, optionIds: m.accusation.options.map(x => x.id), onStatus: setGroupStatus, onState: receiveGroupState });
+          peerCode = code; invite.value = code; invite.hidden = false; copy.hidden = false; renderTop(); dialog.close(); openGroupRoom();
+        } catch (e) { status.textContent = e.message || 'Could not open the room.'; }
+        return false;
+      } });
+      actions.push({ label: 'Join with code', kind: 'ghost', onClick: async () => {
+        const code = joinCode.value.trim();
+        if (!validRoomCode(code)) { status.textContent = 'Enter the 45-character room code from the host.'; return false; }
+        status.textContent = 'Joining the room…';
+        try {
+          peerRoom = await openPeerRoom({ roomCode: code, peerId: makePeerId(), host: false, state: st, statuses: m.persons.statuses, optionIds: m.accusation.options.map(x => x.id), onStatus: setGroupStatus, onState: receiveGroupState });
+          peerCode = code; renderTop(); joinCode.hidden = true; dialog.close(); openGroupRoom();
+        } catch (e) { status.textContent = e.message || 'Could not join the room.'; }
+        return false;
+      } });
+    } else {
+      if (!groupStatusText) groupStatusText = `Connected to a ${peerRoom.role === 'host' ? 'hosted' : 'host'} room. The host needs to stay online. Shared work includes case phases, Authorities, the evidence board, notes, highlights, and Resolution Sheet.`;
+      status.textContent = groupStatusText;
+      actions.push({ label: 'Leave room', kind: 'danger', onClick: () => { peerRoom.close(); peerRoom = null; peerCode = ''; groupStatusText = ''; renderTop(); toast('Left the group room.'); } });
+    }
+    dialog = modal({ kicker: `Case ${m.number} · Group play`, title: 'Work this file together', className: 'group-room-modal',
+      body: [h('p', { class: 'hint' }, 'Everyone opens the same case and starts an investigation first. The invite code is a bearer key: share it only with your group. Shared investigation work and accusations are encrypted before they leave the device. Supabase relays signed connection setup only; each player follows the reveal on their own screen.'), status, invite, copy, peerRoom ? null : joinCode,
+        h('p', { class: 'group-footnote' }, 'Early access: keep the host tab open. Each player also keeps a local copy. If two people edit the same item at once, the latest update wins. Voice recordings are not shared. Free STUN is used without a TURN relay, so some strict networks may not connect.')],
+      actions: [...actions, { label: 'Done', kind: 'ghost' }] });
+  }
+
+  function setGroupStatus(message) {
+    groupStatusText = message;
+    document.querySelectorAll('.group-room-modal .group-status').forEach(el => { el.textContent = message; });
+  }
+
+  async function receiveGroupState() {
+    if (st.spent.length && m.slips && !m._pages[m.slips.src]) {
+      try { await loadSlips(m); } catch (e) { toast(e.message || 'Could not load the shared Authority results.'); }
+    }
+    if (st.accusations.length && !m._sealed) {
+      try { await loadSealed(m); } catch (e) { toast(e.message || 'Could not load the shared accusation results.'); }
+    }
+    saveState(st);
+    if (st.status === 'signing') {
+      if (!groupTransition) { groupTransition = true; setTimeout(() => go(`#/play/${m.id}`), 250); }
+      return;
+    }
+    const typing = document.activeElement && document.activeElement.closest && document.activeElement.closest('input, textarea, select, [contenteditable]');
+    if (!typing) {
+      renderAll();
+      if (ui.drawer) openDrawer(ui.drawer);
+    }
+    if (board && board.refresh) board.refresh();
   }
 
   const tick = setInterval(() => { if (clockText) clockText.textContent = fmtClock(timerNow(st)); }, 1000);
@@ -354,6 +420,8 @@ export function mountGame(root, m, st, { go }) {
   }
 
   const tapes = new Map();
+  let focusPages = false;
+  const focusPage = new Map();
   const stopTapes = () => { tapes.forEach(t => t.destroy()); tapes.clear(); };
   function toggleTape(idx, col, paper, id) {
     if (tapes.has(idx)) { tapes.get(idx).destroy(); tapes.delete(idx); col.classList.remove('taping'); return; }
@@ -371,7 +439,14 @@ export function mountGame(root, m, st, { go }) {
     const pick = h('select', { class: 'rd-pick', 'aria-label': 'Change document', onchange: e => { ui.active = idx; openReader(e.target.value, idx); } },
       order.map(o => h('option', { value: o }, `${refOf(o)} · ${reg.get(o).title}`)));
     pick.value = id;
-    const paper = h('div', { class: 'paper rd-paper', style: { zoom: getSettings().docZoom } }, renderPages(m, d, st.highlights));
+    const pages = renderPages(m, d, st.highlights);
+    const pageIndex = Math.min(focusPage.get(id) || 0, Math.max(0, pages.length - 1));
+    if (focusPages) pages.forEach((p, i) => { p.hidden = i !== pageIndex; });
+    const paper = h('div', { class: 'paper rd-paper', style: { zoom: getSettings().docZoom } }, pages);
+    const pageNav = focusPages ? h('div', { class: 'rd-page-nav', 'aria-label': 'Page by page reading' },
+      h('button', { class: 'btn ghost sm', disabled: pageIndex === 0, onclick: () => { focusPage.set(id, pageIndex - 1); renderReader(); } }, icon('left'), 'Previous page'),
+      h('span', { class: 'mono' }, `Page ${pageIndex + 1} of ${pages.length}`),
+      h('button', { class: 'btn ghost sm', disabled: pageIndex >= pages.length - 1, onclick: () => { focusPage.set(id, pageIndex + 1); renderReader(); } }, 'Next page', icon('right'))) : null;
     const tapeBtn = tapeSupported() && hasTranscript(paper)
       ? h('button', { class: 'btn ghost sm tape-btn', title: 'Hear this interview read aloud by your device', onclick: () => { toggleTape(idx, col, paper, id); tapeBtn.classList.toggle('on', tapes.has(idx)); } }, icon('tape'), h('span', { class: 'blbl' }, 'Play tape'))
       : null;
@@ -379,6 +454,7 @@ export function mountGame(root, m, st, { go }) {
       h('div', { class: 'rd-col-head' },
         h('span', { class: 'rd-ref' }, refOf(id)), pick, tapeBtn,
         ui.compare !== null ? h('button', { class: 'iconbtn sm', title: 'Close this side', 'aria-label': 'Close this side', onclick: () => { if (idx === 0) { ui.reader = ui.compare; } ui.compare = null; ui.active = 0; renderReader(); } }, icon('close')) : null),
+      pageNav,
       h('div', { class: 'rd-scroll' },
         paper,
         h('div', { class: 'rd-foot' },
@@ -403,12 +479,13 @@ export function mountGame(root, m, st, { go }) {
         h('div', { class: 'rd-tools' },
           h('button', { class: 'iconbtn sm', title: 'Smaller text', 'aria-label': 'Smaller text', onclick: () => zoom(-1) }, icon('zoomOut')),
           h('button', { class: 'iconbtn sm', title: 'Larger text', 'aria-label': 'Larger text', onclick: () => zoom(1) }, icon('zoomIn')),
+          h('button', { class: `btn sm ${focusPages ? 'primary' : 'ghost'}`, 'aria-pressed': String(focusPages), onclick: () => { focusPages = !focusPages; renderReader(); } }, focusPages ? 'Show all pages' : 'One page at a time'),
           h('button', { class: 'btn ghost sm hl-clear', hidden: true, onclick: clearHighlights, title: 'Remove every highlight on the open document(s)' }, icon('eraser'), h('span', {}, 'Clear')),
           ui.compare === null ? h('button', { class: 'btn ghost sm wide-only', onclick: startCompare, title: 'Put a second document beside this one' }, icon('split'), 'Compare') : null,
           h('button', { class: `btn sm ${ui.drawer === 'sheet' ? 'primary' : 'ghost'}`, onclick: () => toggleDrawer('sheet') }, icon('sheet'), h('span', { class: 'blbl' }, 'Sheet')),
           h('button', { class: `btn sm ${ui.drawer === 'notes' ? 'primary' : 'ghost'}`, onclick: () => toggleDrawer('notes') }, icon('notes'), h('span', { class: 'blbl' }, 'Notes')))),
       h('div', { class: `rd-cols ${cols.length > 1 ? 'two' : ''} ${animate ? 'enter' : ''}` }, cols),
-      h('p', { class: 'rd-hint' }, 'Select text to highlight it or quote it into your notebook. Esc returns to the desk.'));
+      h('p', { class: 'rd-hint' }, focusPages ? 'Take this page in at your own pace. Select a useful detail to highlight it. Esc returns to the desk.' : 'Select text to highlight it or quote it into your notebook. Esc returns to the desk.'));
     reader.querySelectorAll('.rd-scroll').forEach(s => { s.scrollTop = 0; });
     if (animate) { const back = reader.querySelector('.rd-bar .btn'); if (back && !reader.contains(document.activeElement)) back.focus(); }
     renderHlCount();
@@ -647,7 +724,7 @@ export function mountGame(root, m, st, { go }) {
 
   function renderSheet() {
     const s = st.sheet;
-    const dbl = !!m.reveal.double;
+    const dbl = !!(m.reveal && m.reveal.double);
     const meter = h('div', { class: 'sheet-meter' });
     function drawMeter() {
       const cited = s.steps.filter(x => x.text.trim() && x.cites.length).length;
@@ -762,6 +839,27 @@ export function mountGame(root, m, st, { go }) {
   /* --- hints: "Ask the Unit" ------------------------------------------------------- */
   const takenHints = () => (m.hints || []).map(x => [x, (st.hints || {})[x.id] || 0]).filter(([, n]) => n > 0);
 
+  // Which hints fit the sheet right now. A hint names the steps and people it helps
+  // with ("for"); the ones still blank or uncited come first. Only what is written
+  // is looked at, never whether it is right, so no answers are needed for this.
+  function hintFit(x) {
+    const f = x.for || {};
+    if (!(f.steps || []).length && !(f.persons || []).length) return { rank: 1, why: null };
+    const list = a => (a.length > 1 ? `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}` : a[0]);
+    const stepsLeft = (f.steps || []).filter(i => { const s = st.sheet.steps[i]; return !(s && s.text.trim() && s.cites.length); });
+    const peopleLeft = (f.persons || []).filter(id => { const r = st.sheet.persons[id]; return !(r && r.status !== 'Open' && r.cites.length); });
+    if (stepsLeft.length || peopleLeft.length) {
+      const bits = [];
+      if (stepsLeft.length === 1) { const s = st.sheet.steps[stepsLeft[0]]; bits.push(`step ${stepsLeft[0] + 1}, which ${s && s.text.trim() ? 'has no citation yet' : 'is not written yet'}`); }
+      else if (stepsLeft.length) bits.push(`steps ${list(stepsLeft.map(i => i + 1))}, not finished yet`);
+      const names = peopleLeft.map(id => fullName(m.persons.list.find(p => p.id === id)));
+      if (names.length) bits.push(`${list(names)}, still without a finding and evidence`);
+      return { rank: 0, why: `For ${bits.join('; and for ')}` };
+    }
+    const done = [...(f.steps || []).map(i => `step ${i + 1}`), ...(f.persons || []).map(id => fullName(m.persons.list.find(p => p.id === id)))];
+    return { rank: 2, why: `${list(done).replace(/^./, c => c.toUpperCase())} ${done.length > 1 ? 'are' : 'is'} done: this can help you check it` };
+  }
+
   function openHints() {
     sfx.tick();
     st.hints ||= {};
@@ -769,14 +867,16 @@ export function mountGame(root, m, st, { go }) {
     const list = h('div', { class: 'hints' });
     const draw = () => {
       const ids = available();
-      const open = (m.hints || []).filter(x => !x.needs || ids.includes(x.needs));
+      const open = (m.hints || []).filter(x => !x.needs || ids.includes(x.needs))
+        .map((x, i) => ({ x, i, fit: hintFit(x) })).sort((a, b) => a.fit.rank - b.fit.rank || a.i - b.i);
       const taken = hintsTaken(m, st);
       total.textContent = taken.levels ? `So far: ${plural(taken.levels, 'hint')}, -${taken.cost} points.` : 'You have not asked for any help yet.';
-      list.replaceChildren(...(open.length ? open.map(x => {
+      list.replaceChildren(...(open.length ? open.map(({ x, fit }) => {
         const n = st.hints[x.id] || 0;
         const more = n < x.steps.length;
-        return h('div', { class: `hint ${n ? 'asked' : ''}` },
+        return h('div', { class: `hint ${n ? 'asked' : ''} ${fit.rank === 0 ? 'fits' : fit.rank === 2 ? 'later' : ''}` },
           h('div', { class: 'hint-q' }, h('b', {}, x.q), h('span', { class: 'hint-lv' }, `${n} of ${x.steps.length}`)),
+          fit.why ? h('p', { class: 'hint-why' }, fit.why) : null,
           x.steps.slice(0, n).map((t, i) => h('p', { class: 'hint-a' }, h('span', { class: 'hint-n' }, `${i + 1}`), t)),
           more ? h('button', { class: 'btn sm', onclick: () => { st.hints[x.id] = n + 1; save(); sfx.tick(); draw(); renderDesk(); } },
             icon('help'), n ? `Ask for more (-${costs[n]} points)` : `Ask (-${costs[0]} points)`)
@@ -871,9 +971,11 @@ export function mountGame(root, m, st, { go }) {
     st.spent.push({ n: a.n, at: timerNow(st), reason });
     saveNow();
     renderTop();
+    const ready = loadSlips(m); // fetched while the envelope opens
     const opened = openEnvelope({ kicker: `Authority ${a.n}`, label: a.text, sub: `Returned by ${a.to}` });
     setTimeout(sfx.seal, 100);
     await opened;
+    try { await ready; } catch (e) { toast(String(e.message || e)); return; }
     renderDesk();
     openReader(`SLIP ${a.n}`);
   }
@@ -961,6 +1063,8 @@ export function mountGame(root, m, st, { go }) {
 
   async function submitAccusation(o, n) {
     if (!o) return;
+    // The answers are fetched now, at the moment of the accusation, and not before.
+    try { await loadSealed(m); } catch (e) { toast(String(e.message || e)); return; }
     sfx.stamp();
     const isFinal = n >= 3 || !o.reconsider;
     const correct = o.type === m.accusation.determination && !o.reconsider;
@@ -1014,6 +1118,7 @@ export function mountGame(root, m, st, { go }) {
     guide.destroy();
     stopTapes();
     if (board) board.close();
+    if (peerRoom) { const room = peerRoom; peerRoom = null; setTimeout(() => room.close(), 1200); }
     clearInterval(tick); clearInterval(autosave);
     listeners.forEach(off => off());
     selBar.remove();

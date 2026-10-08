@@ -51,16 +51,64 @@ function sanitize(root) {
 
 export function srcUrl(m, src) { return m.base + m.sources[src]; }
 
-// Fetch and parse every print file for a case, then build the registry.
+/* --- what is fetched when ------------------------------------------------------
+   A game starts with the spoiler-free print files only. The Authority results arrive
+   when the first Authority is spent; the Reconsider pages, Envelope S-1 and the
+   answers (sealed.json) when the first accusation is made. Until then none of them is
+   in the browser, so nothing in the network log gives the case away. */
+const spoilerSources = m => new Set(((m.printKit && m.printKit.files) || []).filter(f => f.spoiler).map(f => f.src));
+
+async function loadSources(m, keys) {
+  const need = keys.filter(k => m.sources[k] && !m._pages[k]);
+  const got = await Promise.all(need.map(async k => [k, await loadPages(srcUrl(m, k))]));
+  Object.assign(m._pages, Object.fromEntries(got));
+}
+
+// Fetch and parse the case's public print files, then build the registry.
 export async function loadCaseDocs(m) {
   if (m._reg) return m;
-  const entries = await Promise.all(Object.keys(m.sources).map(async k => [k, await loadPages(srcUrl(m, k))]));
-  m._pages = Object.fromEntries(entries);
+  m._pages = {};
+  const hidden = spoilerSources(m);
+  await loadSources(m, Object.keys(m.sources).filter(k => !hidden.has(k)));
   m._menu = parseMenu(m);
   m._steps = parseSteps(m);
   m._reg = buildRegistry(m);
-  m._chunks = revealChunks(m);
+  if (m.reveal && m.reveal.pages && m._pages[m.reveal.src]) m._chunks = revealChunks(m); // a case without sealed.json
   return m;
+}
+
+// The Authority results, once one has been spent.
+export const loadSlips = m => loadSources(m, [m.slips.src]);
+
+// The answers: sealed.json, merged into the manifest, plus every remaining print file.
+export function loadSealed(m) {
+  if (!m._sealed) {
+    m._sealed = (async () => {
+      const r = await fetch(`${m.base}sealed.json`, { cache: 'no-cache' });
+      if (r.ok) mergeSealed(m, await r.json());
+      else if (r.status !== 404) throw new Error(`Could not load the case's answers (${r.status})`);
+      await loadSources(m, Object.keys(m.sources));
+      for (const o of m.accusation.options) {
+        if (o.reconsider && !m._reg.has(o.reconsider.id)) {
+          const x = o.reconsider;
+          m._reg.set(x.id, { id: x.id, kind: 'reconsider', title: x.title, src: x.src, pages: [x.page], group: 'Reconsider' });
+        }
+      }
+      m._chunks = revealChunks(m);
+      return m;
+    })();
+    m._sealed.catch(() => { m._sealed = null; });
+  }
+  return m._sealed;
+}
+
+// Same rules as mergeSealed in tools/case-files.js.
+function mergeSealed(m, s) {
+  m.accusation.determination = s.determination;
+  for (const o of m.accusation.options) Object.assign(o, (s.options || {})[o.id] || {});
+  for (const k of ['reveal', 'scoring', 'replay', 'debrief', 'badges']) {
+    if (s[k] !== undefined) m[k] = k === 'reveal' || k === 'scoring' ? { ...(m[k] || {}), ...s[k] } : s[k];
+  }
 }
 
 function page(m, src, i) {

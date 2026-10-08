@@ -9,6 +9,7 @@
  */
 const fs = require('fs');
 const path = require('path');
+const { readCase, leaks } = require('./case-files.js');
 
 const casesDir = path.resolve(__dirname, '..', 'cases');
 const TIERS = ['Easy', 'Medium', 'Hard', 'Expert'];
@@ -23,7 +24,13 @@ for (const id of fs.readdirSync(casesDir).sort()) {
   if (!fs.existsSync(manifestPath)) continue;
   const err = msg => errors.push(`${id}: ${msg}`);
   let m;
-  try { m = JSON.parse(fs.readFileSync(manifestPath, 'utf8')); } catch (e) { err(`invalid JSON (${e.message})`); continue; }
+  try {
+    // The answers live in sealed.json, which the browser only fetches after an accusation.
+    const leaked = leaks(JSON.parse(fs.readFileSync(manifestPath, 'utf8')));
+    if (leaked.length) err(`digital.json gives the answer away (${leaked.join(', ')}); move it to sealed.json (node tools/case-files.js split ${id})`);
+    if (!fs.existsSync(path.join(casesDir, id, 'sealed.json'))) err('no sealed.json (the answers)');
+    m = readCase(path.join(casesDir, id));
+  } catch (e) { err(`invalid JSON (${e.message})`); continue; }
   if (m.id !== id) err(`"id" is ${m.id} but the folder is ${id}`);
   for (const k of ['number', 'title', 'tier', 'time', 'tagline', 'hook', 'sources', 'budget', 'documents', 'accusation', 'reveal', 'scoring']) {
     if (m[k] == null) err(`missing "${k}"`);
@@ -75,6 +82,10 @@ for (const id of fs.readdirSync(casesDir).sort()) {
     hintIds.add(x.id);
     if (x.needs && !ids.has(x.needs)) err(`hint ${x.id}: needs unknown document ${x.needs}`);
     if (!Array.isArray(x.steps) || !x.steps.length || x.steps.length > 3) err(`hint ${x.id}: needs 1 to 3 steps`);
+    // "for": the sheet steps (zero-based) and people the hint helps with
+    const sheetSteps = ((m.reveal && m.reveal.steps) || []).filter(s => /^step:\d+$/.test(s.sheet)).length;
+    for (const i of (x.for && x.for.steps) || []) if (!Number.isInteger(i) || i < 0 || i >= sheetSteps) err(`hint ${x.id}: "for" names step ${i}, the sheet has steps 0 to ${sheetSteps - 1}`);
+    for (const p of (x.for && x.for.persons) || []) if (!((m.persons && m.persons.list) || []).some(q => q.id === p)) err(`hint ${x.id}: "for" names unknown person ${p}`);
   }
   // Persons of interest: safe ids (they name portrait files) and a drawn face.
   const personIds = new Set();
@@ -99,6 +110,24 @@ for (const id of fs.readdirSync(casesDir).sort()) {
       if (!c.find || !c.note) { err(`replay ${n + 1}: needs "find" and "note"`); continue; }
       const want = c.find.replace(/\s+/g, '');
       if (!where.pages.some(p => (textOf(where.src)[p] || '').includes(want))) err(`replay ${n + 1}: "${c.find}" is not in ${c.doc}`);
+    }
+  }
+  // Objective scoring rules: every cited document exists, every person and finding is real.
+  for (const step of (m.reveal && m.reveal.steps) || []) {
+    for (const c of step.checks || []) {
+      const a = c.auto;
+      if (!a) continue;
+      for (const g of a.cites || []) {
+        if (!Array.isArray(g) || !g.length) { err(`check ${c.id}: each cites group must be a non-empty list`); continue; }
+        for (const ref of g) {
+          const slip = /^SLIP (\d{2})$/.exec(ref);
+          if (slip ? !(+slip[1] >= 1 && +slip[1] <= (m.slips && pages[m.slips.src])) : !ids.has(ref)) err(`check ${c.id}: cites unknown document "${ref}"`);
+        }
+      }
+      if (a.person) {
+        if (!personIds.has(a.person)) err(`check ${c.id}: unknown person "${a.person}"`);
+        for (const s of [].concat(a.status || [])) if (!m.persons.statuses.includes(s)) err(`check ${c.id}: "${s}" is not one of persons.statuses`);
+      } else if (!a.motive && !/^step:\d+$/.test(step.sheet)) err(`check ${c.id}: a cites rule must sit on a step:N reveal step, or name a person`);
     }
   }
   // Tape voices: speaker code -> "f", "m" or "n".

@@ -1,2 +1,6 @@
 node_modules/
 .tmp-*.html
+
+# Built by the deploy workflow (npm run pdf, node tools/build-site.js), never committed
+_site/
+cases/*/print/pdf/

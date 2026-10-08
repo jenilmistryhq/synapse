@@ -1,0 +1,212 @@
+{
+  "determination": "murder",
+  "options": {
+    "accident": {"type": "accident"},
+    "lindqvist-brackley": {"type": "murder"},
+    "lindqvist": {"type": "murder", "reconsider": {"id": "R/ALONE", "title": "Reconsider - One name", "src": "sealed", "page": 0}},
+    "brackley": {"type": "murder", "reconsider": {"id": "R/BRACKLEY", "title": "Reconsider - Brackley", "src": "sealed", "page": 1}},
+    "okafor": {"type": "murder", "reconsider": {"id": "R/OKAFOR", "title": "Reconsider - Okafor", "src": "sealed", "page": 2}},
+    "ehale": {"type": "murder", "reconsider": {"id": "R/EHALE", "title": "Reconsider - E. Hale", "src": "sealed", "page": 3}},
+    "nowak": {"type": "murder", "reconsider": {"id": "R/NOWAK", "title": "Reconsider - Nowak", "src": "sealed", "page": 4}}
+  },
+  "reveal": {
+    "src": "sealed",
+    "cover": 5,
+    "pages": [6,7,8],
+    "scoringPage": 9,
+    "steps": [
+      {
+        "sheet": "step:0",
+        "checks": [
+          {
+            "id": "c1",
+            "auto": {"cites": [["B-1"],["E-1", "SLIP 03", "SLIP 09"]]},
+            "kind": "step",
+            "points": 5,
+            "label": "Step 1 - Not a fall: two injuries, the patterned weapon, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "step:1",
+        "checks": [
+          {
+            "id": "c2",
+            "auto": {"cites": [["D-2"]]},
+            "kind": "step",
+            "points": 5,
+            "label": "Step 2 - Died between 01:37 and 01:52, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "step:2",
+        "checks": [
+          {
+            "id": "c3",
+            "auto": {"cites": [["E-1", "SLIP 01"]]},
+            "kind": "step",
+            "points": 5,
+            "label": "Step 3 - The door was forced from inside, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "step:3",
+        "checks": [
+          {
+            "id": "c4",
+            "auto": {"cites": [["D-1"]]},
+            "kind": "step",
+            "points": 10,
+            "label": "Step 4 - D-1 identified as a filtered, incomplete log, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "step:4",
+        "checks": [
+          {
+            "id": "c5",
+            "auto": {"cites": [["SLIP 01", "SLIP 02"]]},
+            "kind": "step",
+            "points": 5,
+            "label": "Step 5 - Lindqvist in the dome 01:24 to 01:52, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "step:5",
+        "checks": [
+          {
+            "id": "c6",
+            "auto": {"cites": [["E-1", "SLIP 01", "SLIP 04"]]},
+            "kind": "step",
+            "points": 10,
+            "label": "Step 6 - Brackley staged the door and forged the log, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "persons",
+        "checks": [
+          {
+            "id": "e1",
+            "auto": {"person": "okafor", "status": "Cleared", "cites": [["D-3", "SLIP 06"]]},
+            "kind": "person",
+            "points": 5,
+            "label": "Okafor cleared with evidence"
+          },
+          {
+            "id": "e2",
+            "auto": {"person": "ehale", "status": "Cleared", "cites": [["D-3", "SLIP 07"]]},
+            "kind": "person",
+            "points": 5,
+            "label": "Ellen Hale cleared with evidence"
+          },
+          {
+            "id": "e3",
+            "auto": {"person": "nowak", "status": "Cleared", "cites": [["D-3", "SLIP 08"]]},
+            "kind": "person",
+            "points": 5,
+            "label": "Nowak cleared with evidence"
+          }
+        ]
+      },
+      {"sheet": "motive", "checks": [], "note": "Motive scores nothing, but this one is the whole reason."},
+      {"sheet": "verdict"},
+      {"sheet": "epilogue"}
+    ]
+  },
+  "scoring": {
+    "determination": {"label": "Determination recorded as murder", "points": 5},
+    "culprit": {"label": "Both named correctly: the killer and the cover-up", "points": 10},
+    "wrong": {"label": "Wrong accusation", "points": -10},
+    "cleanSweep": {"label": "Clean Sweep - all six steps, all three cleared, correct first time", "points": 15},
+    "unspent": {"label": "Unspent authority", "points": 2},
+    "bands": [
+      {"min": 75, "title": "Case closed - commendation", "text": "Both charged, and the file holds."},
+      {"min": 60, "title": "Charged", "text": "The right people, with enough working to justify it."},
+      {"min": 45, "title": "Referred", "text": "The Crown will take it, and will want more."},
+      {"min": 25, "title": "No further action", "text": "You saw through the room. You cannot show who."},
+      {"min": -999, "title": "The file stays closed", "text": "An old man fell off a ladder in the dark."}
+    ]
+  },
+  "replay": [
+    {
+      "doc": "B-1",
+      "find": "A circular depressed fracture, 34 mm across",
+      "note": "Two head injuries on opposite sides of the skull. A fall strikes once."
+    },
+    {
+      "doc": "E-1",
+      "find": "No fitting on the ladder or platform rail carries a knurled or criss-cross surface.",
+      "note": "So the patterned wound did not come from the ladder."
+    },
+    {
+      "doc": "E-1",
+      "find": "The other three are dusty; this one is clean.",
+      "note": "The weapon: a 34 mm knurled counterweight, wiped and put back."
+    },
+    {
+      "doc": "D-2",
+      "find": "Manual stop. Sidereal tracking resumed.",
+      "note": "Hale was alive at 01:37, using the hand paddle in the dome."
+    },
+    {
+      "doc": "E-1",
+      "find": "The splintering of the frame is on the inside face.",
+      "note": "The door was levered from inside the room. The locked room was staged."
+    },
+    {"doc": "D-1", "find": "#4478", "note": "The forged log jumps from #4471 to #4478: six events are missing."},
+    {
+      "doc": "D-1",
+      "find": "Event count for period: 11",
+      "note": "And its own footer counts 11 events while it shows five."
+    },
+    {
+      "doc": "SLIP 01",
+      "find": "07 JAN 01:24:33",
+      "note": "The full record: Lindqvist's code opened the dome at 01:24."
+    },
+    {
+      "doc": "SLIP 01",
+      "find": "OPEN, DOOR MOVED",
+      "note": "At 07:08 Brackley's code opened the door and it swung open. It was never bolted."
+    },
+    {
+      "doc": "C-2",
+      "find": "I was at my desk the whole time.",
+      "note": "Lindqvist's account fails against the door record and his idle workstation."
+    },
+    {
+      "doc": "SLIP 02",
+      "find": "Last keyboard or mouse input.",
+      "note": "Nobody touched his workstation from 01:23 to 02:06."
+    },
+    {
+      "doc": "SLIP 04",
+      "find": "$4,000.00 from I. LINDQVIST",
+      "note": "The price of the cover-up, paid at 06:41, before the 'discovery'."
+    },
+    {
+      "doc": "SLIP 05",
+      "find": "I will put this to Dr Lindqvist myself tonight",
+      "note": "The motive: Hale was about to expose the faked comet discovery."
+    }
+  ],
+  "debrief": [
+    "When did you first stop trusting D-1, and was it the sequence numbers or the footer?",
+    "Did you spend an Authority clearing someone the file had already cleared?",
+    "Was naming two people harder than finding one?"
+  ],
+  "badges": [
+    {
+      "id": "forgery",
+      "icon": "eye",
+      "title": "Caught the forgery",
+      "text": "Saw through the doctored door log in The Ashcombe Dome.",
+      "when": {"check": "c4"}
+    }
+  ]
+}

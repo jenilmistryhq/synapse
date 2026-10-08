@@ -316,7 +316,7 @@ docs/
 # PART THREE - THE DIGITAL VERSION
 
 A static web app with no build step. It runs on GitHub Pages as-is. The digital version is
-**solo**: one detective per device. (The printed kits still work for a table of up to six.)
+**solo by default**, with an early group-room option in the digital game. The printed kits still work for a table of up to six.
 
 ## What the player gets
 
@@ -331,7 +331,15 @@ A static web app with no build step. It runs on GitHub Pages as-is. The digital 
   calculator, a service bell for breakthroughs, a rubber-stamp Accuse button, and quiet
   synthesized sound effects (mutable).
 - **Reading:** click a folder to pick it up. Compare two documents side by side, zoom, highlight,
-  and quote into the notebook. Esc goes back to the desk.
+  and quote into the notebook. Use **One page at a time** to read a long file in smaller pieces.
+  Esc goes back to the desk.
+- **Group play (early access):** open **Group play** during an investigation to create a room or
+  join one with a 45-character invite code. The evidence board, notes, highlights, case phase, spent
+  Authorities, Resolution Sheet, and accusations sync over an encrypted WebRTC connection.
+  Supabase carries connection setup only. The host must keep the tab open; voice recordings and
+  offline room recovery are not supported yet. Simultaneous edits to the same item use the latest
+  update. Free STUN handles direct connections, so some restricted networks may not connect. Each
+  player follows the reveal on their own screen.
 - **Authorities:** spend-to-open sealed results, with the budget enforced.
 - **Resolution Sheet:** a live sheet with a citation picker. It warns about uncited steps and
   locks at the final accusation.
@@ -397,11 +405,18 @@ you have posted, and overall, for the name you post under on that device; if you
 top list, your row is pinned underneath it. Without Supabase, the same rules apply to the scores
 saved in that browser.
 
-**Honest limits.** Scores are calculated in the player's browser and part of the score is
-self-assessed during the S-1 reveal, so a determined person could post a fake score. The
-leaderboard guards against casual abuse (a first-attempt rule, a one-minute minimum, the name
-filter, range checks in the database), not against someone who sets out to cheat. Moderate by
-deleting rows in the Supabase table editor.
+**How scoring works.** Every point on the S-1 reveal is worked out from the Resolution Sheet,
+not ticked by the player. A step scores only if something is written and the sheet cites the
+evidence the case names for it (for example, Case 03's forgery step needs D-1). A finding on a
+person scores only if the sheet records the right finding and cites the evidence. A cited
+Authority result counts only if that Authority was spent. The reveal shows, for every point, why
+it was or was not awarded. The written words themselves are not judged.
+
+**Honest limits.** Scores are still calculated in the player's browser, so a determined person
+with the browser's developer tools could post a fake score. The leaderboard guards against
+casual abuse (a first-attempt rule, a one-minute minimum, name ownership, the name filter, range
+checks in the database), not against someone who sets out to cheat. Moderate by deleting rows
+in the Supabase table editor.
 
 ## Credits
 
@@ -421,16 +436,16 @@ Reviewed 2026-09-26. What protects the site:
 | Browser | A Content Security Policy (`index.html`) allows scripts only from this site. There is no `eval` anywhere, no plugins and no form posts, and network calls go only to this site and `*.supabase.co`. Fonts are self-hosted, so no third party sees who visits. |
 | Microphone | Used only when a player presses Record on the evidence board. Voice notes are kept in that browser's IndexedDB, are never uploaded, and are deleted when the case is reset. Interview tapes use the device's own speech engine. |
 | Rendering | All player and leaderboard text is inserted as text, never HTML. Rows from the server are validated before display. |
-| Database | The public role can SELECT and INSERT only, into the game's columns. UPDATE, DELETE and TRUNCATE are denied, the server sets `created_at`, and every value is range-checked. A server-side name filter runs, plus a rate limit of 10 posts per network per hour and 300 per 10 minutes globally. Tested against Postgres 16. |
+| Database | The public role can SELECT and INSERT only, into the game's columns. UPDATE, DELETE and TRUNCATE are denied, the server sets `created_at`, and every value is range-checked. A server-side name filter runs, plus a rate limit of 10 posts per network per hour and 300 per 10 minutes globally. **Names are owned:** the first post under a name claims it for that browser's secret detective key, and the database refuses the name from any other key. Only a hash of the key is stored, in a table the public cannot read. Tested against Postgres 16 and 18. |
 | Keys | Only the public anon key belongs in `app/config.js`. The app refuses to use a secret or service_role key. |
 | Local server | `tools/serve.js` listens on 127.0.0.1 only and cannot serve files outside the project folder. |
 
 **Accepted risks** (inherent to a static site, or low impact):
 
-- **Scores can be faked** by a determined player, because scoring runs in the browser and is partly self-assessed. The database limits the damage (range checks, rate limits). Moderate by deleting rows in Supabase.
+- **Scores can be faked** by a determined player with developer tools, because scoring runs in the browser. Points are no longer self-ticked, but the browser is still trusted. The database limits the damage (range checks, rate limits). Moderate by deleting rows in Supabase.
 - **Shared result links are self-reported.** The result page says so.
-- **Spoilers are public.** Anyone can open the sealed print files or a `digital.json`.
-- **Anyone can post under any name**, for example yours. There are no accounts.
+- **Spoilers are hard to stumble on, not secret.** A print-and-play game has to publish its sealed pages so they can be printed, and anything a website sends can be read by someone who goes looking. What the site does: while you play, the browser has only the spoiler-free files. The Authority results arrive when you spend your first Authority, and the answers (`sealed.json`, the Reconsider pages, Envelope S-1) when you make your first accusation. Case bibles and ledgers are never published, and sealed print pages ask search engines not to index them. The case bibles and ledgers are still in this public repository on GitHub; move them to a private repository if that matters to you.
+- **A detective key lives in one browser.** Clearing site data loses it, and with it the right to post under that name, unless it was copied first (Settings, Detective key). To release a name, delete its row from the `names` table in Supabase. Names posted before keys existed go to whoever next posts under them with a key.
 - **Clickjacking headers** can't be set on GitHub Pages. The only framed action would be posting a score.
 - **Shared origin.** Every repository on `jenilmistryhq.github.io` shares one browser origin, so your other Pages projects could read this game's saved progress. A custom domain avoids this.
 
@@ -440,7 +455,7 @@ those controls the site.
 ## Adding a case (the plan is 50+)
 
 1. Build the print files as usual (each page is a `<div class="doc">`).
-2. Add `cases/<id>/digital.json`, copying an existing one. Page numbers are **zero-based
+2. Add `cases/<id>/digital.json` and `cases/<id>/sealed.json`, copying an existing case. `digital.json` is what the game needs while you play; `sealed.json` holds the answers (which option is correct, the Reconsider links, the reveal, scoring, replay and debrief). Writing it all in one file first is fine: `node tools/case-files.js split <id>` moves the answers out, and `build-catalog.js` refuses a `digital.json` that gives the answer away. Page numbers are **zero-based
    indexes** of the `.doc` elements in each print file. The Authority menu and Resolution Sheet
    questions are read from the printed pages. `tier` is one of Easy, Medium, Hard, Expert.
    `order` sets its place in the catalog.
@@ -523,8 +538,30 @@ below 80%. When writing a new case, if a page spills onto a second sheet, add th
 `fit-95` / `fit-90` / `fit-85` / `fit-80` class that makes it fit. As a safety net, the PDF
 builder also shrinks any page that still overflows.
 
-PDFs add about 2.5 MB per case to the repository (roughly 125 MB for 50 cases), which is well
-within GitHub Pages limits.
+The PDFs and zips are **not committed**. On every push to `main`, the Deploy workflow
+(`.github/workflows/deploy.yml`) installs the fonts the print files use, builds every PDF and zip,
+and publishes the site. It refuses to publish if any PDF has a different page count from its
+case's `printKit`, so a page that spills onto a second sheet stops the deploy instead of breaking
+the envelope numbering. To preview the kit locally, run `npm run pdf` once; the files stay on your
+machine and are ignored by git.
+
+**One-time setup:** in GitHub, Settings > Pages > Build and deployment > Source, choose
+**GitHub Actions**.
+
+## Automatic checks
+
+The Checks workflow (`.github/workflows/checks.yml`) runs on every push and pull request. It
+validates every case, confirms `cases/index.json` is up to date, and plays every case end to end
+in a headless browser (`tests/smoke.js`): every document reaches the desk, an Authority opens,
+the correct accusation is accepted, every reveal step is shown, the score matches the case's own
+scoring rules exactly, every replay clue marks its passage, and nothing logs an error or warning.
+Run the same locally with **`npm test`**. A third workflow pings the leaderboard twice a week so
+the free Supabase project never pauses.
+
+**Link previews.** A shared result link goes through a small page, `s/<case>/<band>.html`, with a
+preview card for that case and result (drawn by `tools/build-share.js` during deploy), so chat
+apps and social sites show the case title and the result stamp. The page then opens the result
+in the game. On your own machine, share links go straight to the result.
 
 ## Validating a case
 

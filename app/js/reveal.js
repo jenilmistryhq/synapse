@@ -11,6 +11,9 @@ const NAME_KEY = 'synapse:name';
 import { openEnvelope } from './fx.js';
 import { motionReduced } from './settings.js';
 import { portrait } from './people.js';
+import { judge, checkValue } from './scoring.js';
+import { awardBadges, badgeRow } from './badges.js';
+import { loadCatalog } from './docs.js';
 
 const optionOf = (m, id) => m.accusation.options.find(o => o.id === id);
 
@@ -158,23 +161,36 @@ export function mountReveal(root, m, st, { go }) {
           h('ol', { class: 'bt-list' }, st.breakthroughs.map(b => h('li', {}, h('span', { class: 'mono' }, fmtClock(b.at)), b.note || 'Breakthrough')))] : null);
     }
     const checks = step.checks || [];
+    const auto = checks.length && checks.every(c => c.auto);
     return h('aside', { class: 'rv-side' },
       sheetAnswer(step),
       checks.length ? h('div', { class: 'rv-checks' },
-        h('div', { class: 'kicker' }, 'Score it honestly'),
-        h('p', { class: 'hint' }, 'Tick only what was on your sheet, with a citation, before the final accusation.'),
+        h('div', { class: 'kicker' }, auto ? 'Scored from your sheet' : 'Score it honestly'),
+        h('p', { class: 'hint' }, auto
+          ? 'Each point needs the evidence on your Resolution Sheet. Authority results count only if you opened them.'
+          : 'Tick only what was on your sheet, with a citation, before the final accusation.'),
         checks.map(c => checkRow(c, step))) : null,
       step.note ? h('p', { class: 'hint' }, step.note) : null);
   }
 
   function checkRow(c, step) {
+    const verdict = judge(m, st, step, c);
+    if (verdict) st.reveal.checks[c.id] = verdict.ok; // kept in step with the sheet, for older screens
     const dbl = m.reveal.double && c.kind === 'step';
     const idx = step.sheet.startsWith('step:') ? +step.sheet.split(':')[1] : -1;
     if (dbl && st.reveal.doubles[c.id] === undefined) st.reveal.doubles[c.id] = !!(idx >= 0 && st.sheet.steps[idx].early);
     const sub = dbl ? h('label', { class: 'check sub' },
-      h('input', { type: 'checkbox', checked: st.reveal.doubles[c.id], disabled: !st.reveal.checks[c.id],
+      h('input', { type: 'checkbox', checked: st.reveal.doubles[c.id], disabled: !checkValue(m, st, step, c),
         onchange: e => { st.reveal.doubles[c.id] = e.target.checked; save(); } }),
       h('span', {}, m.scoring.doubleLabel), h('span', { class: 'pts' }, 'x2')) : null;
+    if (verdict) {
+      return h('div', { class: `check-wrap auto ${verdict.ok ? 'got' : 'missed'}` },
+        h('label', { class: 'check' },
+          h('input', { type: 'checkbox', checked: verdict.ok, disabled: true, 'aria-describedby': `why-${c.id}` }),
+          h('span', {}, c.label), h('span', { class: 'pts' }, verdict.ok ? `+${c.points}` : '0')),
+        h('p', { class: 'check-why', id: `why-${c.id}` }, verdict.why),
+        sub);
+    }
     return h('div', { class: 'check-wrap' },
       h('label', { class: 'check' },
         h('input', { type: 'checkbox', checked: !!st.reveal.checks[c.id],
@@ -213,7 +229,7 @@ export function computeScore(m, st) {
   let allSteps = true, allPersons = true;
   for (const step of m.reveal.steps) {
     for (const c of step.checks || []) {
-      const got = !!st.reveal.checks[c.id];
+      const got = checkValue(m, st, step, c);
       if (c.kind === 'step' && !got) allSteps = false;
       if (c.kind === 'person' && !got) allPersons = false;
       const x2 = got && m.reveal.double && c.kind === 'step' && st.reveal.doubles[c.id];
@@ -240,9 +256,17 @@ export function mountScore(root, m, st, { go }) {
   const sc = computeScore(m, st);
   const opt = optionOf(m, st.final.option);
   const totalEl = h('div', { class: 'score-total' }, '0');
+  // Badges are awarded once, the first time this score is shown; "new" is remembered.
+  const badgeBox = h('div', { class: 'badge-slot' });
+  loadCatalog().then(cat => {
+    if (!st.badgeRun) { st.badgeRun = awardBadges(m, st, cat).map(({ id, title, text, icon: ic, fresh }) => ({ id, title, text, icon: ic, fresh })); saveState(st); }
+    const row = badgeRow(st.badgeRun, { title: st.badgeRun.some(b => b.fresh) ? 'Badges earned' : 'Badges for this case' });
+    if (row) badgeBox.replaceWith(row);
+  }).catch(() => {});
   const result = () => ({
     caseId: m.id, name: (st.posted && st.posted.name) || store.load(NAME_KEY) || 'A detective',
     time: st.final.at, score: sc.total, band: sc.band.title, correct: sc.correct, accusations: st.final.n,
+    bandIndex: m.scoring.bands.indexOf(sc.band),
   });
 
   const summary = () => [
@@ -340,6 +364,7 @@ export function mountScore(root, m, st, { go }) {
           h('tr', { class: 'sum' }, h('td', {}, 'Total'), h('td', { class: 'n' }, String(sc.total)), h('td', { class: 'n' }, String(sc.max)))),
         h('p', { class: 'hint' }, `A perfect review scores ${sc.max}, plus ${m.scoring.unspent.points} for each Authority you leave unspent.`)),
       h('div', { class: 'score-side' },
+        badgeBox,
         postCard,
         h('div', { class: 'card' },
           h('div', { class: 'card-h' }, icon('clock'), 'Your investigation'),

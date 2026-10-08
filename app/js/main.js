@@ -7,7 +7,7 @@
 //   #/r/<data>             a shared result
 
 import { h, append, clear, closeAllModals } from './util.js';
-import { loadCatalog, loadManifest, loadCaseDocs } from './docs.js';
+import { loadCatalog, loadManifest, loadCaseDocs, loadSlips, loadSealed } from './docs.js';
 import { loadState, hasSeenSolution } from './state.js';
 import { renderHome, renderSetup, renderBriefing } from './home.js';
 import { renderPrintKit } from './printkit.js';
@@ -50,6 +50,10 @@ async function route() {
     await loadCaseDocs(m);
     if (my !== seq) return;
     const st = loadState(arg);
+    // Spoiler files arrive only when the game has reached them.
+    if (st && st.spent && st.spent.length) await loadSlips(m);
+    if (view === 'replay' || (st && (st.accusations.length || !['briefing', 'playing'].includes(st.status)))) await loadSealed(m);
+    if (my !== seq) return;
     if (view === 'replay') {
       // Only once the solution has been seen: replay marks every key clue.
       if (!hasSeenSolution(arg) && !(st && st.status === 'done')) { location.hash = `#/play/${arg}`; return; }

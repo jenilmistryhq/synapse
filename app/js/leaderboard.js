@@ -73,6 +73,28 @@ export function localScores(caseId) {
   return localAll().filter(s => s.case_id === caseId).sort(byRank);
 }
 
+/* --- detective key ---------------------------------------------------------------
+   A random code this browser keeps. The first score posted under a name claims the
+   name for this key; the database refuses that name from any other key. Copy the key
+   to another device (Settings) to post under the same name there. */
+const OWNER = 'synapse:owner';
+const KEY_RE = /^[a-f0-9]{32}$/;
+export function detectiveKey() {
+  let k = store.load(OWNER);
+  if (!KEY_RE.test(k || '')) {
+    k = [...crypto.getRandomValues(new Uint8Array(16))].map(x => x.toString(16).padStart(2, '0')).join('');
+    store.save(OWNER, k);
+  }
+  return k;
+}
+export const formatKey = k => k.match(/.{4}/g).join('-');
+export function setDetectiveKey(text) {
+  const k = String(text || '').toLowerCase().replace(/[^a-f0-9]/g, '');
+  if (!KEY_RE.test(k)) return false;
+  store.save(OWNER, k);
+  return true;
+}
+
 // entry: { case_id, name, score, time_ms, band, correct, accusations, authorities }
 export async function submitScore(entry) {
   if (!Number.isInteger(entry.score) || !Number.isInteger(entry.time_ms)) throw new Error('Invalid score.');
@@ -82,12 +104,17 @@ export async function submitScore(entry) {
   store.save(LOCAL, all.sort(byRank).slice(0, LOCAL_MAX));
   const localRank = localScores(entry.case_id).findIndex(s => s.created_at === row.created_at && s.name === row.name) + 1;
   if (!isGlobal()) return { global: false, rank: localRank || null };
-  const res = await request(api('scores'), { method: 'POST', headers: headers({ Prefer: 'return=minimal' }), body: JSON.stringify(entry) });
+  const post = body => request(api('scores'), { method: 'POST', headers: headers({ Prefer: 'return=minimal' }), body: JSON.stringify(body) });
+  let res = await post({ ...entry, owner: detectiveKey() });
+  let text = res.ok ? '' : await res.text().catch(() => '');
+  // A database that has not had the name-ownership SQL yet has no owner column.
+  if (!res.ok && /owner/i.test(text) && /column/i.test(text)) { res = await post(entry); text = res.ok ? '' : await res.text().catch(() => ''); }
   if (!res.ok) {
-    const text = await res.text().catch(() => '');
     if (res.status === 429 || /too many/i.test(text)) throw new Error('Too many scores posted from this network. Try again later.');
+    if (/belongs to another/i.test(text)) throw new Error('That name is already taken by another detective. Choose another, or bring your detective key from the device that first posted it (Settings).');
     throw new Error(/name/i.test(text) ? 'The leaderboard rejected that name.' : `The leaderboard could not save this score (${res.status}).`);
   }
+  forgetRanks();
   const mine = await myRanks(entry.name).catch(() => null);
   return { global: true, rank: mine && mine.cases[entry.case_id] ? mine.cases[entry.case_id].rank : null };
 }
@@ -143,14 +170,46 @@ function localOverall() {
   return ranked([...per.values()]);
 }
 
-async function view(path) {
-  const res = await request(api(path), { headers: headers() });
-  if (!res.ok) throw new Error(`Could not load the leaderboard (${res.status}).`);
-  const rows = await res.json().catch(() => []);
-  return Array.isArray(rows) ? rows.map(cleanRank).filter(Boolean) : [];
+// Reads send the public key in the URL and no custom headers, so the browser
+// makes one plain request instead of a CORS preflight plus the request. Answers
+// are kept for 30 seconds, so switching between boards does not ask again.
+const CACHE_MS = 30000;
+const cache = new Map();
+export const forgetRanks = () => cache.clear();
+function view(path) {
+  const hit = cache.get(path);
+  if (hit && Date.now() - hit.at < CACHE_MS) return hit.p;
+  const p = (async () => {
+    const res = await request(`${api(path)}&apikey=${encodeURIComponent(LEADERBOARD.key)}`);
+    if (!res.ok) throw new Error(`Could not load the leaderboard (${res.status}).`);
+    const rows = await res.json().catch(() => []);
+    return Array.isArray(rows) ? rows.map(cleanRank).filter(Boolean) : [];
+  })();
+  cache.set(path, { at: Date.now(), p });
+  p.catch(() => cache.delete(path));
+  return p;
 }
 const CASE_COLS = 'select=case_id,name,score,time_ms,band,correct,created_at,rank,players';
 const ALL_COLS = 'select=name,score,time_ms,cases,created_at,rank,players';
+
+// How hard each case is, from everyone's posted runs: { [caseId]: stats }.
+// Empty without the shared leaderboard (one browser's runs say nothing about difficulty).
+export const STATS_MIN_RUNS = 5;
+export async function caseStats() {
+  if (!isGlobal()) return {};
+  const res = await request(`${api('case_stats?select=case_id,runs,players,avg_score,solved_pct,first_time_pct,median_ms')}&apikey=${encodeURIComponent(LEADERBOARD.key)}`);
+  if (!res.ok) return {};
+  const rows = await res.json().catch(() => []);
+  const int = (v, lo, hi) => (Number.isFinite(v) && v >= lo && v <= hi ? Math.round(v) : null);
+  const out = {};
+  for (const r of Array.isArray(rows) ? rows : []) {
+    if (!r || typeof r.case_id !== 'string' || !/^[A-Z0-9-]{3,32}$/.test(r.case_id)) continue;
+    const s = { runs: int(r.runs, 0, 1e9), players: int(r.players, 0, 1e9), avg: int(r.avg_score, -1000, 100000),
+      solved: int(r.solved_pct, 0, 100), firstTime: int(r.first_time_pct, 0, 100), median: int(Number(r.median_ms), 0, 864e5 * 7) };
+    if (s.runs !== null && s.runs >= STATS_MIN_RUNS) out[r.case_id] = s;
+  }
+  return out;
+}
 
 // The top of one case: { rows, players }
 export async function caseBoard(caseId, limit = CASE_TOP) {
@@ -167,7 +226,8 @@ export async function overallBoard(limit = OVERALL_TOP) {
 }
 
 // Where one detective stands: { overall: row | null, cases: { [caseId]: row } }
-export async function myRanks(name) {
+// Pass the rows of an overall board already loaded to skip asking for them again.
+export async function myRanks(name, { overallRows = null } = {}) {
   const me = lname(name);
   if (!/^[a-z0-9 _.-]{2,20}$/.test(me)) return { overall: null, cases: {} };
   if (!isGlobal()) {
@@ -176,6 +236,7 @@ export async function myRanks(name) {
     return { overall: localOverall().find(x => lname(x.name) === me) || null, cases };
   }
   const q = encodeURIComponent(me);
-  const [rows, all] = await Promise.all([view(`case_ranks?${CASE_COLS}&lname=eq.${q}`), view(`overall_ranks?${ALL_COLS}&lname=eq.${q}`)]);
+  const known = overallRows && overallRows.find(r => lname(r.name) === me);
+  const [rows, all] = await Promise.all([view(`case_ranks?${CASE_COLS}&lname=eq.${q}`), known ? [known] : view(`overall_ranks?${ALL_COLS}&lname=eq.${q}`)]);
   return { overall: all[0] || null, cases: Object.fromEntries(rows.filter(r => r.case_id).map(r => [r.case_id, r])) };
 }

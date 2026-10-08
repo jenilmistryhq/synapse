@@ -1,0 +1,158 @@
+{
+  "determination": "theft",
+  "options": {
+    "mislaid": {"type": "mislaid"},
+    "desai": {"type": "theft"},
+    "lark": {"type": "theft", "reconsider": {"id": "R/LARK", "title": "Reconsider - Lark", "src": "sealed", "page": 0}},
+    "hollis": {"type": "theft", "reconsider": {"id": "R/HOLLIS", "title": "Reconsider - Hollis", "src": "sealed", "page": 1}}
+  },
+  "reveal": {
+    "src": "sealed",
+    "cover": 2,
+    "pages": [3,4],
+    "scoringPage": 5,
+    "steps": [
+      {
+        "sheet": "step:0",
+        "checks": [
+          {
+            "id": "c1",
+            "auto": {"cites": [["C-1", "D-1", "SLIP 02", "SLIP 03"]]},
+            "kind": "step",
+            "points": 5,
+            "label": "Step 1 - Last seen at about 16:56, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "step:1",
+        "checks": [
+          {
+            "id": "c2",
+            "auto": {"cites": [["D-1"]]},
+            "kind": "step",
+            "points": 5,
+            "label": "Step 2 - The safe did not open overnight, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "step:2",
+        "checks": [
+          {
+            "id": "c3",
+            "auto": {"cites": [["D-1"],["E-1", "SLIP 03"]]},
+            "kind": "step",
+            "points": 5,
+            "label": "Step 3 - The safe stood open 16:38 to 17:57, Desai alone from 17:30, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "step:3",
+        "checks": [
+          {
+            "id": "c4",
+            "auto": {"cites": [["C-1"],["D-1", "SLIP 02", "SLIP 03"]]},
+            "kind": "step",
+            "points": 5,
+            "label": "Step 4 - Her statement against the safe log, cited"
+          }
+        ]
+      },
+      {
+        "sheet": "persons",
+        "checks": [
+          {
+            "id": "e1",
+            "auto": {"person": "lark", "status": "Eliminated", "cites": [["D-1", "SLIP 01"]]},
+            "kind": "person",
+            "points": 5,
+            "label": "Lark eliminated with evidence"
+          },
+          {
+            "id": "e2",
+            "auto": {"person": "hollis", "status": "Eliminated", "cites": [["E-1", "SLIP 03", "SLIP 06"]]},
+            "kind": "person",
+            "points": 5,
+            "label": "Hollis eliminated with evidence"
+          }
+        ]
+      },
+      {"sheet": "motive", "checks": [], "note": "Motive scores nothing, but it is nice to know."},
+      {"sheet": "verdict"},
+      {"sheet": "epilogue"}
+    ]
+  },
+  "scoring": {
+    "determination": {"label": "Determination recorded as theft", "points": 5},
+    "culprit": {"label": "Correct culprit named", "points": 10},
+    "wrong": {"label": "Wrong accusation", "points": -10},
+    "cleanSweep": {"label": "Clean Sweep - all four steps, both eliminations, correct first time", "points": 10},
+    "unspent": {"label": "Unspent authority", "points": 2},
+    "bands": [
+      {"min": 50, "title": "Case closed - commendation", "text": "Charged, and the watch goes home."},
+      {"min": 40, "title": "Charged", "text": "The right person, and enough working to justify it."},
+      {"min": 30, "title": "Referred", "text": "Right idea, thin file."},
+      {"min": 15, "title": "No further action", "text": "You know. You cannot show it."},
+      {"min": -999, "title": "The file stays closed", "text": "The apprentice keeps the blame."}
+    ]
+  },
+  "replay": [
+    {
+      "doc": "C-1",
+      "find": "he handed it back about five to five",
+      "note": "The watch was last seen at about 16:56, back on its tray."
+    },
+    {
+      "doc": "D-1",
+      "find": "03 LARK",
+      "note": "Theo's code did open the alarm at 22:14. That is all the first officer looked at."
+    },
+    {
+      "doc": "D-1",
+      "find": "15 NOV 08:34:10",
+      "note": "But the safe did not open between 17:57 on Friday and 08:34 on Saturday."
+    },
+    {
+      "doc": "D-1",
+      "find": "T. LARK, apprentice",
+      "note": "And Theo has no safe code, so his night visit could not have reached the watch."
+    },
+    {
+      "doc": "D-1",
+      "find": "14 NOV 16:38:12",
+      "note": "The safe opened at 16:38 for the viewing and stayed open until 17:57."
+    },
+    {
+      "doc": "E-1",
+      "find": "From 17:30 until closing, one member of staff was in the shop.",
+      "note": "From 17:30 Priya Desai was alone with the open safe."
+    },
+    {
+      "doc": "C-1",
+      "find": "I put the watch straight back in the safe and closed it",
+      "note": "Her account fails: the safe log shows it stayed open for another hour."
+    },
+    {
+      "doc": "D-1",
+      "find": "It was not reviewed by the investigating officer.",
+      "note": "Nobody watched the counter camera. That is the Authority worth spending."
+    },
+    {
+      "doc": "SLIP 03",
+      "find": "DESAI places the tray, now empty, in the safe",
+      "note": "The tray went into the safe empty at 17:57. The watch left in her bag."
+    },
+    {
+      "doc": "SLIP 04",
+      "find": "quayside_finds",
+      "note": "The motive: she listed the watch for a quick sale at 07:12 on Saturday."
+    }
+  ],
+  "debrief": [
+    "When did you stop suspecting Theo, and which document did it?",
+    "Did you catch Priya's account against the safe log before you spent an Authority?",
+    "Ready for a harder one? Case 01 uses every tool you just learned."
+  ]
+}

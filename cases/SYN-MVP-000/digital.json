@@ -13,104 +13,95 @@
     "results": "print/03-action-results.html",
     "sealed": "print/04-envelope-s1.html"
   },
-  "menu": { "src": "play", "page": 1 },
-  "sheetPage": { "src": "play", "page": 2 },
-  "slips": { "src": "results" },
-  "budget": { "1": 3, "2": 3, "3": 4, "4": 4, "5": 4, "6": 4 },
+  "menu": {"src": "play", "page": 1},
+  "sheetPage": {"src": "play", "page": 2},
+  "slips": {"src": "results"},
+  "budget": {"1": 3, "2": 3, "3": 4, "4": 4, "5": 4, "6": 4},
   "advice": "Every one of these was suggested by something in the file. Before you spend, ask what in the file made you want it.",
-  "groups": { "base": "Base dossier" },
+  "groups": {"base": "Base dossier"},
   "documents": [
-    { "id": "BRIEF", "kind": "brief", "title": "Briefing - Terms of Reference", "src": "play", "pages": [0] },
-    { "id": "A-1", "kind": "base", "title": "Crime Report & Officer's Summary", "src": "base", "pages": [0] },
-    { "id": "C-1", "kind": "base", "title": "Statement: P. Desai, Sales Assistant", "src": "base", "pages": [1] },
-    { "id": "C-2", "kind": "base", "title": "Statement: T. Lark, Apprentice", "src": "base", "pages": [2] },
-    { "id": "C-3", "kind": "base", "title": "Statement: M. Hollis, Owner", "src": "base", "pages": [3] },
-    { "id": "D-1", "kind": "base", "title": "Shop Systems Extract", "src": "base", "pages": [4] },
-    { "id": "E-1", "kind": "base", "title": "Records & Exhibits", "src": "base", "pages": [5] }
+    {"id": "BRIEF", "kind": "brief", "title": "Briefing - Terms of Reference", "src": "play", "pages": [0]},
+    {"id": "A-1", "kind": "base", "title": "Crime Report & Officer's Summary", "src": "base", "pages": [0]},
+    {"id": "C-1", "kind": "base", "title": "Statement: P. Desai, Sales Assistant", "src": "base", "pages": [1]},
+    {"id": "C-2", "kind": "base", "title": "Statement: T. Lark, Apprentice", "src": "base", "pages": [2]},
+    {"id": "C-3", "kind": "base", "title": "Statement: M. Hollis, Owner", "src": "base", "pages": [3]},
+    {"id": "D-1", "kind": "base", "title": "Shop Systems Extract", "src": "base", "pages": [4]},
+    {"id": "E-1", "kind": "base", "title": "Records & Exhibits", "src": "base", "pages": [5]}
   ],
   "persons": {
     "label": "Eliminations",
     "hint": "A person is eliminated only when a document puts them beyond the theft.",
     "statuses": ["Open", "Eliminated", "Suspect"],
     "list": [
-      { "id": "hollis", "name": "Hollis, Margaret", "role": "Owner",
-        "look": {"head": "grayBun", "face": "calm", "accessories": "glasses3", "skin": "ffdbb4", "hair": "e8e1e1", "clothing": "9c7b7b"} },
-      { "id": "desai", "name": "Desai, Priya", "role": "Sales assistant",
-        "look": {"head": "long", "face": "serious", "skin": "d08b5b", "hair": "2c1b18", "clothing": "7d8ba3"} },
-      { "id": "lark", "name": "Lark, Theo", "role": "Apprentice watchmaker",
-        "look": {"head": "short3", "face": "tired", "skin": "edb98a", "hair": "b58143", "clothing": "8a9a8c"} }
+      {
+        "id": "hollis",
+        "name": "Hollis, Margaret",
+        "role": "Owner",
+        "look": {
+          "head": "grayBun",
+          "face": "calm",
+          "accessories": "glasses3",
+          "skin": "ffdbb4",
+          "hair": "e8e1e1",
+          "clothing": "9c7b7b"
+        }
+      },
+      {
+        "id": "desai",
+        "name": "Desai, Priya",
+        "role": "Sales assistant",
+        "look": {"head": "long", "face": "serious", "skin": "d08b5b", "hair": "2c1b18", "clothing": "7d8ba3"}
+      },
+      {
+        "id": "lark",
+        "name": "Lark, Theo",
+        "role": "Apprentice watchmaker",
+        "look": {"head": "short3", "face": "tired", "skin": "edb98a", "hair": "b58143", "clothing": "8a9a8c"}
+      }
     ]
   },
   "voices": {"PD": "f", "TL": "m", "MH": "f", "RV": "m"},
   "exhibits": [
-    {"ref": "EX-01", "name": "Velvet display tray, single watch well, empty", "found": "Display safe, top shelf", "icon": "item", "source": "E-1"},
-    {"ref": "EX-02", "name": "Consignment receipt, Tennant watch", "found": "Back office file", "icon": "note", "source": "E-1"},
-    {"ref": "EX-03", "name": "Workshop apron, T. Lark", "found": "Workshop, bench 2 - charger lead missing from the socket", "icon": "coat", "source": "E-1"},
-    {"ref": "Sought", "name": "The Tennant watch, gold, engraved J.T. 1911", "found": "Not in the safe, the shop, the workshop, the back office or Mr Lark's lodgings", "icon": "watch", "source": "E-1", "missing": true}
-  ],
-  "replay": [
-    {"doc": "C-1", "find": "he handed it back about five to five", "note": "The watch was last seen at about 16:56, back on its tray."},
-    {"doc": "D-1", "find": "03 LARK", "note": "Theo's code did open the alarm at 22:14. That is all the first officer looked at."},
-    {"doc": "D-1", "find": "15 NOV 08:34:10", "note": "But the safe did not open between 17:57 on Friday and 08:34 on Saturday."},
-    {"doc": "D-1", "find": "T. LARK, apprentice", "note": "And Theo has no safe code, so his night visit could not have reached the watch."},
-    {"doc": "D-1", "find": "14 NOV 16:38:12", "note": "The safe opened at 16:38 for the viewing and stayed open until 17:57."},
-    {"doc": "E-1", "find": "From 17:30 until closing, one member of staff was in the shop.", "note": "From 17:30 Priya Desai was alone with the open safe."},
-    {"doc": "C-1", "find": "I put the watch straight back in the safe and closed it", "note": "Her account fails: the safe log shows it stayed open for another hour."},
-    {"doc": "D-1", "find": "It was not reviewed by the investigating officer.", "note": "Nobody watched the counter camera. That is the Authority worth spending."},
-    {"doc": "SLIP 03", "find": "DESAI places the tray, now empty, in the safe", "note": "The tray went into the safe empty at 17:57. The watch left in her bag."},
-    {"doc": "SLIP 04", "find": "quayside_finds", "note": "The motive: she listed the watch for a quick sale at 07:12 on Saturday."}
+    {
+      "ref": "EX-01",
+      "name": "Velvet display tray, single watch well, empty",
+      "found": "Display safe, top shelf",
+      "icon": "item",
+      "source": "E-1"
+    },
+    {
+      "ref": "EX-02",
+      "name": "Consignment receipt, Tennant watch",
+      "found": "Back office file",
+      "icon": "note",
+      "source": "E-1"
+    },
+    {
+      "ref": "EX-03",
+      "name": "Workshop apron, T. Lark",
+      "found": "Workshop, bench 2 - charger lead missing from the socket",
+      "icon": "coat",
+      "source": "E-1"
+    },
+    {
+      "ref": "Sought",
+      "name": "The Tennant watch, gold, engraved J.T. 1911",
+      "found": "Not in the safe, the shop, the workshop, the back office or Mr Lark's lodgings",
+      "icon": "watch",
+      "source": "E-1",
+      "missing": true
+    }
   ],
   "motiveLabel": "Motive (optional - scores nothing)",
   "accusation": {
     "question": "On the evidence recorded, the Tennant watch was...",
-    "determination": "theft",
     "options": [
-      { "id": "mislaid", "type": "mislaid", "label": "Mislaid", "sub": "Nobody took it. It will turn up.", "final": true },
-      { "id": "desai", "type": "theft", "label": "Stolen by Priya Desai", "sub": "Sales assistant" },
-      { "id": "lark", "type": "theft", "label": "Stolen by Theo Lark", "sub": "Apprentice watchmaker",
-        "reconsider": { "id": "R/LARK", "title": "Reconsider - Lark", "src": "sealed", "page": 0 } },
-      { "id": "hollis", "type": "theft", "label": "Stolen by Margaret Hollis", "sub": "Owner",
-        "reconsider": { "id": "R/HOLLIS", "title": "Reconsider - Hollis", "src": "sealed", "page": 1 } }
+      {"id": "mislaid", "label": "Mislaid", "sub": "Nobody took it. It will turn up.", "final": true},
+      {"id": "desai", "label": "Stolen by Priya Desai", "sub": "Sales assistant"},
+      {"id": "lark", "label": "Stolen by Theo Lark", "sub": "Apprentice watchmaker"},
+      {"id": "hollis", "label": "Stolen by Margaret Hollis", "sub": "Owner"}
     ]
   },
-  "reveal": {
-    "src": "sealed",
-    "cover": 2,
-    "pages": [3, 4],
-    "scoringPage": 5,
-    "steps": [
-      { "sheet": "step:0", "checks": [{ "id": "c1", "kind": "step", "points": 5, "label": "Step 1 - Last seen at about 16:56, cited" }] },
-      { "sheet": "step:1", "checks": [{ "id": "c2", "kind": "step", "points": 5, "label": "Step 2 - The safe did not open overnight, cited" }] },
-      { "sheet": "step:2", "checks": [{ "id": "c3", "kind": "step", "points": 5, "label": "Step 3 - The safe stood open 16:38 to 17:57, Desai alone from 17:30, cited" }] },
-      { "sheet": "step:3", "checks": [{ "id": "c4", "kind": "step", "points": 5, "label": "Step 4 - Her statement against the safe log, cited" }] },
-      { "sheet": "persons", "checks": [
-        { "id": "e1", "kind": "person", "points": 5, "label": "Lark eliminated with evidence" },
-        { "id": "e2", "kind": "person", "points": 5, "label": "Hollis eliminated with evidence" }
-      ] },
-      { "sheet": "motive", "checks": [], "note": "Motive scores nothing, but it is nice to know." },
-      { "sheet": "verdict" },
-      { "sheet": "epilogue" }
-    ]
-  },
-  "scoring": {
-    "determination": { "label": "Determination recorded as theft", "points": 5 },
-    "culprit": { "label": "Correct culprit named", "points": 10 },
-    "wrong": { "label": "Wrong accusation", "points": -10 },
-    "cleanSweep": { "label": "Clean Sweep - all four steps, both eliminations, correct first time", "points": 10 },
-    "unspent": { "label": "Unspent authority", "points": 2 },
-    "bands": [
-      { "min": 50, "title": "Case closed - commendation", "text": "Charged, and the watch goes home." },
-      { "min": 40, "title": "Charged", "text": "The right person, and enough working to justify it." },
-      { "min": 30, "title": "Referred", "text": "Right idea, thin file." },
-      { "min": 15, "title": "No further action", "text": "You know. You cannot show it." },
-      { "min": -999, "title": "The file stays closed", "text": "The apprentice keeps the blame." }
-    ]
-  },
-  "debrief": [
-    "When did you stop suspecting Theo, and which document did it?",
-    "Did you catch Priya's account against the safe log before you spent an Authority?",
-    "Ready for a harder one? Case 01 uses every tool you just learned."
-  ],
   "rules": [
     "The documents don't lie. People might. If a statement and a log disagree, the log is right.",
     "The whole file is yours. The tension is in what you spend, not what you hide.",
@@ -124,10 +115,34 @@
     "envelopes": "9 envelopes: 6 numbered 01-06, 2 marked RECONSIDER, 1 marked S-1",
     "guide": "print/PRINT-GUIDE.md",
     "files": [
-      { "src": "base", "name": "01 Base dossier", "pages": 6, "spoiler": false, "what": "The case file. Read all of it." },
-      { "src": "play", "name": "02 Play materials", "pages": 4, "spoiler": false, "what": "Briefing, Authority menu, Case Resolution Sheet." },
-      { "src": "results", "name": "03 Authority results", "pages": 6, "spoiler": true, "what": "Separate without reading. One page per envelope, numbered 01-06." },
-      { "src": "sealed", "name": "04 Reconsider and Envelope S-1", "pages": 6, "spoiler": true, "what": "Pages 1-2 seal separately (Reconsider). Pages 3-6 seal together (S-1)." }
+      {
+        "src": "base",
+        "name": "01 Base dossier",
+        "pages": 6,
+        "spoiler": false,
+        "what": "The case file. Read all of it."
+      },
+      {
+        "src": "play",
+        "name": "02 Play materials",
+        "pages": 4,
+        "spoiler": false,
+        "what": "Briefing, Authority menu, Case Resolution Sheet."
+      },
+      {
+        "src": "results",
+        "name": "03 Authority results",
+        "pages": 6,
+        "spoiler": true,
+        "what": "Separate without reading. One page per envelope, numbered 01-06."
+      },
+      {
+        "src": "sealed",
+        "name": "04 Reconsider and Envelope S-1",
+        "pages": 6,
+        "spoiler": true,
+        "what": "Pages 1-2 seal separately (Reconsider). Pages 3-6 seal together (S-1)."
+      }
     ],
     "checklist": [
       "Print the Player pack",
@@ -139,10 +154,13 @@
     ]
   },
   "order": 0,
-  "hintCosts": [1, 2, 3],
+  "hintCosts": [1,2,3],
   "hints": [
     {
-      "id": "night", "q": "Could Theo have taken it at night?", "needs": "D-1",
+      "id": "night",
+      "q": "Could Theo have taken it at night?",
+      "needs": "D-1",
+      "for": {"steps": [1], "persons": ["lark"]},
       "steps": [
         "The watch was kept in a safe. Does the safe keep a record?",
         "D-1 section 2 lists every time the safe opened. Look at Friday night.",
@@ -150,7 +168,10 @@
       ]
     },
     {
-      "id": "when", "q": "When did the watch really go?", "needs": "D-1",
+      "id": "when",
+      "q": "When did the watch really go?",
+      "needs": "D-1",
+      "for": {"steps": [0,2]},
       "steps": [
         "Compare what Priya says about the safe (C-1) with the safe log (D-1 section 2).",
         "The safe opened at 16:38 and did not close until 17:57. Who was in the shop at the end of that?",
@@ -158,7 +179,10 @@
       ]
     },
     {
-      "id": "spend", "q": "Which Authority should I spend?", "needs": "D-1",
+      "id": "spend",
+      "q": "Which Authority should I spend?",
+      "needs": "D-1",
+      "for": {"steps": [3]},
       "steps": [
         "Look for something in the file that nobody has checked.",
         "D-1 section 5: a camera over the counter that the first officer never reviewed.",
@@ -170,22 +194,92 @@
     "intro": "I will show you each tool as you need it. Skip any step, shrink me with the - button, or send me away with the X.",
     "handover": "That is every tool on the desk. The rest of the case is yours: fill in the sheet, clear who you can, and accuse when you are sure.",
     "tasks": [
-      { "id": "a1", "text": "Open A-1, the crime report. It tells you what the first officer decided, and why.", "sel": ".folder[data-doc=\"A-1\"]", "done": { "read": "A-1" } },
-      { "id": "hl", "text": "Select a time in any document, like 22:14 in A-1, and press Highlight. Highlighted times build a timeline in your notebook.", "sel": ".rd-paper, .folder[data-doc=\"A-1\"]", "done": { "highlight": true } },
-      { "id": "d1", "text": "Now the logs. Open D-1, the shop systems extract. Logs don't lie; people might.", "sel": ".folder[data-doc=\"D-1\"]", "done": { "read": "D-1" } },
-      { "id": "s2", "text": "Could the watch have gone at night? Open the Resolution Sheet, answer step 2 and cite the document that proves it, like D-1.", "sel": ".tool.t-clip, .rd-tools .btn:nth-last-child(2)", "done": { "step": 1 } },
-      { "id": "auth", "text": "Spend one Authority: pick an envelope on the right. D-1 section 5 says what nobody checked.", "sel": ".env-tray", "done": { "spent": true } }
+      {
+        "id": "a1",
+        "text": "Open A-1, the crime report. It tells you what the first officer decided, and why.",
+        "sel": ".folder[data-doc=\"A-1\"]",
+        "done": {"read": "A-1"}
+      },
+      {
+        "id": "hl",
+        "text": "Select a time in any document, like 22:14 in A-1, and press Highlight. Highlighted times build a timeline in your notebook.",
+        "sel": ".rd-paper, .folder[data-doc=\"A-1\"]",
+        "done": {"highlight": true}
+      },
+      {
+        "id": "d1",
+        "text": "Now the logs. Open D-1, the shop systems extract. Logs don't lie; people might.",
+        "sel": ".folder[data-doc=\"D-1\"]",
+        "done": {"read": "D-1"}
+      },
+      {
+        "id": "s2",
+        "text": "Could the watch have gone at night? Open the Resolution Sheet, answer step 2 and cite the document that proves it, like D-1.",
+        "sel": ".tool.t-clip, .rd-tools .btn:nth-last-child(2)",
+        "done": {"step": 1}
+      },
+      {
+        "id": "auth",
+        "text": "Spend one Authority: pick an envelope on the right. D-1 section 5 says what nobody checked.",
+        "sel": ".env-tray",
+        "done": {"spent": true}
+      }
     ],
     "full": [
-      { "id": "c1", "text": "Read Priya Desai's statement, C-1. What does she say she did with the safe after the viewing?", "sel": ".folder[data-doc=\"C-1\"]", "done": { "read": "C-1" } },
-      { "id": "s3", "text": "Compare her words with the safe log in D-1 section 2, and the rota in E-1.1. Write step 3 on the sheet: who was alone with the open safe? Cite D-1 and E-1.", "sel": ".tool.t-clip, .rd-tools .btn:nth-last-child(2)", "done": { "step": 2 } },
-      { "id": "a03", "text": "Spend Authority 03, the counter camera nobody reviewed.", "sel": ".mini-env:nth-child(3), .env-tray", "done": { "spentN": "03" } },
-      { "id": "s4", "text": "Write step 4: whose account fails? Cite C-1, D-1 and SLIP 03.", "sel": ".tool.t-clip, .rd-tools .btn:nth-last-child(2)", "done": { "step": 3 } },
-      { "id": "s1", "text": "Fill in step 1: when was the watch last seen? Priya's own statement, C-1, tells you.", "sel": ".tool.t-clip, .rd-tools .btn:nth-last-child(2)", "done": { "step": 0 } },
-      { "id": "lark", "text": "Clear Theo. Click his photo under Persons of interest and mark him Eliminated. The safe log and staff codes (D-1) put him beyond it.", "sel": ".poi-card[data-person=\"lark\"]", "done": { "person": "lark", "status": "Eliminated" } },
-      { "id": "hollis", "text": "Clear Mrs Hollis too: she left at 17:30 (E-1.1) and the tray went into the safe empty (SLIP 03).", "sel": ".poi-card[data-person=\"hollis\"]", "done": { "person": "hollis", "status": "Eliminated" } },
-      { "id": "cite", "text": "On the Resolution Sheet, add the evidence for both eliminations, so they score.", "sel": ".tool.t-clip, .rd-tools .btn:nth-last-child(2)", "done": { "cited": ["lark", "hollis"] } },
-      { "id": "accuse", "text": "You have it. Press Accuse and name who took the watch.", "sel": ".dk-top .stamp-btn", "done": { "accused": true } }
+      {
+        "id": "c1",
+        "text": "Read Priya Desai's statement, C-1. What does she say she did with the safe after the viewing?",
+        "sel": ".folder[data-doc=\"C-1\"]",
+        "done": {"read": "C-1"}
+      },
+      {
+        "id": "s3",
+        "text": "Compare her words with the safe log in D-1 section 2, and the rota in E-1.1. Write step 3 on the sheet: who was alone with the open safe? Cite D-1 and E-1.",
+        "sel": ".tool.t-clip, .rd-tools .btn:nth-last-child(2)",
+        "done": {"step": 2}
+      },
+      {
+        "id": "a03",
+        "text": "Spend Authority 03, the counter camera nobody reviewed.",
+        "sel": ".mini-env:nth-child(3), .env-tray",
+        "done": {"spentN": "03"}
+      },
+      {
+        "id": "s4",
+        "text": "Write step 4: whose account fails? Cite C-1, D-1 and SLIP 03.",
+        "sel": ".tool.t-clip, .rd-tools .btn:nth-last-child(2)",
+        "done": {"step": 3}
+      },
+      {
+        "id": "s1",
+        "text": "Fill in step 1: when was the watch last seen? Priya's own statement, C-1, tells you.",
+        "sel": ".tool.t-clip, .rd-tools .btn:nth-last-child(2)",
+        "done": {"step": 0}
+      },
+      {
+        "id": "lark",
+        "text": "Clear Theo. Click his photo under Persons of interest and mark him Eliminated. The safe log and staff codes (D-1) put him beyond it.",
+        "sel": ".poi-card[data-person=\"lark\"]",
+        "done": {"person": "lark", "status": "Eliminated"}
+      },
+      {
+        "id": "hollis",
+        "text": "Clear Mrs Hollis too: she left at 17:30 (E-1.1) and the tray went into the safe empty (SLIP 03).",
+        "sel": ".poi-card[data-person=\"hollis\"]",
+        "done": {"person": "hollis", "status": "Eliminated"}
+      },
+      {
+        "id": "cite",
+        "text": "On the Resolution Sheet, add the evidence for both eliminations, so they score.",
+        "sel": ".tool.t-clip, .rd-tools .btn:nth-last-child(2)",
+        "done": {"cited": ["lark", "hollis"]}
+      },
+      {
+        "id": "accuse",
+        "text": "You have it. Press Accuse and name who took the watch.",
+        "sel": ".dk-top .stamp-btn",
+        "done": {"accused": true}
+      }
     ]
   }
 }

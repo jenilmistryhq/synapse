@@ -4,6 +4,8 @@ import { h, icon, fmtClock, confirmModal, modal, plural, append, clear, store } 
 import { pageNode } from './docs.js';
 import { openSettings } from './settings.js';
 import { GUIDE_MODES } from './guide.js';
+import { openShelf, badgeCount } from './badges.js';
+import { caseStats } from './leaderboard.js';
 import { loadState, saveState, clearState, newState, timerNow, timerStart, remaining, hasSeenSolution } from './state.js';
 
 const TIER_ORDER = ['Easy', 'Medium', 'Hard', 'Expert'];
@@ -55,6 +57,7 @@ export function renderHome(app, catalog, go) {
     grid.replaceChildren(...(list.length ? list.map(c => caseCard(c, resetCase)) : [h('div', { class: 'empty' },
       h('p', {}, f.tier !== 'All' && !tierCount(f.tier) ? `No ${f.tier} cases yet. More are on the way.` : 'No cases match those filters.'),
       h('button', { class: 'btn ghost sm', onclick: () => { f.q = ''; f.tier = 'All'; f.status = 'All'; store.save(FILTER_KEY, {}); renderHome(app, catalog, go); } }, 'Clear filters'))]));
+    fillStats(grid);
   }
 
   async function resetCase(c) {
@@ -115,6 +118,7 @@ export function renderHome(app, catalog, go) {
       h('a', { class: 'brand', href: '#/' }, h('span', { class: 'brand-mark' }), h('span', { class: 'brand-word' }, 'Synapse')),
       h('div', { class: 'topnav-r' },
         h('button', { class: 'iconbtn', title: 'Settings', 'aria-label': 'Settings', onclick: () => openSettings() }, icon('gear')),
+        h('button', { class: 'btn ghost sm', onclick: () => openShelf(), title: 'Your badges' }, icon('seal'), `Badges ${badgeCount()}`),
         h('a', { class: 'btn ghost sm', href: '#/leaderboard' }, icon('trophy'), 'Leaderboard'))),
     h('header', { class: 'hero' },
       h('h1', { class: 'display' }, 'The documents don\'t lie.', h('br'), h('span', { class: 'accent' }, 'People might.')),
@@ -148,7 +152,7 @@ function caseCard(c, onReset) {
       : h('span', { class: 'status new' }, 'New');
   const detail = key === 'progress' && st.status === 'playing' ? `${plural(remaining(st), 'Authority', 'Authorities')} left`
     : key === 'solved' && st.score ? st.score.band.title : c.time;
-  return h('article', { class: `case-card is-${key}` },
+  return h('article', { class: `case-card is-${key}`, dataset: { case: c.id } },
     h('div', { class: 'cc-top' }, h('span', { class: 'cc-no' }, c.number), h('span', { class: `tier t-${c.tier.toLowerCase()}` }, c.tier), badge),
     h('h3', { class: 'cc-title' }, h('a', { href: `#/play/${c.id}` }, c.title)),
     h('p', { class: 'tagline' }, c.tagline),
@@ -158,7 +162,24 @@ function caseCard(c, onReset) {
       key === 'solved' ? h('a', { class: 'cc-print', href: `#/replay/${c.id}`, title: 'Replay with the key clues marked', 'aria-label': `Replay ${c.title}` }, icon('eye')) : null,
       h('a', { class: 'cc-print', href: `#/print/${c.id}`, title: 'Print & play kit', 'aria-label': `Print ${c.title}` }, icon('print')),
       h('a', { class: 'btn sm primary', href: `#/play/${c.id}` }, key === 'progress' ? 'Continue' : key === 'solved' ? 'Result' : 'Play')),
+    h('p', { class: 'cc-stats', hidden: true }),
     c.note ? h('p', { class: 'note' }, c.note) : null);
+}
+
+// Difficulty from everyone's runs, filled in when the shared leaderboard answers.
+// Fetched once per visit to the home page, then reused as the filters redraw the cards.
+let statsP = null, statsAt = 0;
+function fillStats(root) {
+  if (!statsP || Date.now() - statsAt > 60000) { statsP = caseStats().catch(() => ({})); statsAt = Date.now(); }
+  statsP.then(stats => {
+    for (const card of root.querySelectorAll('.case-card[data-case]')) {
+      const s = stats[card.dataset.case], el = card.querySelector('.cc-stats');
+      if (!s || !el) continue;
+      el.replaceChildren(icon('users'), h('span', {}, `${s.firstTime}% solve it first time · ${s.solved}% solve it · ${plural(s.players, 'detective')}`));
+      el.title = `Average score ${s.avg}, median time ${fmtClock(s.median)}, from ${plural(s.runs, 'posted run')}`;
+      el.hidden = false;
+    }
+  }).catch(() => {});
 }
 
 /* --- setup (solo) ---------------------------------------------------------------- */

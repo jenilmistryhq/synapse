@@ -14,7 +14,7 @@ import { visibleExhibits, exhibitIcon } from './exhibits.js';
 import { voiceSupported, putVoice, getVoice, deleteVoice } from './voice.js';
 import { sfx } from './sfx.js';
 
-const FELT_W = 1800, FELT_H = 1200;
+const FELT_W = 3600, FELT_H = 2400;
 const WIDTH = { person: 132, exhibit: 140, doc: 164, note: 176, voice: 164 };
 const uid = () => Math.random().toString(36).slice(2, 9);
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
@@ -30,7 +30,8 @@ export function openBoard({ m, st, save, ids, reg, refOf, onOpenDoc, behind }) {
   st.board ||= { cards: [], links: [] };
   const B = st.board;
   const vkey = key => `${m.id}:${key}`;
-  let connect = false, linking = null, drag = null, playing = null;
+  let connect = false, linking = null, drag = null, playing = null, zoom = 1;
+  const selected = new Set();
 
   /* --- what can be pinned ---------------------------------------------------- */
   const person = ref => m.persons.list.find(p => p.id === ref);
@@ -53,15 +54,19 @@ export function openBoard({ m, st, save, ids, reg, refOf, onOpenDoc, behind }) {
   const felt = h('div', { class: 'bd-felt', style: { width: `${FELT_W}px`, height: `${FELT_H}px` } }, svg, labels);
   const scroll = h('div', { class: 'bd-scroll' }, felt);
   const tray = h('aside', { class: 'bd-tray', 'aria-label': 'Pin to the board' });
-  const connectBtn = h('button', { class: 'btn sm ghost', 'aria-pressed': 'false', onclick: () => setConnect(!connect), title: 'Click two cards to tie them with string' }, icon('link'), h('span', { class: 'blbl' }, 'Connect'));
+  const connectBtn = h('button', { class: 'btn sm ghost', 'aria-pressed': 'false', onclick: () => setConnect(!connect), title: 'Connect cards (C)' }, icon('link'), h('span', { class: 'blbl' }, 'Connect'), h('kbd', { class: 'bd-key' }, 'C'));
   const hint = h('span', { class: 'bd-hint', 'aria-live': 'polite' });
   const root = h('div', { class: 'bd', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Evidence board' },
     h('header', { class: 'bd-top' },
       h('div', { class: 'bd-title' }, h('b', {}, 'Evidence board'), hint),
       h('div', { class: 'bd-actions' },
         connectBtn,
-        h('button', { class: 'btn sm ghost', onclick: () => addNote(), title: 'Pin a blank index card' }, icon('notes'), h('span', { class: 'blbl' }, 'Note')),
-        voiceSupported() ? h('button', { class: 'btn sm ghost', onclick: recordVoice, title: 'Record a voice note (kept on this device)' }, icon('mic'), h('span', { class: 'blbl' }, 'Voice note')) : null,
+        h('button', { class: 'btn sm ghost', onclick: () => addNote(), title: 'Add a note (N)' }, icon('notes'), h('span', { class: 'blbl' }, 'Note'), h('kbd', { class: 'bd-key' }, 'N')),
+        voiceSupported() ? h('button', { class: 'btn sm ghost', onclick: recordVoice, title: 'Record a voice note (V)' }, icon('mic'), h('span', { class: 'blbl' }, 'Voice note'), h('kbd', { class: 'bd-key' }, 'V')) : null,
+        h('div', { class: 'bd-zoom', 'aria-label': 'Board zoom' },
+          h('button', { class: 'iconbtn sm', 'aria-label': 'Zoom out', title: 'Zoom out (−)', onclick: () => setZoom(zoom - 0.1) }, '−'),
+          h('span', { class: 'mono bd-zoom-read' }, '100%'),
+          h('button', { class: 'iconbtn sm', 'aria-label': 'Zoom in', title: 'Zoom in (+)', onclick: () => setZoom(zoom + 0.1) }, '+')),
         h('button', { class: 'btn sm ghost', onclick: clearBoard, title: 'Take everything off the board' }, icon('trash'), h('span', { class: 'blbl' }, 'Clear')),
         h('button', { class: 'iconbtn', 'aria-label': 'Close the board', title: 'Close (Esc)', onclick: close }, icon('close')))),
     h('div', { class: 'bd-main' }, tray, scroll));
@@ -145,8 +150,8 @@ export function openBoard({ m, st, save, ids, reg, refOf, onOpenDoc, behind }) {
     const body = cardBody(c);
     if (!body) return null;
     const el = h('div', {
-      class: `bcard k-${c.kind}${linking === c.key ? ' linking' : ''}`, tabindex: '0', role: 'group',
-      'aria-label': `${labelOf(c)}. Arrow keys move it, L ties string, Delete removes it.`,
+      class: `bcard k-${c.kind}${linking === c.key ? ' linking' : ''}${selected.has(c.key) ? ' selected' : ''}`, tabindex: '0', role: 'group',
+      'aria-label': `${labelOf(c)}. Arrow keys move it, L ties string, Delete removes it. Shift-click cards to select several, then drag one to move them together.`,
       style: { left: `${c.x}px`, top: `${c.y}px`, width: `${WIDTH[c.kind]}px`, '--tilt': `${tiltOf(c.key)}deg` },
       dataset: { key: c.key },
     },
@@ -226,19 +231,39 @@ export function openBoard({ m, st, save, ids, reg, refOf, onOpenDoc, behind }) {
     draw();
   }
 
+  function setZoom(next) {
+    zoom = clamp(Math.round(next * 10) / 10, 0.5, 1.5);
+    felt.style.zoom = String(zoom);
+    root.querySelector('.bd-zoom-read').textContent = `${Math.round(zoom * 100)}%`;
+  }
+
   /* --- moving cards ------------------------------------------------------------------ */
   function startDrag(e, c, el) {
     if (connect || e.button !== 0 || e.target.closest('button, textarea, input')) return;
+    if (e.shiftKey) {
+      if (selected.has(c.key)) selected.delete(c.key); else selected.add(c.key);
+      el.classList.toggle('selected', selected.has(c.key));
+      return;
+    }
+    if (!selected.has(c.key)) { selected.clear(); selected.add(c.key); felt.querySelectorAll('.bcard.selected').forEach(x => x.classList.remove('selected')); el.classList.add('selected'); }
     e.preventDefault();
     el.focus({ preventScroll: true });
-    drag = { c, el, dx: e.clientX - c.x, dy: e.clientY - c.y, moved: false };
+    const origin = felt.getBoundingClientRect();
+    const members = B.cards.filter(x => selected.has(x.key));
+    drag = { el, origin, baseX: c.x, baseY: c.y, dx: e.clientX - (origin.left + c.x * zoom), dy: e.clientY - (origin.top + c.y * zoom), moved: false, members: members.map(item => ({ item, x: item.x, y: item.y })) };
     el.setPointerCapture(e.pointerId);
     el.classList.add('dragging');
     const move = ev => {
       drag.moved = true;
-      c.x = clamp(ev.clientX - drag.dx, 0, FELT_W - (WIDTH[c.kind] || 150));
-      c.y = clamp(ev.clientY - drag.dy, 8, FELT_H - 60);
-      el.style.left = `${c.x}px`; el.style.top = `${c.y}px`;
+      const nx = (ev.clientX - drag.dx - drag.origin.left) / zoom;
+      const ny = (ev.clientY - drag.dy - drag.origin.top) / zoom;
+      const dx = nx - drag.baseX, dy = ny - drag.baseY;
+      for (const entry of drag.members) {
+        entry.item.x = clamp(entry.x + dx, 0, FELT_W - (WIDTH[entry.item.kind] || 150));
+        entry.item.y = clamp(entry.y + dy, 8, FELT_H - 60);
+        const card = felt.querySelector(`.bcard[data-key="${CSS.escape(entry.item.key)}"]`);
+        if (card) { card.style.left = `${entry.item.x}px`; card.style.top = `${entry.item.y}px`; }
+      }
       drawStrings();
     };
     const up = () => {
@@ -339,7 +364,15 @@ export function openBoard({ m, st, save, ids, reg, refOf, onOpenDoc, behind }) {
 
   /* --- open and close ---------------------------------------------------------------- */
   const onKey = e => {
-    if (e.key !== 'Escape' || document.querySelector('.modal-wrap')) return;
+    if (document.querySelector('.modal-wrap')) return;
+    const typing = e.target.closest && e.target.closest('input, textarea, select, [contenteditable="true"]');
+    if (typing || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (['c', 'C'].includes(e.key)) { e.preventDefault(); setConnect(!connect); return; }
+    if (['n', 'N'].includes(e.key)) { e.preventDefault(); addNote(); return; }
+    if (['v', 'V'].includes(e.key) && voiceSupported()) { e.preventDefault(); recordVoice(); return; }
+    if (e.key === '+' || e.key === '=') { e.preventDefault(); setZoom(zoom + 0.1); return; }
+    if (e.key === '-') { e.preventDefault(); setZoom(zoom - 0.1); return; }
+    if (e.key !== 'Escape') return;
     e.stopPropagation(); e.preventDefault();
     // Esc while writing on a card steps out to the card; the next Esc closes.
     const typing = document.activeElement && document.activeElement.closest('.bcard textarea, .bcard input');
@@ -361,7 +394,7 @@ export function openBoard({ m, st, save, ids, reg, refOf, onOpenDoc, behind }) {
   let onClose = null;
   draw();
   requestAnimationFrame(() => {
-    // start in the middle of the cards, or the top-left of an empty board
+    // Keep existing card layouts intact; the larger board adds workspace around them.
     if (B.cards.length) {
       const xs = B.cards.map(c => c.x), ys = B.cards.map(c => c.y);
       scroll.scrollLeft = (Math.min(...xs) + Math.max(...xs)) / 2 - scroll.clientWidth / 2 + 70;
@@ -370,5 +403,5 @@ export function openBoard({ m, st, save, ids, reg, refOf, onOpenDoc, behind }) {
     const first = tray.querySelector('.bd-pin:not(:disabled)') || root.querySelector('.bd-actions .btn');
     if (first) first.focus({ preventScroll: true });
   });
-  return { close, set onClose(fn) { onClose = fn; } };
+  return { close, refresh: draw, set onClose(fn) { onClose = fn; } };
 }

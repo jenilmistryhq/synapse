@@ -21,8 +21,14 @@ export function decodeResult(data) {
   } catch { return null; }
 }
 
-export const siteUrl = () => `${location.origin}${location.pathname}`;
-export const resultUrl = r => `${siteUrl()}#/r/${encodeResult(r)}`;
+export const siteUrl = () => `${location.origin}${location.pathname.replace(/index\.html$/, '')}`;
+// On the published site a result link goes through a small preview page
+// (s/<case>/<band>.html, made by tools/build-share.js), so chat apps can show a card
+// for it. Locally those pages do not exist, so the link goes straight to the result.
+const published = () => !/^(localhost|127\.|\[::1\])/.test(location.hostname) && location.protocol === 'https:';
+export const resultUrl = r => (published() && Number.isInteger(r.bandIndex) && r.bandIndex >= 0
+  ? `${siteUrl()}s/${encodeURIComponent(r.caseId)}/${r.bandIndex}.html#${encodeResult(r)}`
+  : `${siteUrl()}#/r/${encodeResult(r)}`);
 
 export function shareText(r, title) {
   return `${r.name} ${r.correct ? 'cracked' : 'closed the file on'} "${title}" in ${fmtClock(r.time)}: ${r.score} points, ${r.band.toUpperCase()}. Can you do better?`;
