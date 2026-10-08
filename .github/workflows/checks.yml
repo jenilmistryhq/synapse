@@ -32,7 +32,7 @@ jobs:
       - name: Every script parses
         run: |
           for f in app/js/*.js app/config.js sw.js tools/*.js tests/*.js; do
-            node --check "$f" || exit 1
+            node --input-type=module --check < "$f" || exit 1
           done
 
       - name: Every case is valid

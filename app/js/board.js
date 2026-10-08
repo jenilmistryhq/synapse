@@ -375,8 +375,8 @@ export function openBoard({ m, st, save, ids, reg, refOf, onOpenDoc, behind }) {
     if (e.key !== 'Escape') return;
     e.stopPropagation(); e.preventDefault();
     // Esc while writing on a card steps out to the card; the next Esc closes.
-    const typing = document.activeElement && document.activeElement.closest('.bcard textarea, .bcard input');
-    if (typing) { document.activeElement.closest('.bcard').focus({ preventScroll: true }); return; }
+    const activeCardField = document.activeElement && document.activeElement.closest('.bcard textarea, .bcard input');
+    if (activeCardField) { document.activeElement.closest('.bcard').focus({ preventScroll: true }); return; }
     if (linking || connect) { setConnect(false); return; }
     close();
   };
