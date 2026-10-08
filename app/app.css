@@ -1012,6 +1012,12 @@ body.colour-safe .sm-l.on { color: #0072b2; }
 .tape-ctl { display: flex; align-items: center; gap: 4px; }
 .tape-rate { margin-left: 4px; background: var(--panel3, #26221c); color: var(--ink); border: 1px solid var(--line2); border-radius: 6px; padding: 3px 4px; font: 500 12px/1 var(--f-mono); }
 .tape-status { font: 500 12px/1.3 var(--f-mono); color: var(--muted); }
+.tape-cast { flex: 1 1 100%; border-top: 1px solid var(--line2); padding-top: 7px; }
+.tape-cast summary { width: fit-content; color: var(--ink2); font: 600 11px/1.3 var(--f-cond); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
+.tape-cast-help { margin: 6px 0; color: var(--muted); font-size: 11px; }
+.tape-cast-row { display: flex; align-items: center; gap: 10px; margin: 5px 0; font: 600 11px/1.2 var(--f-mono); }
+.tape-cast-row > span { width: 4em; color: var(--amber); }
+.tape-cast-row select { max-width: min(100%, 420px); background: var(--panel3, #26221c); color: var(--ink); border: 1px solid var(--line2); border-radius: 6px; padding: 5px 7px; font: 400 12px/1.2 var(--f-sans); }
 .rd-paper .speaking { background: rgba(230, 176, 74, .22); box-shadow: -6px 0 0 rgba(230, 176, 74, .22), 6px 0 0 rgba(230, 176, 74, .22), inset 3px 0 0 #c8891c; border-radius: 2px; transition: background .2s; }
 body.reduce-motion .tdeck.rolling .reel { animation: none; }
 @media (max-width: 760px) { .cassette { display: none; } .tdeck { gap: 6px 10px; } }

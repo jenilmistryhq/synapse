@@ -425,7 +425,7 @@ export function mountGame(root, m, st, { go }) {
   const stopTapes = () => { tapes.forEach(t => t.destroy()); tapes.clear(); };
   function toggleTape(idx, col, paper, id) {
     if (tapes.has(idx)) { tapes.get(idx).destroy(); tapes.delete(idx); col.classList.remove('taping'); return; }
-    const t = createTape(paper, { voices: m.voices || {}, label: `Interview tape · ${refOf(id)}`, short: refOf(id) });
+    const t = createTape(paper, { voices: m.voices || {}, caseId: m.id, label: `Interview tape · ${refOf(id)}`, short: refOf(id) });
     tapes.set(idx, t);
     col.classList.add('taping');
     col.insertBefore(t.el, col.querySelector('.rd-scroll'));
