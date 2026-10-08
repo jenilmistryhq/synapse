@@ -99,7 +99,14 @@ async function playCase(browser, m) {
   await p.setViewport({ width: 1440, height: 900 });
   const problems = [];
   p.on('pageerror', e => problems.push(`page error: ${e.message}`));
-  p.on('console', msg => { if (['error', 'warn', 'warning'].includes(msg.type())) problems.push(`console ${msg.type()}: ${msg.text()}`); });
+  p.on('console', msg => {
+    if (!['error', 'warn', 'warning'].includes(msg.type())) return;
+    // Generated PDFs are deliberately absent in a clean checkout. The print-kit
+    // page probes this optional index and handles its 404 with an HTML fallback.
+    const expectedMissingPdfIndex = msg.text().includes('404 (Not Found)')
+      && msg.location().url.endsWith('/print/pdf/index.json');
+    if (!expectedMissingPdfIndex) problems.push(`console ${msg.type()}: ${msg.text()}`);
+  });
   await p.setRequestInterception(true);
   p.on('request', req => (/^https?:\/\/localhost[:/]/.test(req.url()) || req.url().startsWith('data:') ? req.continue() : req.abort()));
   const check = (ok, what) => { if (!ok) throw new Error(what); };
