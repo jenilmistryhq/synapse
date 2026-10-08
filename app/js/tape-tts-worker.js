@@ -16,7 +16,11 @@ async function getModel() {
       dtype: 'q8',
       device: 'wasm',
       progress_callback: progress => self.postMessage({ type: 'progress', progress }),
-    }).then(tts => { model = tts; return tts; }).catch(error => { loading = null; throw error; });
+    }).then(tts => {
+      model = tts;
+      self.postMessage({ type: 'ready' });
+      return tts;
+    }).catch(error => { loading = null; throw error; });
   }
   return loading;
 }

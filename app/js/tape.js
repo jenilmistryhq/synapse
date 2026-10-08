@@ -31,6 +31,7 @@ NATURAL_DEFAULTS.n = [...NATURAL_DEFAULTS.f, ...NATURAL_DEFAULTS.m];
 
 let naturalWorker = null, naturalRequestId = 0;
 const naturalPending = new Map(), naturalProgress = new Set();
+let naturalModelReady = false;
 const naturalQueue = [];
 let naturalActiveId = null;
 const naturalWarmScheduled = new Set();
@@ -59,6 +60,11 @@ function requestNaturalSpeech(text, voice, speed, priority = 0) {
     naturalWorker.addEventListener('message', event => {
       const data = event.data || {};
       if (data.type === 'progress') { naturalProgress.forEach(fn => fn(data.progress)); return; }
+      if (data.type === 'ready') {
+        naturalModelReady = true;
+        naturalProgress.forEach(fn => fn({ loaded: true }));
+        return;
+      }
       const pending = naturalPending.get(data.id);
       if (!pending) return;
       naturalPending.delete(data.id);
@@ -354,6 +360,10 @@ export function createTape(root, { voices = {}, caseId = 'case', label = 'Interv
 
   const reportNaturalProgress = progress => {
     if (!playing) return;
+    if (progress && progress.loaded) {
+      status.textContent = 'Natural voice model downloaded and ready.';
+      return;
+    }
     const percent = Number(progress && progress.progress);
     status.textContent = Number.isFinite(percent) && percent > 0
       ? `Preparing natural voice... ${Math.min(100, Math.round(percent))}%`
@@ -452,7 +462,7 @@ export function createTape(root, { voices = {}, caseId = 'case', label = 'Interv
   const onVoices = () => updateVoiceOptions();
   if (hasDeviceSpeech()) speechSynthesis.addEventListener('voiceschanged', onVoices);
   mark();
-  status.textContent = `${lines.length} lines | ${codes.length} speakers | ${engine === 'natural' ? 'natural AI voice' : `${options.length} device voices`}`;
+  status.textContent = `${lines.length} lines | ${codes.length} speakers | ${engine === 'natural' ? `natural AI voice${naturalModelReady ? ' · model downloaded' : ''}` : `${options.length} device voices`}`;
   return {
     el: deck,
     destroy() { stop(); naturalProgress.delete(reportNaturalProgress); if (hasDeviceSpeech()) speechSynthesis.removeEventListener('voiceschanged', onVoices); deck.remove(); },
