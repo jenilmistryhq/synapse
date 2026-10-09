@@ -2,7 +2,7 @@
 // a calculator and a bell, on a wooden desk. Documents open in a reader;
 // the clipboard and notebook dock beside it so you can write while you read.
 
-import { h, $$, icon, fmtClock, debounce, toast, modal, confirmModal, calc, plural } from './util.js';
+import { h, $$, icon, fmtClock, debounce, toast, modal, confirmModal, calc, plural, store } from './util.js';
 import { renderPages, rangeToOffsets, wrapRange, pageNode, loadSlips, loadSealed } from './docs.js';
 import {
   saveState, clearState, timerNow, timerStart, timerStop, timerRebase, timerRunning,
@@ -33,7 +33,12 @@ export function mountGame(root, m, st, { go }) {
   if (st.timer.auto) timerStart(st);
   document.body.classList.add('desk-lock');
 
-  let peerRoom = null, peerCode = '', groupStatusText = '', groupTransition = false;
+  let peerRoom = null, peerCode = '', peerSelfId = '', groupStatusText = '', groupMembers = [], groupTransition = false;
+  const peerNameKey = 'synapse:group-name';
+  const savedRoomKey = `synapse:${m.id}:group-room`;
+  const recoveryKey = `synapse:${m.id}:group-recovery`;
+  let groupActivity = st.groupActivity || [];
+  let groupRecovery = store.load(recoveryKey);
   const save = debounce(() => { saveState(st); if (peerRoom) peerRoom.publish(); }, 300);
   const saveNow = () => save.flush();
 
@@ -88,7 +93,7 @@ export function mountGame(root, m, st, { go }) {
           Array.from({ length: st.budget }, (_, i) => h('i', { class: i < left ? 'on' : '' })), h('b', {}, left)),
         h('span', { class: `tries ${tries === 1 ? 'final' : ''}`, title: 'Accusations left. The third is final.' }, icon('accuse'), h('b', {}, tries === 1 ? 'Final' : tries))),
       h('div', { class: 'dk-actions' },
-        h('button', { class: `btn sm ${peerRoom ? 'primary' : 'ghost'} group-room-btn`, onclick: openGroupRoom, title: 'Share this investigation with your group' }, icon('users'), h('span', {}, peerRoom ? 'Group' : 'Group play')),
+        h('button', { class: `btn sm ${peerRoom ? 'primary' : 'ghost'} group-room-btn`, onclick: openGroupRoom, title: peerRoom ? `${groupMembers.length} member${groupMembers.length === 1 ? '' : 's'} in group room` : 'Share this investigation with your group' }, icon('users'), h('span', {}, peerRoom ? `Group · ${groupMembers.length}` : 'Group play')),
         h('button', { class: 'iconbtn', title: soundOn() ? 'Mute sounds' : 'Turn sounds on', 'aria-label': 'Toggle sound', onclick: () => { setSound(!soundOn()); renderTop(); if (soundOn()) sfx.tick(); } }, icon(soundOn() ? 'sound' : 'mute')),
         h('button', { class: 'iconbtn', title: 'Settings', 'aria-label': 'Settings', onclick: () => openSettings({ onChange: () => { renderTop(); if (ui.reader) $$('.rd-paper', reader).forEach(p => { p.style.zoom = getSettings().docZoom; }); } }) }, icon('gear')),
         h('button', { class: 'iconbtn', title: 'Rules and help', 'aria-label': 'Rules and help', onclick: showHelp }, icon('help')),
@@ -100,20 +105,84 @@ export function mountGame(root, m, st, { go }) {
     sfx.tick(); saveNow(); renderTop();
   }
 
+  function renderGroupMemberList(list, joined) {
+    if (!joined) return [h('p', { class: 'group-members-empty' }, 'Open or join a room to see who is there.')];
+    if (!list.length) return [h('p', { class: 'group-members-empty' }, 'Waiting for room members…')];
+    const sorted = [...list].sort((a, b) => Number(b.role === 'host') - Number(a.role === 'host') || a.peerId.localeCompare(b.peerId));
+    let guestNumber = 0;
+    return [
+      h('p', { class: 'group-members-count' }, `${sorted.length} investigator${sorted.length === 1 ? '' : 's'} in this room`),
+      h('ul', {}, sorted.map(member => {
+        const label = member.name || (member.role === 'host' ? 'Host' : `Investigator ${++guestNumber}`);
+        return h('li', {}, h('i', { class: `group-member-dot${member.self ? ' self' : ''}`, 'aria-hidden': 'true' }), `${label}${member.self ? ' (you)' : ''}${member.role === 'host' ? ' · host' : ''}`);
+      })),
+    ];
+  }
+
+  function renderGroupActivity() {
+    const entries = [...(groupActivity || [])].slice(-8).reverse();
+    return h('section', { class: 'group-activity', 'aria-label': 'Shared investigation activity' },
+      h('h3', {}, 'Recent activity'),
+      entries.length ? h('ol', {}, entries.map(item => h('li', {}, h('b', {}, item.actor), ` ${item.label}`, h('time', { datetime: new Date(item.at).toISOString() }, new Date(item.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }))))) : h('p', {}, 'Changes from the group will show up here.'));
+  }
+
+  function setGroupActivity(entries) {
+    groupActivity = Array.isArray(entries) ? entries : [];
+    if (peerRoom) saveState(st);
+    document.querySelectorAll('.group-room-modal .group-activity').forEach(panel => panel.replaceWith(renderGroupActivity()));
+  }
+
+  function saveGroupRecovery(recovery) {
+    groupRecovery = recovery;
+    store.save(recoveryKey, recovery);
+    const names = { board: 'evidence board', notes: 'notebook', people: 'person notes', hypotheses: 'theories', sheet: 'resolution sheet', read: 'reading progress', highlights: 'highlights', spent: 'Authorities', accusations: 'accusations' };
+    toast(`A shared update overlapped your unsent ${recovery.sections.map(key => names[key] || key).join(', ')}. Your local copy is saved; close and reopen Group play to restore it if needed.`);
+  }
+
+  function setGroupMembers(members) {
+    groupMembers = members;
+    document.querySelectorAll('.group-room-modal .group-members').forEach(panel => {
+      panel.replaceChildren(...renderGroupMemberList(groupMembers, !!peerRoom));
+    });
+    if (peerRoom) renderTop();
+  }
+
   function openGroupRoom() {
     const status = h('p', { class: 'group-status', role: 'status', 'aria-live': 'polite' }, peerRoom ? (groupStatusText || 'Room connected.') : 'Open a room or join one with an invite code.');
+    const reconnectInline = h('button', { class: 'btn ghost sm group-reconnect-inline', hidden: !groupStatusText.startsWith('Room signaling disconnected'), onclick: () => {
+      if (peerRoom) { peerRoom.close(); peerRoom = null; peerSelfId = ''; }
+      groupStatusText = ''; setGroupMembers([]); renderTop(); dialog.close(); openGroupRoom();
+    } }, 'Reconnect to this room');
+    const memberPanel = h('section', { class: 'group-members', 'aria-label': 'People in this room' }, ...renderGroupMemberList(groupMembers, !!peerRoom));
     const invite = h('input', { class: 'field group-code', readonly: true, value: peerRoom && peerRoom.role === 'host' ? peerCode : '', 'aria-label': 'Room invite code', placeholder: 'Your room code will appear here', hidden: !(peerRoom && peerRoom.role === 'host') });
     const joinCode = h('input', { class: 'field group-code', maxlength: 45, placeholder: 'Paste the 45-character invite code', 'aria-label': 'Invite code' });
+    const displayName = h('input', { class: 'field group-name', maxlength: 24, value: store.load(peerNameKey) || '', placeholder: 'Your name in the room', 'aria-label': 'Name shown to group members', disabled: !!peerRoom });
+    const savedRoom = store.load(savedRoomKey);
     const copy = h('button', { class: 'btn ghost sm', hidden: !invite.value, onclick: async () => { try { await navigator.clipboard.writeText(invite.value); toast('Invite code copied.'); } catch { invite.select(); toast('Select and copy the invite code.'); } } }, 'Copy code');
     const actions = [];
     let dialog;
     if (!peerRoom) {
+      actions.push({ label: 'Reconnect to saved room', kind: 'ghost', disabled: !(savedRoom && savedRoom.code && validRoomCode(savedRoom.code)), onClick: async () => {
+        if (!savedRoom || !validRoomCode(savedRoom.code)) return false;
+        status.textContent = 'Reconnecting to the saved room…';
+        try {
+          peerSelfId = makePeerId();
+          const chosenName = (displayName.value || store.load(peerNameKey) || 'Investigator').trim().slice(0, 24) || 'Investigator';
+          store.save(peerNameKey, chosenName);
+          peerRoom = await openPeerRoom({ roomCode: savedRoom.code, peerId: peerSelfId, displayName: chosenName, host: savedRoom.role === 'host', state: st, statuses: m.persons.statuses, optionIds: m.accusation.options.map(x => x.id), onStatus: setGroupStatus, onState: receiveGroupState, onMembers: setGroupMembers, onActivity: setGroupActivity, onConflict: saveGroupRecovery });
+          peerCode = savedRoom.code; groupStatusText = ''; renderTop(); dialog.close(); openGroupRoom();
+        } catch (e) { status.textContent = e.message || 'Could not reconnect to the saved room.'; }
+        return false;
+      } });
       actions.push({ label: 'Open a group room', kind: 'primary', onClick: async () => {
         const code = makeRoomCode();
         status.textContent = 'Opening the room…';
         try {
-          peerRoom = await openPeerRoom({ roomCode: code, peerId: makePeerId(), host: true, state: st, statuses: m.persons.statuses, optionIds: m.accusation.options.map(x => x.id), onStatus: setGroupStatus, onState: receiveGroupState });
-          peerCode = code; invite.value = code; invite.hidden = false; copy.hidden = false; renderTop(); dialog.close(); openGroupRoom();
+          const chosenName = (displayName.value || 'Investigator').trim().slice(0, 24) || 'Investigator';
+          store.save(peerNameKey, chosenName);
+          peerSelfId = makePeerId();
+          peerRoom = await openPeerRoom({ roomCode: code, peerId: peerSelfId, displayName: chosenName, host: true, state: st, statuses: m.persons.statuses, optionIds: m.accusation.options.map(x => x.id), onStatus: setGroupStatus, onState: receiveGroupState, onMembers: setGroupMembers, onActivity: setGroupActivity, onConflict: saveGroupRecovery });
+          peerCode = code; store.save(savedRoomKey, { code, role: 'host' }); invite.value = code; invite.hidden = false; copy.hidden = false; renderTop(); dialog.close(); openGroupRoom();
         } catch (e) { status.textContent = e.message || 'Could not open the room.'; }
         return false;
       } });
@@ -122,25 +191,43 @@ export function mountGame(root, m, st, { go }) {
         if (!validRoomCode(code)) { status.textContent = 'Enter the 45-character room code from the host.'; return false; }
         status.textContent = 'Joining the room…';
         try {
-          peerRoom = await openPeerRoom({ roomCode: code, peerId: makePeerId(), host: false, state: st, statuses: m.persons.statuses, optionIds: m.accusation.options.map(x => x.id), onStatus: setGroupStatus, onState: receiveGroupState });
-          peerCode = code; renderTop(); joinCode.hidden = true; dialog.close(); openGroupRoom();
+          const chosenName = (displayName.value || 'Investigator').trim().slice(0, 24) || 'Investigator';
+          store.save(peerNameKey, chosenName);
+          peerSelfId = makePeerId();
+          peerRoom = await openPeerRoom({ roomCode: code, peerId: peerSelfId, displayName: chosenName, host: false, state: st, statuses: m.persons.statuses, optionIds: m.accusation.options.map(x => x.id), onStatus: setGroupStatus, onState: receiveGroupState, onMembers: setGroupMembers, onActivity: setGroupActivity, onConflict: saveGroupRecovery });
+          peerCode = code; store.save(savedRoomKey, { code, role: 'guest' }); renderTop(); joinCode.hidden = true; dialog.close(); openGroupRoom();
         } catch (e) { status.textContent = e.message || 'Could not join the room.'; }
         return false;
       } });
     } else {
       if (!groupStatusText) groupStatusText = `Connected to a ${peerRoom.role === 'host' ? 'hosted' : 'host'} room. The host needs to stay online. Shared work includes case phases, Authorities, the evidence board, notes, highlights, and Resolution Sheet.`;
       status.textContent = groupStatusText;
-      actions.push({ label: 'Leave room', kind: 'danger', onClick: () => { peerRoom.close(); peerRoom = null; peerCode = ''; groupStatusText = ''; renderTop(); toast('Left the group room.'); } });
+      actions.push({ label: 'Leave room', kind: 'danger', onClick: () => { peerRoom.close(); peerRoom = null; peerCode = ''; peerSelfId = ''; groupStatusText = ''; setGroupMembers([]); renderTop(); toast('Left the group room.'); } });
+    }
+    if (groupRecovery && groupRecovery.localSnapshot && groupRecovery.localSnapshot.caseId === m.id) {
+      actions.unshift({ label: 'Restore local edits', kind: 'ghost', onClick: () => {
+        const keys = ['board', 'notes', 'people', 'hypotheses', 'sheet', 'read', 'highlights', 'spent', 'accusations'];
+        for (const key of groupRecovery.sections || []) if (keys.includes(key) && groupRecovery.localSnapshot[key] !== undefined) st[key] = JSON.parse(JSON.stringify(groupRecovery.localSnapshot[key]));
+        groupActivity = [...(st.groupActivity || []), { id: `restore-${Date.now()}`, actor: store.load(peerNameKey) || 'Investigator', label: 'Restored a saved local copy after overlapping edits', at: Date.now() }].slice(-40);
+        st.groupActivity = groupActivity; setGroupActivity(groupActivity);
+        store.remove(recoveryKey); groupRecovery = null; saveNow(); if (peerRoom) peerRoom.publish();
+        renderAll(); if (board && board.refresh) board.refresh(); toast('Saved local edits restored and shared.');
+        return false;
+      } });
     }
     dialog = modal({ kicker: `Case ${m.number} · Group play`, title: 'Work this file together', className: 'group-room-modal',
-      body: [h('p', { class: 'hint' }, 'Everyone opens the same case and starts an investigation first. The invite code is a bearer key: share it only with your group. Shared investigation work and accusations are encrypted before they leave the device. Supabase relays signed connection setup only; each player follows the reveal on their own screen.'), status, invite, copy, peerRoom ? null : joinCode,
-        h('p', { class: 'group-footnote' }, 'Early access: keep the host tab open. Each player also keeps a local copy. If two people edit the same item at once, the latest update wins. Voice recordings are not shared. Free STUN is used without a TURN relay, so some strict networks may not connect.')],
+      body: [h('p', { class: 'hint' }, 'Everyone opens the same case and starts an investigation first. The invite code is a bearer key: share it only with your group. Investigation updates are encrypted before they leave the device. Supabase helps set up connections and can relay encrypted updates if direct peer links fail; each player follows the reveal on their own screen.'),
+        peerRoom ? h('p', { class: 'group-name-label' }, `You appear as ${store.load(peerNameKey) || 'Investigator'}.`) : [h('label', { class: 'group-name-label' }, 'Name shown to your group', displayName)],
+        status, reconnectInline, memberPanel, invite, copy, peerRoom ? null : joinCode, renderGroupActivity(),
+        groupRecovery ? h('p', { class: 'group-recovery-note' }, 'A shared update overlapped unsent edits on this device. Your local copy is saved; choose Restore local edits to bring it back.') : null,
+        h('p', { class: 'group-footnote' }, 'The invite is saved on this device so you can reconnect later. Keep the host tab open while the group is working. The activity list helps track changes; if two people edit the same item at once, the latest update wins. Voice recordings are not shared.')],
       actions: [...actions, { label: 'Done', kind: 'ghost' }] });
   }
 
   function setGroupStatus(message) {
     groupStatusText = message;
     document.querySelectorAll('.group-room-modal .group-status').forEach(el => { el.textContent = message; });
+    document.querySelectorAll('.group-room-modal .group-reconnect-inline').forEach(el => { el.hidden = !message.startsWith('Room signaling disconnected'); });
   }
 
   async function receiveGroupState() {
