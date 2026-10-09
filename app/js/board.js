@@ -26,12 +26,16 @@ export function boardSummary(st) {
   return `${plural(b.cards.length, 'card')}${b.links.length ? ` · ${plural(b.links.length, 'string')}` : ''}`;
 }
 
-export function openBoard({ m, st, save, ids, reg, refOf, onOpenDoc, behind }) {
+export function openBoard({ m, st, save, syncLive = () => {}, ids, reg, refOf, onOpenDoc, behind, onPointer = () => {} }) {
   st.board ||= { cards: [], links: [] };
-  const B = st.board;
+  let B = st.board;
   const vkey = key => `${m.id}:${key}`;
   let connect = false, linking = null, drag = null, playing = null, zoom = 1;
   const selected = new Set();
+  const remotePointers = new Map();
+  let lastPointerSent = 0;
+  let lastDragSync = 0;
+  let refreshPending = false;
 
   /* --- what can be pinned ---------------------------------------------------- */
   const person = ref => m.persons.list.find(p => p.id === ref);
@@ -51,16 +55,19 @@ export function openBoard({ m, st, save, ids, reg, refOf, onOpenDoc, behind }) {
   const labels = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   labels.setAttribute('class', 'bd-labels');
   labels.setAttribute('width', FELT_W); labels.setAttribute('height', FELT_H);
-  const felt = h('div', { class: 'bd-felt', style: { width: `${FELT_W}px`, height: `${FELT_H}px` } }, svg, labels);
+  const cursorLayer = h('div', { class: 'bd-cursors', 'aria-hidden': 'true' });
+  const felt = h('div', { class: 'bd-felt', style: { width: `${FELT_W}px`, height: `${FELT_H}px` } }, svg, labels, cursorLayer);
   const scroll = h('div', { class: 'bd-scroll' }, felt);
   const tray = h('aside', { class: 'bd-tray', 'aria-label': 'Pin to the board' });
   const connectBtn = h('button', { class: 'btn sm ghost', 'aria-pressed': 'false', onclick: () => setConnect(!connect), title: 'Connect cards (C)' }, icon('link'), h('span', { class: 'blbl' }, 'Connect'), h('kbd', { class: 'bd-key' }, 'C'));
+  const connectSelectedBtn = h('button', { class: 'btn sm primary', hidden: true, onclick: connectSelected, title: 'Connect selected cards in a chain' }, icon('link'), h('span', { class: 'blbl' }, 'Connect selected'));
   const hint = h('span', { class: 'bd-hint', 'aria-live': 'polite' });
   const root = h('div', { class: 'bd', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Evidence board' },
     h('header', { class: 'bd-top' },
       h('div', { class: 'bd-title' }, h('b', {}, 'Evidence board'), hint),
       h('div', { class: 'bd-actions' },
         connectBtn,
+        connectSelectedBtn,
         h('button', { class: 'btn sm ghost', onclick: () => addNote(), title: 'Add a note (N)' }, icon('notes'), h('span', { class: 'blbl' }, 'Note'), h('kbd', { class: 'bd-key' }, 'N')),
         voiceSupported() ? h('button', { class: 'btn sm ghost', onclick: recordVoice, title: 'Record a voice note (V)' }, icon('mic'), h('span', { class: 'blbl' }, 'Voice note'), h('kbd', { class: 'bd-key' }, 'V')) : null,
         h('div', { class: 'bd-zoom', 'aria-label': 'Board zoom' },
@@ -101,12 +108,12 @@ export function openBoard({ m, st, save, ids, reg, refOf, onOpenDoc, behind }) {
   function pin(x) {
     if (onBoard(x.key)) return;
     B.cards.push({ key: x.key, kind: x.kind, ref: x.ref, ...place(x.kind) });
-    sfx.tick(); save(); draw(); focusCard(x.key);
+    sfx.tick(); syncLive(); draw(); focusCard(x.key);
   }
   function addNote() {
     const key = `note:${uid()}`;
     B.cards.push({ key, kind: 'note', text: '', ...place('note') });
-    sfx.paper(); save(); draw();
+    sfx.paper(); syncLive(); draw();
     const ta = felt.querySelector(`[data-key="${key}"] textarea`); if (ta) ta.focus();
   }
   function unpin(key) {
@@ -115,7 +122,7 @@ export function openBoard({ m, st, save, ids, reg, refOf, onOpenDoc, behind }) {
     if (c.kind === 'voice') deleteVoice(vkey(key));
     B.cards = B.cards.filter(x => x.key !== key);
     B.links = B.links.filter(l => l.a !== key && l.b !== key);
-    st.board = B; save(); sfx.close(); draw();
+    st.board = B; syncLive(); sfx.close(); draw();
   }
 
   function cardBody(c) {
@@ -165,10 +172,29 @@ export function openBoard({ m, st, save, ids, reg, refOf, onOpenDoc, behind }) {
   }
 
   function draw() {
-    felt.replaceChildren(svg, ...B.cards.map(cardEl).filter(Boolean), labels);
+    felt.replaceChildren(svg, ...B.cards.map(cardEl).filter(Boolean), labels, cursorLayer);
     drawStrings();
     drawTray();
-    hint.textContent = linking ? 'Now pick the card to tie it to (Esc cancels)' : connect ? 'Click a card, then another, to tie them' : B.cards.length ? boardSummary(st) : 'Pin people, exhibits and documents from the left';
+    updateSelectionControls();
+    hint.textContent = linking ? 'Now pick the card to tie it to (Esc cancels)' : connect ? 'Click a card, then another, to tie them' : selected.size > 1 ? `${selected.size} selected · drag together or connect as a chain` : B.cards.length ? 'Shift-click cards to select a group' : 'Pin people, exhibits and documents from the left';
+    hint.title = 'Shift-click multiple cards, then drag any selected card to move the group. Use Connect selected to string them together.';
+  }
+  function updateSelectionControls() {
+    connectSelectedBtn.hidden = selected.size < 2;
+    if (selected.size > 1) connectSelectedBtn.querySelector('.blbl').textContent = `Connect ${selected.size} selected`;
+  }
+  function connectSelected() {
+    const cards = B.cards.filter(c => selected.has(c.key));
+    if (cards.length < 2) return;
+    let added = 0;
+    // A chain ties the selected group together without covering the board in duplicate strings.
+    for (let i = 1; i < cards.length; i++) {
+      const a = cards[i - 1].key, b = cards[i].key;
+      if (B.links.some(l => l.a === a && l.b === b || l.a === b && l.b === a)) continue;
+      B.links.push({ a, b, label: '' }); added++;
+    }
+    if (added) { syncLive(); draw(); sfx.paper(); toast(`Connected ${cards.length} selected cards.`); }
+    else toast('Those cards are already connected.');
   }
   const focusCard = key => { const el = felt.querySelector(`.bcard[data-key="${CSS.escape(key)}"]`); if (el) { el.focus({ preventScroll: true }); el.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } };
 
@@ -207,7 +233,7 @@ export function openBoard({ m, st, save, ids, reg, refOf, onOpenDoc, behind }) {
     if (linking === key) { linking = null; draw(); return; }
     const [a, b] = [linking, key];
     linking = null;
-    if (!B.links.some(l => (l.a === a && l.b === b) || (l.a === b && l.b === a))) { B.links.push({ a, b, label: '' }); sfx.paper(); save(); toast('Tied with string. Click the string to label it.'); }
+    if (!B.links.some(l => (l.a === a && l.b === b) || (l.a === b && l.b === a))) { B.links.push({ a, b, label: '' }); sfx.paper(); syncLive(); toast('Tied with string. Click the string to label it.'); }
     draw(); focusCard(key);
   }
   function editLink(i) {
@@ -239,13 +265,16 @@ export function openBoard({ m, st, save, ids, reg, refOf, onOpenDoc, behind }) {
 
   /* --- moving cards ------------------------------------------------------------------ */
   function startDrag(e, c, el) {
-    if (connect || e.button !== 0 || e.target.closest('button, textarea, input')) return;
+    if (e.button !== 0 || e.target.closest('button, textarea, input')) return;
     if (e.shiftKey) {
+      if (connect) return;
       if (selected.has(c.key)) selected.delete(c.key); else selected.add(c.key);
       el.classList.toggle('selected', selected.has(c.key));
+      updateSelectionControls();
       return;
     }
-    if (!selected.has(c.key)) { selected.clear(); selected.add(c.key); felt.querySelectorAll('.bcard.selected').forEach(x => x.classList.remove('selected')); el.classList.add('selected'); }
+    if (connect) return;
+    if (!selected.has(c.key)) { selected.clear(); selected.add(c.key); felt.querySelectorAll('.bcard.selected').forEach(x => x.classList.remove('selected')); el.classList.add('selected'); updateSelectionControls(); }
     e.preventDefault();
     el.focus({ preventScroll: true });
     const origin = felt.getBoundingClientRect();
@@ -265,15 +294,49 @@ export function openBoard({ m, st, save, ids, reg, refOf, onOpenDoc, behind }) {
         if (card) { card.style.left = `${entry.item.x}px`; card.style.top = `${entry.item.y}px`; }
       }
       drawStrings();
+      const now = performance.now();
+      if (now - lastDragSync > 120) { lastDragSync = now; syncLive(); }
     };
     const up = () => {
       el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up);
       el.classList.remove('dragging');
       if (drag.moved) save();
       drag = null;
+      if (refreshPending) { refreshPending = false; refresh(); }
     };
     el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
   }
+
+  function setRemotePointers(pointers = []) {
+    remotePointers.clear();
+    for (const pointer of pointers) if (Number.isFinite(pointer.x) && Number.isFinite(pointer.y)) remotePointers.set(pointer.peerId, pointer);
+    cursorLayer.replaceChildren(...[...remotePointers.values()].map(pointer => h('div', {
+      class: 'bd-remote-cursor', style: { left: `${clamp(pointer.x, 0, FELT_W)}px`, top: `${clamp(pointer.y, 0, FELT_H)}px` },
+      title: `${pointer.name} is here`,
+    }, h('span', { class: 'bd-remote-cursor-dot' }), h('span', { class: 'bd-remote-cursor-name' }, pointer.name))));
+  }
+
+  scroll.addEventListener('pointermove', e => {
+    const now = performance.now();
+    if (now - lastPointerSent < 90) return;
+    lastPointerSent = now;
+    const bounds = felt.getBoundingClientRect();
+    const borderX = parseFloat(getComputedStyle(felt).borderLeftWidth) || 0;
+    const borderY = parseFloat(getComputedStyle(felt).borderTopWidth) || 0;
+    onPointer({ active: true, x: (e.clientX - bounds.left) / zoom - borderX, y: (e.clientY - bounds.top) / zoom - borderY });
+  });
+  scroll.addEventListener('pointerleave', () => onPointer({ active: false }));
+  felt.addEventListener('click', e => {
+    if (e.target.closest('.bcard, .bd-link, button')) return;
+    if (!selected.size) return;
+    selected.clear();
+    felt.querySelectorAll('.bcard.selected').forEach(card => card.classList.remove('selected'));
+    updateSelectionControls();
+    hint.textContent = B.cards.length ? 'Shift-click cards to select a group' : 'Pin people, exhibits and documents from the left';
+  });
+  felt.addEventListener('focusout', () => setTimeout(() => {
+    if (refreshPending && !drag && !felt.contains(document.activeElement)) { refreshPending = false; refresh(); save(); }
+  }, 0));
   function cardKey(e, c, el) {
     if (e.target !== el) return; // typing in a note or caption
     const step = e.shiftKey ? 40 : 10;
@@ -281,7 +344,7 @@ export function openBoard({ m, st, save, ids, reg, refOf, onOpenDoc, behind }) {
     if (mv) {
       e.preventDefault();
       c.x = clamp(c.x + mv[0], 0, FELT_W - (WIDTH[c.kind] || 150)); c.y = clamp(c.y + mv[1], 8, FELT_H - 60);
-      el.style.left = `${c.x}px`; el.style.top = `${c.y}px`; drawStrings(); save();
+      el.style.left = `${c.x}px`; el.style.top = `${c.y}px`; drawStrings(); syncLive();
     } else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); unpin(c.key); }
     else if (e.key === 'l' || e.key === 'L' || (e.key === 'Enter' && connect)) { e.preventDefault(); linkTap(c.key); }
   }
@@ -318,7 +381,7 @@ export function openBoard({ m, st, save, ids, reg, refOf, onOpenDoc, behind }) {
           const key = `voice:${uid()}`;
           try { await putVoice(vkey(key), blob); } catch { toast('This browser would not store the recording.'); return false; }
           B.cards.push({ key, kind: 'voice', text: '', dur, ...place('voice') });
-          save(); draw(); sfx.tick();
+          syncLive(); draw(); sfx.tick();
         } },
       ],
       onClose: cleanup,
@@ -359,7 +422,7 @@ export function openBoard({ m, st, save, ids, reg, refOf, onOpenDoc, behind }) {
     const ok = await confirmModal({ title: 'Clear the board?', body: 'Every card, note, voice note and string comes off. Your case notes and Resolution Sheet are not touched.', confirm: 'Clear the board', danger: true });
     if (!ok) return;
     B.cards.filter(c => c.kind === 'voice').forEach(c => deleteVoice(vkey(c.key)));
-    B.cards = []; B.links = []; save(); draw();
+    B.cards = []; B.links = []; syncLive(); draw();
   }
 
   /* --- open and close ---------------------------------------------------------------- */
@@ -384,6 +447,7 @@ export function openBoard({ m, st, save, ids, reg, refOf, onOpenDoc, behind }) {
   let closed = false;
   function close() {
     if (closed) return; closed = true;
+    onPointer({ active: false });
     if (playing) playing.stop();
     document.removeEventListener('keydown', onKey, true);
     if (behind) behind.inert = false;
@@ -403,5 +467,33 @@ export function openBoard({ m, st, save, ids, reg, refOf, onOpenDoc, behind }) {
     const first = tray.querySelector('.bd-pin:not(:disabled)') || root.querySelector('.bd-actions .btn');
     if (first) first.focus({ preventScroll: true });
   });
-  return { close, refresh: draw, set onClose(fn) { onClose = fn; } };
+  function refresh() {
+    const activeField = document.activeElement && document.activeElement.closest && document.activeElement.closest('.bd-felt textarea, .bd-felt input');
+    if (drag || activeField) {
+      const incoming = st.board;
+      if (incoming && incoming !== B && Array.isArray(incoming.cards)) {
+        const protectedKeys = new Set(drag ? drag.members.map(entry => entry.item.key) : []);
+        const activeCard = activeField && activeField.closest('.bcard');
+        if (activeCard) protectedKeys.add(activeCard.dataset.key);
+        const incomingByKey = new Map(incoming.cards.map(card => [card.key, card]));
+        const merged = [];
+        for (const local of B.cards) {
+          const remote = incomingByKey.get(local.key);
+          incomingByKey.delete(local.key);
+          if (protectedKeys.has(local.key)) merged.push(local);
+          else if (remote) { Object.assign(local, remote); merged.push(local); }
+        }
+        for (const remote of incomingByKey.values()) merged.push(remote);
+        B.cards = merged;
+        B.links = incoming.links || B.links;
+        st.board = B;
+      }
+      refreshPending = true;
+      return;
+    }
+    B = st.board || { cards: [], links: [] };
+    for (const key of [...selected]) if (!B.cards.some(c => c.key === key)) selected.delete(key);
+    draw();
+  }
+  return { close, refresh, setRemotePointers, set onClose(fn) { onClose = fn; } };
 }

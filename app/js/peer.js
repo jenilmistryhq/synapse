@@ -92,7 +92,7 @@ export function applyCollaborationState(st, data, allowedStatuses = [], optionId
   return true;
 }
 
-export async function openPeerRoom({ roomCode, peerId, displayName = 'Investigator', host, state, statuses = [], optionIds = [], onState, onStatus, onMembers = () => {}, onActivity = () => {}, onConflict = () => {} }) {
+export async function openPeerRoom({ roomCode, peerId, displayName = 'Investigator', host, state, statuses = [], optionIds = [], onState, onStatus, onMembers = () => {}, onActivity = () => {}, onPresence = () => {}, onConflict = () => {} }) {
   if (!validUrl(LEADERBOARD.url) || !validKey(LEADERBOARD.key)) throw new Error('Group rooms need a valid public Supabase project URL and anon key in app/config.js.');
   if (!validRoomCode(roomCode)) throw new Error('That room code is not valid.');
   const [roomId, secret] = roomCode.trim().split('.');
@@ -178,24 +178,61 @@ export async function openPeerRoom({ roomCode, peerId, displayName = 'Investigat
     lastLocalSnapshot = JSON.parse(JSON.stringify(data));
     if (!labels.length) return data;
     const current = Array.isArray(state.groupActivity) ? state.groupActivity : [];
-    state.groupActivity = [...current, ...labels.map(label => ({ id: randomToken(), actor: safeName, label, at: Date.now() }))].slice(-40);
+    const next = [...current];
+    const now = Date.now();
+    for (const label of labels) {
+      const recent = next[next.length - 1];
+      if (recent && recent.actor === safeName && recent.label === label && now - recent.at < 8000) recent.at = now;
+      else next.push({ id: randomToken(), actor: safeName, label, at: now });
+    }
+    state.groupActivity = next.slice(-40);
     onActivity(state.groupActivity);
     return snapshot();
   }
 
-  async function encryptedState(data) {
+  async function encryptedState(data, skipPeer = null) {
     const iv = crypto.getRandomValues(new Uint8Array(12));
-    const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, keys.aes, encoder.encode(JSON.stringify(data)));
+    const payload = { ...data, _peerId: peerId, ...(skipPeer ? { _skipPeer: skipPeer } : {}) };
+    const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, keys.aes, encoder.encode(JSON.stringify(payload)));
     return JSON.stringify({ type: 'secure-state', iv: encode64(iv), cipher: encode64(cipher) });
   }
-  function publishState(data) {
+  async function encryptedPresence(data) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const payload = { ...data, peerId, at: Date.now() };
+    const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, keys.aes, encoder.encode(JSON.stringify(payload)));
+    return JSON.stringify({ type: 'secure-presence', iv: encode64(iv), cipher: encode64(cipher) });
+  }
+  async function receivePresenceWire(wire, sourceId = null) {
+    if (typeof wire !== 'string' || wire.length > 4096) return;
+    let envelope, presence;
+    try {
+      envelope = JSON.parse(wire);
+      if (envelope.type !== 'secure-presence' || typeof envelope.iv !== 'string' || typeof envelope.cipher !== 'string') return;
+      const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: decode64(envelope.iv) }, keys.aes, decode64(envelope.cipher));
+      presence = JSON.parse(new TextDecoder().decode(plain));
+    } catch { return; }
+    if (!presence || typeof presence.peerId !== 'string' || presence.peerId === peerId || sourceId && presence.peerId !== sourceId || !['pointer', 'typing'].includes(presence.kind) || typeof presence.active !== 'boolean' || !Number.isFinite(presence.at) || Math.abs(Date.now() - presence.at) > 5000) return;
+    if (presence.kind === 'pointer' && presence.active && (!Number.isFinite(presence.x) || !Number.isFinite(presence.y) || Math.abs(presence.x) > 5000 || Math.abs(presence.y) > 5000)) return;
+    if (presence.kind === 'typing' && !['notebook', 'board-note'].includes(presence.target)) return;
+    if (host && sourceId) {
+      let forwarded = 0;
+      for (const [id, conn] of connections) if (id !== sourceId && conn.channel && conn.channel.readyState === 'open') {
+        try { conn.channel.send(wire); forwarded++; } catch { /* peer may be leaving */ }
+      }
+      const expected = Math.max(0, members.size - 2); // peers other than the host and original sender
+      if (forwarded < expected && ws.readyState === WebSocket.OPEN) send({ event: 'broadcast', ref: nextRef(), payload: { type: 'broadcast', event: 'synapse-encrypted-presence', payload: wire } });
+    }
+    const member = members.get(presence.peerId);
+    onPresence({ ...presence, name: member && member.name || 'Investigator' });
+  }
+  function publishState(data, skipPeer = null) {
     stateQueue = stateQueue.then(async () => {
       data = recordLocalActivity(data);
-      const open = [...connections.values()].filter(conn => conn.channel && conn.channel.readyState === 'open');
-      const expected = host ? Math.max(0, members.size - 1) : (members.size > 1 ? 1 : 0);
+      const open = [...connections.entries()].filter(([id, conn]) => id !== skipPeer && conn.channel && conn.channel.readyState === 'open').map(([, conn]) => conn);
+      const expected = host ? Math.max(0, members.size - 1 - (skipPeer && members.has(skipPeer) ? 1 : 0)) : (members.size > 1 ? 1 : 0);
       const useRelay = room.joined && (open.length < expected || !open.length && expected > 0);
       if (!open.length && !useRelay) return;
-      const wire = await encryptedState(data);
+      const wire = await encryptedState(data, skipPeer);
       for (const conn of open) { try { conn.channel.send(wire); } catch { /* a peer may be leaving */ } }
       if (useRelay && ws.readyState === WebSocket.OPEN) {
         if (wire.length > 240 * 1024) {
@@ -210,7 +247,7 @@ export async function openPeerRoom({ roomCode, peerId, displayName = 'Investigat
     }).catch(() => onStatus('Could not encrypt the shared investigation update.'));
     return stateQueue;
   }
-  async function receiveStateWire(wire) {
+  async function receiveStateWire(wire, sourceId = null) {
     if (typeof wire !== 'string' || wire.length > 2_000_000) return;
     let envelope, data;
     try {
@@ -220,13 +257,14 @@ export async function openPeerRoom({ roomCode, peerId, displayName = 'Investigat
       data = JSON.parse(new TextDecoder().decode(plain));
     } catch { return; }
     if (!data || data.caseId !== state.caseId) { onStatus('This room is open on a different case.'); return; }
+    if (data._skipPeer === peerId) return;
     const current = snapshot();
     const conflictKeys = ['board', 'notes', 'people', 'hypotheses', 'sheet', 'read', 'highlights', 'spent', 'accusations'];
     const conflicts = conflictKeys.filter(key => stableJson(current[key]) !== stableJson(lastLocalSnapshot[key]) && stableJson(data[key]) !== stableJson(current[key]));
     if (conflicts.length) onConflict({ sections: conflicts, localSnapshot: current, incomingActivity: data.groupActivity || [] });
     if (host) {
       if (!applyCollaborationState(state, data, statuses, optionIds)) return;
-      lastLocalSnapshot = snapshot(); onActivity(state.groupActivity || []); publishState(snapshot()); onState();
+      lastLocalSnapshot = snapshot(); onActivity(state.groupActivity || []); publishState(snapshot(), sourceId || data._peerId || null); onState();
     } else if (applyCollaborationState(state, data, statuses, optionIds)) { lastLocalSnapshot = snapshot(); onActivity(state.groupActivity || []); onState(); }
   }
   function setDataChannel(id, channel) {
@@ -234,7 +272,12 @@ export async function openPeerRoom({ roomCode, peerId, displayName = 'Investigat
     conn.channel = channel;
     connections.set(id, conn);
     channel.onopen = () => { onStatus(`Connected to ${connections.size} peer${connections.size === 1 ? '' : 's'}.`); if (host) publishState(snapshot()); };
-    channel.onmessage = event => receiveStateWire(event.data);
+    channel.onmessage = event => {
+      let envelope; try { envelope = JSON.parse(event.data); } catch { return; }
+      if (!envelope || typeof envelope !== 'object') return;
+      if (envelope.type === 'secure-presence') receivePresenceWire(event.data, id);
+      else receiveStateWire(event.data, id);
+    };
     channel.onclose = () => onStatus(`A peer disconnected. ${connections.size} peer connection(s) remain.`);
     channel.onerror = () => onStatus('A peer connection reported an error.');
   }
@@ -351,6 +394,8 @@ export async function openPeerRoom({ roomCode, peerId, displayName = 'Investigat
         updatePresence(msg.payload);
       } else if (msg.event === 'broadcast' && msg.payload && msg.payload.event === 'synapse-encrypted-state') {
         receiveStateWire(msg.payload.payload);
+      } else if (msg.event === 'broadcast' && msg.payload && msg.payload.event === 'synapse-encrypted-presence') {
+        receivePresenceWire(msg.payload.payload);
       } else if (['phx_error', 'phx_close'].includes(msg.event) && !room.joined) {
         const reason = msg.payload && (msg.payload.reason || msg.payload.message);
         failJoin(new Error(reason ? `Realtime room error: ${reason}` : 'Realtime closed the room channel.'));
@@ -364,6 +409,16 @@ export async function openPeerRoom({ roomCode, peerId, displayName = 'Investigat
   });
   await connected;
   room.publish = () => publishState(snapshot());
+  room.broadcastPresence = data => {
+    const kind = data && data.kind;
+    if (!['pointer', 'typing'].includes(kind)) return Promise.resolve();
+    return encryptedPresence(data).then(wire => {
+      const open = [...connections.values()].filter(conn => conn.channel && conn.channel.readyState === 'open');
+      const expected = host ? Math.max(0, members.size - 1) : members.size > 1 ? 1 : 0;
+      for (const conn of open) { try { conn.channel.send(wire); } catch { /* peer may be leaving */ } }
+      if (open.length < expected && ws.readyState === WebSocket.OPEN) send({ event: 'broadcast', ref: nextRef(), payload: { type: 'broadcast', event: 'synapse-encrypted-presence', payload: wire } });
+    }).catch(() => {});
+  };
   room.close = () => {
     if (room.closed) return; room.closed = true; clearInterval(room.timer);
     for (const c of connections.values()) { clearTimeout(c.connectTimer); try { c.channel && c.channel.close(); c.pc.close(); } catch { /* already closed */ } }

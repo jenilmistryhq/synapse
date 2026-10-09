@@ -14,7 +14,7 @@ Let a small group investigate one case over several days, with a shared evidence
 
 ## State and conflict handling
 
-The prototype still shares whole snapshots and uses last-writer-wins. It now shows member-selected names and a short shared activity list. If an incoming snapshot overlaps with edits that have not yet been sent from this device, the local snapshot is kept in browser storage and can be restored from Group play. This does not resolve edits already sent concurrently, and the activity list is not a durable audit log. A future event-based sync should use stable IDs and idempotent application; concurrent text edits will need an explicit policy.
+The prototype still shares whole snapshots and uses last-writer-wins. It shows member-selected names, recent activity, board cursors, and who is typing in a shared text field. A lightweight deterministic editor guard asks one person at a time to edit the notebook or board note; it is presence-based, not a server-enforced lease. Board moves are sent during drags; pinning, removing, and connecting cards are published immediately, while text edits are coalesced briefly. Shift-click cards to select a group, drag any selected card to move them together, or connect the selected cards as a chain. Other clients rebind their board view to each received snapshot. If an incoming snapshot overlaps with edits that have not yet been sent from this device, the local snapshot is kept in browser storage and can be restored from Group play. Already-sent simultaneous changes can still overwrite one another, and the activity list is not a durable audit log. A future event-based sync should use stable IDs and idempotent application; concurrent text edits will need an explicit policy.
 
 The host should not be a single point of failure. Every peer stores the encrypted event log locally and can offer it to reconnecting members. A peer joining late receives the current log and a clear sync status. Voice recordings need chunked encrypted transfer and size limits; do not silently upload them to the leaderboard database.
 
@@ -25,8 +25,8 @@ Large cases should be authored as small, independently loadable evidence files. 
 ## Delivery phases
 
 1. **Room prototype (implemented):** room invite code, host/join handshake, HMAC-authenticated signaling, named member presence, AES-GCM-encrypted state, WebRTC data channels, and encrypted Realtime fallback when direct links fail. Each player follows the reveal locally.
-2. **Local recovery (implemented):** remember the invite on-device, allow the same host or guest role to reconnect, keep a recent shared activity list, and preserve unsent local edits when an overlapping snapshot arrives.
-3. **Two-browser hardening:** exercise host recovery, presence, and conflict handling across browsers and networks; add durable event-based sync if the prototype behaves well.
+2. **Local recovery and live cues (implemented):** remember the invite on-device, allow the same host or guest role to reconnect, show recent shared activity and board cursors, surface typing presence, and preserve unsent local edits when an overlapping snapshot arrives.
+3. **Two-browser hardening:** exercise live board updates, editor presence, host recovery, and conflict handling across browsers and networks; add durable event-based sync if the prototype behaves well.
 4. **Multi-day play:** encrypted event-log snapshots, resumable room membership, invite revocation, backups, and offline merge.
 5. **Long-case authoring:** manageable evidence releases, per-player assignments, pacing tools, and a case that can be paused and resumed over 2–10 days.
 

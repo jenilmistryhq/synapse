@@ -39,8 +39,83 @@ export function mountGame(root, m, st, { go }) {
   const recoveryKey = `synapse:${m.id}:group-recovery`;
   let groupActivity = st.groupActivity || [];
   let groupRecovery = store.load(recoveryKey);
-  const save = debounce(() => { saveState(st); if (peerRoom) peerRoom.publish(); }, 300);
+  const groupPresence = new Map();
+  let activeTypingTarget = null;
+  let typingPulse = null;
+  const save = debounce(() => { saveState(st); if (peerRoom) peerRoom.publish(); }, 140);
   const saveNow = () => save.flush();
+  const syncLive = () => { saveState(st); if (peerRoom) peerRoom.publish(); };
+
+  function setPeerPresence(presence) {
+    const key = `${presence.peerId}:${presence.kind}:${presence.target || ''}`;
+    const existing = groupPresence.get(key);
+    if (existing && existing.expiry) clearTimeout(existing.expiry);
+    if (!presence.active) groupPresence.delete(key);
+    else {
+      const entry = { ...presence, expiry: setTimeout(() => {
+        groupPresence.delete(key);
+        if (presence.kind === 'typing') { renderTop(); applyEditLocks(); }
+        if (presence.kind === 'pointer' && board) board.setRemotePointers([...groupPresence.values()].filter(x => x.kind === 'pointer'));
+      }, presence.kind === 'pointer' ? 1800 : 5000) };
+      groupPresence.set(key, entry);
+    }
+    if (presence.kind === 'typing') renderTop();
+    if (presence.kind === 'pointer' && board) board.setRemotePointers([...groupPresence.values()].filter(x => x.kind === 'pointer'));
+    if (presence.kind === 'typing') applyEditLocks();
+  }
+
+  function clearGroupPresence() {
+    for (const presence of groupPresence.values()) if (presence.expiry) clearTimeout(presence.expiry);
+    groupPresence.clear();
+    renderTop(); applyEditLocks();
+    if (board) board.setRemotePointers([]);
+  }
+
+  const targetLabel = target => target === 'notebook' ? 'notebook' : 'board note';
+  const remoteEditor = target => {
+    const remote = [...groupPresence.values()].filter(item => item.kind === 'typing' && item.target === target).sort((a, b) => a.peerId.localeCompare(b.peerId))[0];
+    // If two people start together, both clients choose the same writer by peer ID.
+    return remote && !(activeTypingTarget === target && peerSelfId && peerSelfId.localeCompare(remote.peerId) < 0) ? remote : null;
+  };
+  function applyEditLocks() {
+    const notebookEditor = remoteEditor('notebook');
+    for (const field of document.querySelectorAll('.notes-ta')) {
+      field.readOnly = !!notebookEditor;
+      if (notebookEditor) field.placeholder = `${notebookEditor.name} is writing in the notebook…`;
+      else field.placeholder = 'Timelines, hunches, arguments...\nSelect text in any document and choose "Quote to notebook" to drop it here.';
+      if (notebookEditor && field === document.activeElement) { field.blur(); field.value = st.notes; }
+    }
+    const boardEditor = remoteEditor('board-note');
+    const boardFields = document.querySelectorAll('.bd-felt .bcard textarea, .bd-felt .bcard input');
+    boardFields.forEach(field => {
+      field.readOnly = !!boardEditor;
+      if (boardEditor) field.title = `${boardEditor.name} is writing on a board note`;
+      else field.removeAttribute('title');
+      if (boardEditor && field === document.activeElement) { field.blur(); if (board) board.refresh(); }
+    });
+  }
+
+  function setTypingTarget(el) {
+    const next = el && el.closest ? (el.closest('.notes-ta') ? 'notebook' : el.closest('.bd-felt .bcard textarea, .bd-felt .bcard input') ? 'board-note' : null) : null;
+    if (next === activeTypingTarget) return;
+    if (activeTypingTarget && peerRoom) peerRoom.broadcastPresence({ kind: 'typing', target: activeTypingTarget, active: false });
+    if (typingPulse) { clearInterval(typingPulse); typingPulse = null; }
+    activeTypingTarget = next;
+    if (activeTypingTarget && remoteEditor(activeTypingTarget)) {
+      const editor = remoteEditor(activeTypingTarget);
+      activeTypingTarget = null;
+      if (el && el.blur) el.blur();
+      toast(`${editor.name} is writing in the ${targetLabel(next)}. You can edit when they pause.`);
+      return;
+    }
+    if (activeTypingTarget && peerRoom) {
+      const send = () => peerRoom && peerRoom.broadcastPresence({ kind: 'typing', target: activeTypingTarget, active: true });
+      send(); typingPulse = setInterval(send, 2000);
+    }
+  }
+  on(document, 'focusin', e => setTypingTarget(e.target));
+  on(document, 'focusout', () => setTimeout(() => setTypingTarget(document.activeElement), 0));
+  on(window, 'blur', () => setTypingTarget(null));
 
   /* --- shell ---------------------------------------------------------------- */
   const top = h('header', { class: 'dk-top' });
@@ -94,10 +169,19 @@ export function mountGame(root, m, st, { go }) {
         h('span', { class: `tries ${tries === 1 ? 'final' : ''}`, title: 'Accusations left. The third is final.' }, icon('accuse'), h('b', {}, tries === 1 ? 'Final' : tries))),
       h('div', { class: 'dk-actions' },
         h('button', { class: `btn sm ${peerRoom ? 'primary' : 'ghost'} group-room-btn`, onclick: openGroupRoom, title: peerRoom ? `${groupMembers.length} member${groupMembers.length === 1 ? '' : 's'} in group room` : 'Share this investigation with your group' }, icon('users'), h('span', {}, peerRoom ? `Group · ${groupMembers.length}` : 'Group play')),
+        groupTypingLabel(),
         h('button', { class: 'iconbtn', title: soundOn() ? 'Mute sounds' : 'Turn sounds on', 'aria-label': 'Toggle sound', onclick: () => { setSound(!soundOn()); renderTop(); if (soundOn()) sfx.tick(); } }, icon(soundOn() ? 'sound' : 'mute')),
         h('button', { class: 'iconbtn', title: 'Settings', 'aria-label': 'Settings', onclick: () => openSettings({ onChange: () => { renderTop(); if (ui.reader) $$('.rd-paper', reader).forEach(p => { p.style.zoom = getSettings().docZoom; }); } }) }, icon('gear')),
         h('button', { class: 'iconbtn', title: 'Rules and help', 'aria-label': 'Rules and help', onclick: showHelp }, icon('help')),
         h('button', { class: 'stamp-btn', onclick: accuse, title: 'Make an accusation' }, h('span', {}, 'Accuse'))));
+  }
+
+  function groupTypingLabel() {
+    const typing = [...groupPresence.values()].filter(item => item.kind === 'typing');
+    if (!typing.length) return null;
+    const first = typing[0];
+    const place = first.target === 'notebook' ? 'in notebook' : 'on board';
+    return h('span', { class: 'group-live-presence', role: 'status', 'aria-live': 'polite', title: typing.map(x => `${x.name} typing ${x.target === 'notebook' ? 'in the notebook' : 'on a board note'}`).join('\n') }, `${first.name} typing ${place}${typing.length > 1 ? ` +${typing.length - 1}` : ''}`);
   }
 
   function toggleTimer() {
@@ -150,7 +234,9 @@ export function mountGame(root, m, st, { go }) {
   function openGroupRoom() {
     const status = h('p', { class: 'group-status', role: 'status', 'aria-live': 'polite' }, peerRoom ? (groupStatusText || 'Room connected.') : 'Open a room or join one with an invite code.');
     const reconnectInline = h('button', { class: 'btn ghost sm group-reconnect-inline', hidden: !groupStatusText.startsWith('Room signaling disconnected'), onclick: () => {
+      setTypingTarget(null);
       if (peerRoom) { peerRoom.close(); peerRoom = null; peerSelfId = ''; }
+      clearGroupPresence();
       groupStatusText = ''; setGroupMembers([]); renderTop(); dialog.close(); openGroupRoom();
     } }, 'Reconnect to this room');
     const memberPanel = h('section', { class: 'group-members', 'aria-label': 'People in this room' }, ...renderGroupMemberList(groupMembers, !!peerRoom));
@@ -169,7 +255,7 @@ export function mountGame(root, m, st, { go }) {
           peerSelfId = makePeerId();
           const chosenName = (displayName.value || store.load(peerNameKey) || 'Investigator').trim().slice(0, 24) || 'Investigator';
           store.save(peerNameKey, chosenName);
-          peerRoom = await openPeerRoom({ roomCode: savedRoom.code, peerId: peerSelfId, displayName: chosenName, host: savedRoom.role === 'host', state: st, statuses: m.persons.statuses, optionIds: m.accusation.options.map(x => x.id), onStatus: setGroupStatus, onState: receiveGroupState, onMembers: setGroupMembers, onActivity: setGroupActivity, onConflict: saveGroupRecovery });
+          peerRoom = await openPeerRoom({ roomCode: savedRoom.code, peerId: peerSelfId, displayName: chosenName, host: savedRoom.role === 'host', state: st, statuses: m.persons.statuses, optionIds: m.accusation.options.map(x => x.id), onStatus: setGroupStatus, onState: receiveGroupState, onMembers: setGroupMembers, onActivity: setGroupActivity, onPresence: setPeerPresence, onConflict: saveGroupRecovery });
           peerCode = savedRoom.code; groupStatusText = ''; renderTop(); dialog.close(); openGroupRoom();
         } catch (e) { status.textContent = e.message || 'Could not reconnect to the saved room.'; }
         return false;
@@ -181,7 +267,7 @@ export function mountGame(root, m, st, { go }) {
           const chosenName = (displayName.value || 'Investigator').trim().slice(0, 24) || 'Investigator';
           store.save(peerNameKey, chosenName);
           peerSelfId = makePeerId();
-          peerRoom = await openPeerRoom({ roomCode: code, peerId: peerSelfId, displayName: chosenName, host: true, state: st, statuses: m.persons.statuses, optionIds: m.accusation.options.map(x => x.id), onStatus: setGroupStatus, onState: receiveGroupState, onMembers: setGroupMembers, onActivity: setGroupActivity, onConflict: saveGroupRecovery });
+          peerRoom = await openPeerRoom({ roomCode: code, peerId: peerSelfId, displayName: chosenName, host: true, state: st, statuses: m.persons.statuses, optionIds: m.accusation.options.map(x => x.id), onStatus: setGroupStatus, onState: receiveGroupState, onMembers: setGroupMembers, onActivity: setGroupActivity, onPresence: setPeerPresence, onConflict: saveGroupRecovery });
           peerCode = code; store.save(savedRoomKey, { code, role: 'host' }); invite.value = code; invite.hidden = false; copy.hidden = false; renderTop(); dialog.close(); openGroupRoom();
         } catch (e) { status.textContent = e.message || 'Could not open the room.'; }
         return false;
@@ -194,7 +280,7 @@ export function mountGame(root, m, st, { go }) {
           const chosenName = (displayName.value || 'Investigator').trim().slice(0, 24) || 'Investigator';
           store.save(peerNameKey, chosenName);
           peerSelfId = makePeerId();
-          peerRoom = await openPeerRoom({ roomCode: code, peerId: peerSelfId, displayName: chosenName, host: false, state: st, statuses: m.persons.statuses, optionIds: m.accusation.options.map(x => x.id), onStatus: setGroupStatus, onState: receiveGroupState, onMembers: setGroupMembers, onActivity: setGroupActivity, onConflict: saveGroupRecovery });
+          peerRoom = await openPeerRoom({ roomCode: code, peerId: peerSelfId, displayName: chosenName, host: false, state: st, statuses: m.persons.statuses, optionIds: m.accusation.options.map(x => x.id), onStatus: setGroupStatus, onState: receiveGroupState, onMembers: setGroupMembers, onActivity: setGroupActivity, onPresence: setPeerPresence, onConflict: saveGroupRecovery });
           peerCode = code; store.save(savedRoomKey, { code, role: 'guest' }); renderTop(); joinCode.hidden = true; dialog.close(); openGroupRoom();
         } catch (e) { status.textContent = e.message || 'Could not join the room.'; }
         return false;
@@ -202,7 +288,7 @@ export function mountGame(root, m, st, { go }) {
     } else {
       if (!groupStatusText) groupStatusText = `Connected to a ${peerRoom.role === 'host' ? 'hosted' : 'host'} room. The host needs to stay online. Shared work includes case phases, Authorities, the evidence board, notes, highlights, and Resolution Sheet.`;
       status.textContent = groupStatusText;
-      actions.push({ label: 'Leave room', kind: 'danger', onClick: () => { peerRoom.close(); peerRoom = null; peerCode = ''; peerSelfId = ''; groupStatusText = ''; setGroupMembers([]); renderTop(); toast('Left the group room.'); } });
+      actions.push({ label: 'Leave room', kind: 'danger', onClick: () => { setTypingTarget(null); peerRoom.close(); peerRoom = null; peerCode = ''; peerSelfId = ''; groupStatusText = ''; clearGroupPresence(); setGroupMembers([]); renderTop(); toast('Left the group room.'); } });
     }
     if (groupRecovery && groupRecovery.localSnapshot && groupRecovery.localSnapshot.caseId === m.id) {
       actions.unshift({ label: 'Restore local edits', kind: 'ghost', onClick: () => {
@@ -220,7 +306,7 @@ export function mountGame(root, m, st, { go }) {
         peerRoom ? h('p', { class: 'group-name-label' }, `You appear as ${store.load(peerNameKey) || 'Investigator'}.`) : [h('label', { class: 'group-name-label' }, 'Name shown to your group', displayName)],
         status, reconnectInline, memberPanel, invite, copy, peerRoom ? null : joinCode, renderGroupActivity(),
         groupRecovery ? h('p', { class: 'group-recovery-note' }, 'A shared update overlapped unsent edits on this device. Your local copy is saved; choose Restore local edits to bring it back.') : null,
-        h('p', { class: 'group-footnote' }, 'The invite is saved on this device so you can reconnect later. Keep the host tab open while the group is working. The activity list helps track changes; if two people edit the same item at once, the latest update wins. Voice recordings are not shared.')],
+        h('p', { class: 'group-footnote' }, 'The invite is saved on this device so you can reconnect later. Keep the host tab open while the group is working. Board moves and notebook edits update live. The other player’s pointer appears on the board, and a field turns read-only while they are typing in it. Voice recordings are not shared.')],
       actions: [...actions, { label: 'Done', kind: 'ghost' }] });
   }
 
@@ -248,6 +334,7 @@ export function mountGame(root, m, st, { go }) {
       if (ui.drawer) openDrawer(ui.drawer);
     }
     if (board && board.refresh) board.refresh();
+    applyEditLocks();
   }
 
   const tick = setInterval(() => { if (clockText) clockText.textContent = fmtClock(timerNow(st)); }, 1000);
@@ -393,7 +480,10 @@ export function mountGame(root, m, st, { go }) {
   function showBoard() {
     if (board) return;
     sfx.paper();
-    board = openBoard({ m, st, save, ids: available(), reg, refOf, onOpenDoc: id => openReader(id), behind: game });
+    board = openBoard({ m, st, save, syncLive, ids: available(), reg, refOf, onOpenDoc: id => openReader(id), behind: game,
+      onPointer: pointer => { if (peerRoom) peerRoom.broadcastPresence({ kind: 'pointer', ...pointer }); } });
+    board.setRemotePointers([...groupPresence.values()].filter(x => x.kind === 'pointer'));
+    applyEditLocks();
     board.onClose = () => { board = null; renderDesk(); refocus(null, '.board-thumb'); };
   }
 
@@ -1212,6 +1302,9 @@ export function mountGame(root, m, st, { go }) {
   const guide = mountGuide({ m, st, save, host: game });
 
   return () => {
+    setTypingTarget(null);
+    if (typingPulse) clearInterval(typingPulse);
+    for (const presence of groupPresence.values()) if (presence.expiry) clearTimeout(presence.expiry);
     if (endTour) endTour();
     guide.destroy();
     stopTapes();
