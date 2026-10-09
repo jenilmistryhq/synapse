@@ -7,6 +7,7 @@ Let a small group investigate one case over several days, with a shared evidence
 ## Connection and privacy model
 
 - Use WebRTC data channels for peer-to-peer transfer. WebRTC encrypts transport with DTLS; room content must not be sent through a signaling service in plaintext.
+- Voice chat is opt-in and uses a direct WebRTC audio mesh between players. Microphone tracks are sent only to other active voice participants and are never sent through the Supabase relay. The current STUN-only setup cannot connect through every restrictive NAT; add a TURN service if reliable relay support is needed.
 - Supabase Realtime carries WebRTC offers, answers, ICE candidates, and member names on a public topic named with a random room ID. It can also relay AES-GCM-encrypted investigation snapshots while a direct data channel is unavailable. The 45-character invite combines the room ID with a separate random secret. The secret stays on the devices and derives AES-GCM state-encryption and HMAC signaling-authentication keys. The invite is a bearer key: anyone who has it can join while the host is online. The host tab must remain open.
 - The invite is not a player identity or account login. For durable storage, encrypt the event log before any optional relay or backup. Let the host revoke and replace invites.
 - Show the actual trust boundary: direct connections are preferred, with encrypted state relayed through Realtime if direct links fail. Relays see ciphertext and connection metadata, not decrypted notes.
@@ -37,4 +38,4 @@ Large cases should be authored as small, independently loadable evidence files. 
 - Should a player be able to host a room from their own browser, or must rooms survive the host going offline?
 - What is the intended maximum group size and voice-note storage limit?
 
-The room uses the configured Supabase project for ephemeral Realtime signaling, presence, and encrypted fallback messages; it never reuses the public scores table as a room store. Voice recordings and offline merge remain unsupported. Reconnecting requires the saved invite and an available host browser to publish the current shared snapshot.
+The room uses the configured Supabase project for ephemeral Realtime signaling, presence, and encrypted fallback messages; it never reuses the public scores table as a room store. Voice recordings and offline merge remain unsupported. Reconnecting requires the saved invite and an available host browser to publish the current shared snapshot. Voice chat is opt-in, peer-to-peer, and microphone tracks use WebRTC’s encrypted media transport rather than the room relay. The current STUN-only configuration can fail on restrictive networks; TURN support is needed for broader connection reliability.

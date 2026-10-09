@@ -92,7 +92,7 @@ export function applyCollaborationState(st, data, allowedStatuses = [], optionId
   return true;
 }
 
-export async function openPeerRoom({ roomCode, peerId, displayName = 'Investigator', host, state, statuses = [], optionIds = [], onState, onStatus, onMembers = () => {}, onActivity = () => {}, onPresence = () => {}, onConflict = () => {} }) {
+export async function openPeerRoom({ roomCode, peerId, displayName = 'Investigator', host, state, statuses = [], optionIds = [], onState, onStatus, onMembers = () => {}, onActivity = () => {}, onPresence = () => {}, onConflict = () => {}, onVoiceState = () => {}, onVoiceStream = () => {} }) {
   if (!validUrl(LEADERBOARD.url) || !validKey(LEADERBOARD.key)) throw new Error('Group rooms need a valid public Supabase project URL and anon key in app/config.js.');
   if (!validRoomCode(roomCode)) throw new Error('That room code is not valid.');
   const [roomId, secret] = roomCode.trim().split('.');
@@ -108,9 +108,14 @@ export async function openPeerRoom({ roomCode, peerId, displayName = 'Investigat
   const members = new Map();
   const relayRefs = new Set();
   const pendingIce = new Map();
+  const voiceConnections = new Map();
+  const pendingVoiceIce = new Map();
+  const voiceReadyPeers = new Set();
+  const voiceOffersInFlight = new Set();
   const room = { closed: false, joined: false, timer: null, ref: 0, joinRef: '1', role: host ? 'host' : 'guest' };
   let stateQueue = Promise.resolve();
   let relayingState = false;
+  let voiceActive = false, voiceMuted = false, localVoiceStream = null;
   let lastLocalSnapshot = collaborationState(state);
   const safeName = String(displayName || 'Investigator').replace(/[<>\u0000-\u001f]/g, '').trim().slice(0, 24) || 'Investigator';
   const nextRef = () => String(++room.ref);
@@ -122,6 +127,7 @@ export async function openPeerRoom({ roomCode, peerId, displayName = 'Investigat
     return { peerId: meta.peerId, role: meta.role, name: name || (meta.role === 'host' ? 'Host' : 'Investigator'), key: fallbackKey };
   }
   function syncPresence(payload) {
+    const previous = [...members.keys()];
     members.clear();
     for (const [key, value] of Object.entries(payload || {})) {
       for (const meta of value && value.metas || []) {
@@ -129,6 +135,7 @@ export async function openPeerRoom({ roomCode, peerId, displayName = 'Investigat
         if (member) members.set(member.peerId, member);
       }
     }
+    for (const id of previous) if (!members.has(id)) closeVoiceConnection(id);
     reportMembers();
     if (!host && room.joined && [...members.values()].some(member => member.role === 'host')) signal('*', 'hello', null);
   }
@@ -145,12 +152,13 @@ export async function openPeerRoom({ roomCode, peerId, displayName = 'Investigat
     }
     for (const [key, value] of Object.entries(payload && payload.leaves || {})) {
       for (const meta of value && value.metas || []) {
-        if (typeof meta.peerId === 'string') members.delete(meta.peerId);
-        else for (const [id, member] of members) if (member.key === key) members.delete(id);
+        if (typeof meta.peerId === 'string') { members.delete(meta.peerId); closeVoiceConnection(meta.peerId); }
+        else for (const [id, member] of members) if (member.key === key) { members.delete(id); closeVoiceConnection(id); }
       }
     }
     reportMembers();
     if (host && addedMember) publishState(snapshot());
+    if (voiceActive && addedMember) signal('*', 'voice-ready', null);
     if (!host && addedMember && [...members.values()].some(member => member.role === 'host')) signal('*', 'hello', null);
   }
   function trackPresence() {
@@ -315,13 +323,89 @@ export async function openPeerRoom({ roomCode, peerId, displayName = 'Investigat
     signal(id, 'offer', conn.pc.localDescription);
   }
 
+  function closeVoiceConnection(id) {
+    const conn = voiceConnections.get(id);
+    voiceReadyPeers.delete(id);
+    pendingVoiceIce.delete(id);
+    if (!conn) return;
+    voiceConnections.delete(id);
+    try { conn.pc.close(); } catch { /* already closed */ }
+    onVoiceStream({ peerId: id, name: members.get(id)?.name || 'Investigator', stream: null });
+  }
+  function createVoiceConnection(id) {
+    if (voiceConnections.has(id) || !members.has(id) || !('RTCPeerConnection' in window)) return voiceConnections.get(id) || null;
+    const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.cloudflare.com:3478' }] });
+    const conn = { pc };
+    voiceConnections.set(id, conn);
+    if (localVoiceStream) for (const track of localVoiceStream.getAudioTracks()) pc.addTrack(track, localVoiceStream);
+    pc.onicecandidate = event => { if (event.candidate) signal(id, 'voice-ice', event.candidate); };
+    pc.ontrack = event => {
+      const stream = event.streams[0] || new MediaStream([event.track]);
+      onVoiceStream({ peerId: id, name: members.get(id)?.name || 'Investigator', stream });
+    };
+    pc.onconnectionstatechange = () => {
+      if (pc.connectionState === 'connected') onVoiceState({ active: voiceActive, muted: voiceMuted, message: 'Voice chat connected.' });
+      else if (pc.connectionState === 'failed') onVoiceState({ active: voiceActive, muted: voiceMuted, message: `Voice link to ${members.get(id)?.name || 'a player'} failed. Check the network and microphone permissions.` });
+    };
+    return conn;
+  }
+  async function offerVoiceTo(id) {
+    if (voiceConnections.has(id)) return;
+    const conn = createVoiceConnection(id);
+    if (!conn || conn.pc.signalingState !== 'stable' || voiceOffersInFlight.has(id)) return;
+    voiceOffersInFlight.add(id);
+    try {
+      await conn.pc.setLocalDescription(await conn.pc.createOffer());
+      signal(id, 'voice-offer', conn.pc.localDescription);
+    } finally { voiceOffersInFlight.delete(id); }
+  }
+  async function receiveVoiceSignal(msg) {
+    if (!members.has(msg.from)) return;
+    if (msg.kind === 'voice-offer' && voiceActive) {
+      const conn = createVoiceConnection(msg.from);
+      if (!conn) return;
+      try {
+        await conn.pc.setRemoteDescription(msg.data);
+        for (const candidate of pendingVoiceIce.get(msg.from) || []) await conn.pc.addIceCandidate(candidate);
+        pendingVoiceIce.delete(msg.from);
+        await conn.pc.setLocalDescription(await conn.pc.createAnswer());
+        signal(msg.from, 'voice-answer', conn.pc.localDescription);
+      } catch { onVoiceState({ active: voiceActive, muted: voiceMuted, message: 'Could not connect voice chat to a player.' }); }
+    } else if (msg.kind === 'voice-answer') {
+      const conn = voiceConnections.get(msg.from);
+      if (conn) {
+        try {
+          await conn.pc.setRemoteDescription(msg.data);
+          for (const candidate of pendingVoiceIce.get(msg.from) || []) await conn.pc.addIceCandidate(candidate);
+          pendingVoiceIce.delete(msg.from);
+        } catch { onVoiceState({ active: voiceActive, muted: voiceMuted, message: 'Could not finish connecting voice chat.' }); }
+      }
+    } else if (msg.kind === 'voice-ice') {
+      const conn = voiceConnections.get(msg.from);
+      if (!conn || !conn.pc.remoteDescription) {
+        const candidates = pendingVoiceIce.get(msg.from) || [];
+        candidates.push(msg.data); pendingVoiceIce.set(msg.from, candidates);
+      } else { try { await conn.pc.addIceCandidate(msg.data); } catch { /* stale candidate after disconnect */ } }
+    }
+  }
+
   async function receiveSignal(msg) {
-    if (!msg || !(msg.to === peerId || host && msg.to === '*') || msg.from === peerId || typeof msg.from !== 'string' || !Number.isFinite(msg.sentAt) || Math.abs(Date.now() - msg.sentAt) > 90000 || typeof msg.mac !== 'string') return;
+    if (!msg || !(msg.to === peerId || msg.to === '*') || msg.from === peerId || typeof msg.from !== 'string' || !Number.isFinite(msg.sentAt) || Math.abs(Date.now() - msg.sentAt) > 90000 || typeof msg.mac !== 'string') return;
     const { mac, ...signed } = msg;
     let verified = false;
     try { verified = await crypto.subtle.verify('HMAC', keys.hmac, decode64(mac), encoder.encode(stableJson(signed))); } catch { return; }
     if (!verified) return;
-    if (host && msg.kind === 'hello') { try { await offerTo(msg.from); } catch { onStatus('Could not start a peer connection.'); } return; }
+    if (msg.to === '*') {
+      if (msg.kind === 'hello' && host) { try { await offerTo(msg.from); } catch { onStatus('Could not start a peer connection.'); } }
+      else if (msg.kind === 'voice-ready' && members.has(msg.from)) {
+        voiceReadyPeers.add(msg.from);
+        if (voiceActive && peerId < msg.from) { try { await offerVoiceTo(msg.from); } catch { onVoiceState({ active: true, muted: voiceMuted, message: 'Could not connect voice chat to every player.' }); } }
+      } else if (msg.kind === 'voice-left') {
+        voiceReadyPeers.delete(msg.from); closeVoiceConnection(msg.from);
+      }
+      return;
+    }
+    if (typeof msg.kind === 'string' && msg.kind.startsWith('voice-')) { await receiveVoiceSignal(msg); return; }
     if (!host && msg.kind === 'offer') {
       if (!('RTCPeerConnection' in window)) { onStatus('Direct peer links are unavailable here. Encrypted room relay is active.'); return; }
       let conn = connections.get(msg.from) || createConnection(msg.from);
@@ -401,14 +485,40 @@ export async function openPeerRoom({ roomCode, peerId, displayName = 'Investigat
         failJoin(new Error(reason ? `Realtime room error: ${reason}` : 'Realtime closed the room channel.'));
       } else if (msg.event === 'broadcast' && msg.payload && msg.payload.event === 'synapse-signal') {
         const payload = msg.payload.payload;
-        if (payload && payload.to === '*') {
-          if (host && payload.kind === 'hello' && payload.from !== peerId) receiveSignal(payload);
-        } else receiveSignal(payload);
+        if (payload) receiveSignal(payload);
       }
     };
   });
   await connected;
   room.publish = () => publishState(snapshot());
+  room.startVoice = async () => {
+    if (voiceActive) return;
+    if (!('RTCPeerConnection' in window)) throw new Error('This browser does not support direct voice chat.');
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('Voice chat needs microphone access in a secure browser tab (HTTPS or localhost).');
+    localVoiceStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
+    if (room.closed) { localVoiceStream.getTracks().forEach(track => track.stop()); localVoiceStream = null; throw new Error('This group room has closed.'); }
+    voiceActive = true; voiceMuted = false;
+    voiceReadyPeers.add(peerId);
+    onVoiceState({ active: true, muted: false, message: 'Microphone on. Connecting to players…' });
+    signal('*', 'voice-ready', null);
+    for (const id of voiceReadyPeers) if (id !== peerId && peerId < id) {
+      try { await offerVoiceTo(id); } catch { onVoiceState({ active: true, muted: voiceMuted, message: 'Voice chat could not connect to every player.' }); }
+    }
+  };
+  room.stopVoice = () => {
+    if (!voiceActive && !localVoiceStream) return;
+    signal('*', 'voice-left', null);
+    voiceActive = false; voiceMuted = false; voiceReadyPeers.delete(peerId);
+    for (const id of [...voiceConnections.keys()]) closeVoiceConnection(id);
+    if (localVoiceStream) localVoiceStream.getTracks().forEach(track => track.stop());
+    localVoiceStream = null;
+    onVoiceState({ active: false, muted: false, message: 'Voice chat is off.' });
+  };
+  room.setVoiceMuted = muted => {
+    voiceMuted = !!muted;
+    if (localVoiceStream) localVoiceStream.getAudioTracks().forEach(track => { track.enabled = !voiceMuted; });
+    onVoiceState({ active: voiceActive, muted: voiceMuted, message: voiceMuted ? 'Microphone muted.' : 'Microphone on.' });
+  };
   room.broadcastPresence = data => {
     const kind = data && data.kind;
     if (!['pointer', 'typing'].includes(kind)) return Promise.resolve();
@@ -420,9 +530,10 @@ export async function openPeerRoom({ roomCode, peerId, displayName = 'Investigat
     }).catch(() => {});
   };
   room.close = () => {
-    if (room.closed) return; room.closed = true; clearInterval(room.timer);
+    if (room.closed) return; room.stopVoice(); room.closed = true; clearInterval(room.timer);
     for (const c of connections.values()) { clearTimeout(c.connectTimer); try { c.channel && c.channel.close(); c.pc.close(); } catch { /* already closed */ } }
     connections.clear();
+    for (const id of [...voiceConnections.keys()]) closeVoiceConnection(id);
     if (ws.readyState === WebSocket.OPEN) { send({ event: 'phx_leave', ref: nextRef() }); ws.close(1000, 'room left'); } else ws.close();
   };
   room.timer = setInterval(() => {
