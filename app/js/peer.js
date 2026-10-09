@@ -167,7 +167,10 @@ export async function openPeerRoom({ roomCode, peerId, displayName = 'Investigat
     send({ event: 'presence', ref: nextRef(), payload: { type: 'presence', event: 'track', payload: { peerId, role: room.role, name: safeName } } });
   }
   const signal = async (to, kind, data) => {
-    const message = { from: peerId, to, kind, data, sentAt: Date.now() };
+    // RTCSessionDescription and RTCIceCandidate expose WebIDL properties through
+    // accessors; stableJson must sign the same plain JSON that Realtime sends.
+    const normalizedData = data == null ? data : JSON.parse(JSON.stringify(data));
+    const message = { from: peerId, to, kind, data: normalizedData, sentAt: Date.now() };
     const mac = await crypto.subtle.sign('HMAC', keys.hmac, encoder.encode(stableJson(message)));
     send({ event: 'broadcast', ref: nextRef(), payload: { type: 'broadcast', event: 'synapse-signal', payload: { ...message, mac: encode64(mac) } } });
   };
@@ -345,7 +348,7 @@ export async function openPeerRoom({ roomCode, peerId, displayName = 'Investigat
     };
     pc.onconnectionstatechange = () => {
       if (pc.connectionState === 'connected') onVoiceState({ active: voiceActive, muted: voiceMuted, message: 'Voice chat connected.' });
-      else if (pc.connectionState === 'failed') onVoiceState({ active: voiceActive, muted: voiceMuted, message: `Voice link to ${members.get(id)?.name || 'a player'} failed. Check the network and microphone permissions.` });
+      else if (pc.connectionState === 'failed') onVoiceState({ active: voiceActive, muted: voiceMuted, message: `Voice link to ${members.get(id)?.name || 'a player'} failed. This network may need TURN relay support.` });
     };
     return conn;
   }
@@ -394,7 +397,10 @@ export async function openPeerRoom({ roomCode, peerId, displayName = 'Investigat
     const { mac, ...signed } = msg;
     let verified = false;
     try { verified = await crypto.subtle.verify('HMAC', keys.hmac, decode64(mac), encoder.encode(stableJson(signed))); } catch { return; }
-    if (!verified) return;
+    if (!verified) {
+      if (typeof msg.kind === 'string' && msg.kind.startsWith('voice-')) onVoiceState({ active: voiceActive, muted: voiceMuted, message: 'Voice connection setup was rejected. Rejoin Group play and try again.' });
+      return;
+    }
     if (msg.to === '*') {
       if (msg.kind === 'hello' && host) { try { await offerTo(msg.from); } catch { onStatus('Could not start a peer connection.'); } }
       else if (msg.kind === 'voice-ready' && members.has(msg.from)) {
