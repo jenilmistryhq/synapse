@@ -7,6 +7,7 @@ export function runTour(steps, { onDone } = {}) {
   const list = steps.filter(s => document.querySelector(s.sel));
   if (!list.length) { if (onDone) onDone(); return () => {}; }
   let i = 0;
+  const returnFocus = document.activeElement;
   const spot = h('div', { class: 'tour-spot', 'aria-hidden': 'true' });
   const card = h('div', { class: 'tour-card', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Desk tour' });
   const root = h('div', { class: 'tour' }, spot, card);
@@ -16,19 +17,21 @@ export function runTour(steps, { onDone } = {}) {
     const el = document.querySelector(list[i].sel);
     if (!el) return;
     const r = el.getBoundingClientRect(), pad = 8;
-    Object.assign(spot.style, { left: `${r.left - pad}px`, top: `${r.top - pad}px`, width: `${r.width + pad * 2}px`, height: `${r.height + pad * 2}px` });
+    const spotLeft = Math.max(4, r.left - pad), spotTop = Math.max(4, r.top - pad);
+    Object.assign(spot.style, { left: `${spotLeft}px`, top: `${spotTop}px`, width: `${Math.min(r.width + pad * 2, innerWidth - spotLeft - 4)}px`, height: `${Math.min(r.height + pad * 2, innerHeight - spotTop - 4)}px` });
     const cw = card.offsetWidth, ch = card.offsetHeight, gap = 16;
     let top = r.bottom + pad + gap;
     if (top + ch > innerHeight - 12) top = r.top - pad - gap - ch;
     if (top < 12) top = Math.max(12, innerHeight - ch - 12);
-    const left = Math.max(12, Math.min(innerWidth - cw - 12, r.left + r.width / 2 - cw / 2));
-    Object.assign(card.style, { left: `${left}px`, top: `${top}px` });
+    const cardLeft = Math.max(12, Math.min(innerWidth - cw - 12, r.left + r.width / 2 - cw / 2));
+    top = Math.max(12, Math.min(innerHeight - ch - 12, top));
+    Object.assign(card.style, { left: `${cardLeft}px`, top: `${top}px` });
   }
 
   function show() {
     const s = list[i];
     const el = document.querySelector(s.sel);
-    el.scrollIntoView({ block: 'center', inline: 'nearest' });
+    el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
     const last = i === list.length - 1;
     const next = h('button', { class: 'btn sm primary', onclick: () => go(1) }, last ? 'Start investigating' : 'Next');
     card.replaceChildren(
@@ -52,6 +55,13 @@ export function runTour(steps, { onDone } = {}) {
     if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(); }
     else if (e.key === 'ArrowRight') { e.preventDefault(); e.stopPropagation(); go(1); }
     else if (e.key === 'ArrowLeft') { e.preventDefault(); e.stopPropagation(); go(-1); }
+    else if (e.key === 'Tab') {
+      const buttons = [...card.querySelectorAll('button:not(:disabled)')];
+      if (!buttons.length) { e.preventDefault(); return; }
+      const first = buttons[0], last = buttons[buttons.length - 1];
+      if (e.shiftKey && (document.activeElement === first || !card.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && (document.activeElement === last || !card.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
+    }
   };
   const onResize = () => place();
   document.addEventListener('keydown', onKey, true);
@@ -66,6 +76,7 @@ export function runTour(steps, { onDone } = {}) {
     window.removeEventListener('resize', onResize);
     document.removeEventListener('scroll', onResize, true);
     root.remove();
+    if (returnFocus && returnFocus.isConnected && returnFocus.focus) returnFocus.focus({ preventScroll: true });
     if (onDone) onDone();
   }
 

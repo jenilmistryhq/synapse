@@ -40,6 +40,7 @@ export function mountGame(root, m, st, { go }) {
   let groupActivity = st.groupActivity || [];
   let groupRecovery = store.load(recoveryKey);
   let groupVoice = { active: false, muted: false, message: 'Voice chat is off. Join when you are ready to talk.' };
+  let groupVoiceDeviceId = '';
   const groupVoiceAudio = new Map();
   const groupPresence = new Map();
   let activeTypingTarget = null;
@@ -238,6 +239,7 @@ export function mountGame(root, m, st, { go }) {
     groupVoice = { ...groupVoice, ...state };
     if (peerRoom) renderTop();
     document.querySelectorAll('.group-voice-status').forEach(el => { el.textContent = groupVoice.message; });
+    document.querySelectorAll('.group-voice-device').forEach(select => { select.disabled = groupVoice.active; });
     document.querySelectorAll('.group-voice-toggle').forEach(button => {
       button.replaceChildren(icon(groupVoice.active ? 'stop' : 'mic'), groupVoice.active ? 'Leave voice chat' : 'Join voice chat');
       button.classList.toggle('primary', !groupVoice.active);
@@ -268,7 +270,10 @@ export function mountGame(root, m, st, { go }) {
   async function toggleGroupVoice() {
     if (!peerRoom) return;
     if (groupVoice.active) { peerRoom.stopVoice(); return; }
-    try { await peerRoom.startVoice(); }
+    try {
+      await peerRoom.startVoice({ deviceId: groupVoiceDeviceId });
+      refreshVoiceDevices();
+    }
     catch (error) {
       setGroupVoiceState({ active: false, muted: false, message: error.message || 'Could not start voice chat.' });
       toast(error.message || 'Could not start voice chat.');
@@ -276,12 +281,28 @@ export function mountGame(root, m, st, { go }) {
   }
 
   function renderGroupVoice() {
+    const device = h('select', { class: 'field group-voice-device', 'aria-label': 'Microphone for group voice', value: groupVoiceDeviceId,
+      disabled: groupVoice.active, onchange: e => { groupVoiceDeviceId = e.target.value; } },
+      h('option', { value: '' }, 'Default microphone'));
+    refreshVoiceDevices(device);
     return h('section', { class: 'group-voice', 'aria-label': 'Group voice chat' },
       h('h3', {}, 'Voice chat'),
       h('p', { class: 'group-voice-status', role: 'status', 'aria-live': 'polite' }, groupVoice.message),
+      device,
       h('div', { class: 'group-voice-actions' },
         h('button', { class: `btn sm group-voice-toggle ${groupVoice.active ? 'danger' : 'primary'}`, onclick: toggleGroupVoice }, icon(groupVoice.active ? 'stop' : 'mic'), groupVoice.active ? 'Leave voice chat' : 'Join voice chat'),
         h('button', { class: 'btn sm ghost group-voice-mute', hidden: !groupVoice.active, onclick: () => peerRoom && peerRoom.setVoiceMuted(!groupVoice.muted) }, icon(groupVoice.muted ? 'sound' : 'mute'), groupVoice.muted ? 'Unmute microphone' : 'Mute microphone')));
+  }
+
+  async function refreshVoiceDevices(select = document.querySelector('.group-voice-device')) {
+    if (!select || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+    try {
+      const devices = (await navigator.mediaDevices.enumerateDevices()).filter(device => device.kind === 'audioinput');
+      const options = [h('option', { value: '' }, 'Default microphone'), ...devices.map((device, i) => h('option', { value: device.deviceId }, device.label || `Microphone ${i + 1}`))];
+      select.replaceChildren(...options);
+      if ([...select.options].some(option => option.value === groupVoiceDeviceId)) select.value = groupVoiceDeviceId;
+      else { groupVoiceDeviceId = ''; select.value = ''; }
+    } catch { /* Device selection is optional; the browser default remains available. */ }
   }
 
   function openGroupRoom() {
@@ -1252,6 +1273,7 @@ export function mountGame(root, m, st, { go }) {
   let endTour = null;
   function coach() {
     if (endTour) return;
+    const mobile = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
     endTour = runTour([
       { sel: '.memo', title: phased ? 'The memo' : 'Standing orders',
         text: phased ? 'The file opens in phases. Read what the memo names, write your answer on it, then stamp it to unseal the next bundle.'
@@ -1259,14 +1281,17 @@ export function mountGame(root, m, st, { go }) {
       { sel: '.dk-files .folder', title: 'Folders', text: 'Every document you may read. Click one to pick it up. New ones carry a red clip. Select text inside to highlight it or quote it into your notebook.' },
       { sel: '.t-poi', title: 'Persons of interest', text: 'Everyone the file names. Click a photo to record your finding, jot a note, and see which documents mention them.' },
       { sel: '.t-exhibits', title: 'Exhibits', text: 'The physical evidence, bagged and labelled exactly as the file records it. A new bag appears when a document you can read lists it.' },
-      { sel: '.board-thumb', title: 'Evidence board', text: 'Pin people, exhibits and documents to a green board and tie them together with red string. Voice notes and index cards go up there too.' },
+      { sel: '.board-thumb', title: 'Evidence board', text: `Pin people, exhibits and documents to a green board and tie them together with red string. Search the pin tray to find a clue quickly. ${mobile ? 'On a phone, tap Select, tap the cards, then turn Select off to drag the group; the pin tray sits above the board.' : 'Shift-click cards to select a group, then drag any selected card to move them together.'} Voice notes and index cards go up there too.` },
       { sel: '.env-tray', title: 'Sealed Authorities', text: `${st.budget} envelopes you may open. Each is one line of inquiry and they do not come back. Spend them on what the file points at.` },
       { sel: '.tool.t-clip', title: 'The Resolution Sheet', text: 'Write each step with a document citation as you establish it. Only what is written, with a citation, scores.' },
-      { sel: '.tool.t-note', title: 'Your notebook', text: 'Timelines, hunches and quotes. It opens beside the document you are reading.' },
+      { sel: '.tool.t-note', title: 'Your notebook', text: `Timelines, hunches and quotes. It opens beside the document you are reading.${peerRoom ? ' Notebook edits are shared live; when another investigator is typing, the field shows who has it.' : ''}` },
       { sel: '.tool.t-phone', title: 'Ask the Unit', text: 'Stuck? Phone for a hint. Each one costs points, so try on your own first.' },
       { sel: '.tool.t-bell', title: 'The bell', text: 'Ring it when something clicks. The debrief shows when each breakthrough happened.' },
       { sel: '.watch', title: 'The clock', text: 'It runs while you play and your time goes on the leaderboard. Click it to pause.' },
+      { sel: '.dk-stats', title: 'Case progress', text: 'Keep an eye on the remaining Authorities and accusations here. Your Resolution Sheet tracks the steps and citations you still need before the final charge.' },
+      { sel: '.group-room-btn', title: 'Group play', text: 'Invite investigators to work this case together. Board and notebook changes sync live; the board shows each player’s pointer and typing status prevents edits colliding. Group play also has recent activity, reconnect, microphone selection, and voice chat controls.' },
       { sel: '.dk-top .stamp-btn', title: 'Accuse', text: 'When you are sure, stamp an accusation. Two wrong ones are allowed; the third is final. Then Envelope S-1 reveals the truth.' },
+      { sel: '.dk-actions .iconbtn[aria-label="Settings"]', title: 'Comfort and access', text: 'Adjust the text and reading experience here. The desk and board support keyboard focus and shortcuts as well as touch controls.' },
       { sel: '.dk-actions .iconbtn[aria-label="Rules and help"]', title: 'Rules and help', text: 'The full rules, and this tour again whenever you want it.' },
     ], { onDone: () => { endTour = null; st.ui.coach = true; save(); } });
   }

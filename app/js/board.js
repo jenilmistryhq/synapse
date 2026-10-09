@@ -30,7 +30,7 @@ export function openBoard({ m, st, save, syncLive = () => {}, ids, reg, refOf, o
   st.board ||= { cards: [], links: [] };
   let B = st.board;
   const vkey = key => `${m.id}:${key}`;
-  let connect = false, linking = null, drag = null, playing = null, zoom = 1;
+  let connect = false, selectionMode = false, linking = null, drag = null, playing = null, zoom = 1;
   const selected = new Set();
   const remotePointers = new Map();
   let lastPointerSent = 0;
@@ -59,13 +59,17 @@ export function openBoard({ m, st, save, syncLive = () => {}, ids, reg, refOf, o
   const felt = h('div', { class: 'bd-felt', style: { width: `${FELT_W}px`, height: `${FELT_H}px` } }, svg, labels, cursorLayer);
   const scroll = h('div', { class: 'bd-scroll' }, felt);
   const tray = h('aside', { class: 'bd-tray', 'aria-label': 'Pin to the board' });
+  const traySearch = h('input', { class: 'field bd-search', type: 'search', placeholder: 'Find a person, exhibit, or document', 'aria-label': 'Search items to pin', oninput: drawTray });
+  const trayContent = h('div', { class: 'bd-tray-content' });
   const connectBtn = h('button', { class: 'btn sm ghost', 'aria-pressed': 'false', onclick: () => setConnect(!connect), title: 'Connect cards (C)' }, icon('link'), h('span', { class: 'blbl' }, 'Connect'), h('kbd', { class: 'bd-key' }, 'C'));
+  const selectBtn = h('button', { class: 'btn sm ghost bd-select', 'aria-label': 'Select cards', 'aria-pressed': 'false', onclick: () => setSelectionMode(!selectionMode), title: 'Select several cards to move or connect together' }, icon('check'), h('span', { class: 'blbl' }, 'Select'));
   const connectSelectedBtn = h('button', { class: 'btn sm primary', hidden: true, onclick: connectSelected, title: 'Connect selected cards in a chain' }, icon('link'), h('span', { class: 'blbl' }, 'Connect selected'));
   const hint = h('span', { class: 'bd-hint', 'aria-live': 'polite' });
   const root = h('div', { class: 'bd', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Evidence board' },
     h('header', { class: 'bd-top' },
       h('div', { class: 'bd-title' }, h('b', {}, 'Evidence board'), hint),
       h('div', { class: 'bd-actions' },
+        selectBtn,
         connectBtn,
         connectSelectedBtn,
         h('button', { class: 'btn sm ghost', onclick: () => addNote(), title: 'Add a note (N)' }, icon('notes'), h('span', { class: 'blbl' }, 'Note'), h('kbd', { class: 'bd-key' }, 'N')),
@@ -78,15 +82,20 @@ export function openBoard({ m, st, save, syncLive = () => {}, ids, reg, refOf, o
         h('button', { class: 'iconbtn', 'aria-label': 'Close the board', title: 'Close (Esc)', onclick: close }, icon('close')))),
     h('div', { class: 'bd-main' }, tray, scroll));
   document.body.append(root);
+  tray.append(traySearch, trayContent);
   if (behind) behind.inert = true;
 
   /* --- tray ---------------------------------------------------------------------- */
   function drawTray() {
     const p = pinnable();
+    const query = traySearch.value.trim().toLocaleLowerCase();
+    const filter = list => list.filter(x => !query || x.label.toLocaleLowerCase().includes(query));
     const sec = (title, list) => list.length ? h('div', { class: 'bd-sec' }, h('div', { class: 'bd-sec-h' }, title),
       list.map(x => h('button', { class: 'bd-pin', disabled: onBoard(x.key), onclick: () => pin(x), title: onBoard(x.key) ? 'Already on the board' : 'Pin to the board' },
         icon(onBoard(x.key) ? 'check' : 'plus'), h('span', {}, x.label)))) : null;
-    tray.replaceChildren(sec('People', p.people), sec('Exhibits', p.exhibits), sec('Documents', p.docs));
+    const people = filter(p.people), exhibits = filter(p.exhibits), docs = filter(p.docs);
+    const sections = [sec('People', people), sec('Exhibits', exhibits), sec('Documents', docs)].filter(Boolean);
+    trayContent.replaceChildren(...(sections.length ? sections : [h('p', { class: 'bd-no-results' }, query ? 'No matching items.' : 'Nothing available to pin yet.') ]));
   }
 
   /* --- cards ------------------------------------------------------------------------ */
@@ -257,6 +266,15 @@ export function openBoard({ m, st, save, syncLive = () => {}, ids, reg, refOf, o
     draw();
   }
 
+  function setSelectionMode(on) {
+    selectionMode = !!on;
+    selectBtn.setAttribute('aria-pressed', String(selectionMode));
+    selectBtn.setAttribute('aria-label', selectionMode ? 'Finish selecting cards' : 'Select cards');
+    selectBtn.classList.toggle('primary', selectionMode);
+    selectBtn.classList.toggle('ghost', !selectionMode);
+    hint.textContent = selectionMode ? 'Tap cards to select them. Turn Select off to move the group.' : selected.size > 1 ? `${selected.size} selected · drag together or connect as a chain` : 'Shift-click cards to select a group';
+  }
+
   function setZoom(next) {
     zoom = clamp(Math.round(next * 10) / 10, 0.5, 1.5);
     felt.style.zoom = String(zoom);
@@ -266,7 +284,7 @@ export function openBoard({ m, st, save, syncLive = () => {}, ids, reg, refOf, o
   /* --- moving cards ------------------------------------------------------------------ */
   function startDrag(e, c, el) {
     if (e.button !== 0 || e.target.closest('button, textarea, input')) return;
-    if (e.shiftKey) {
+    if (e.shiftKey || selectionMode) {
       if (connect) return;
       if (selected.has(c.key)) selected.delete(c.key); else selected.add(c.key);
       el.classList.toggle('selected', selected.has(c.key));
@@ -441,6 +459,7 @@ export function openBoard({ m, st, save, syncLive = () => {}, ids, reg, refOf, o
     const activeCardField = document.activeElement && document.activeElement.closest('.bcard textarea, .bcard input');
     if (activeCardField) { document.activeElement.closest('.bcard').focus({ preventScroll: true }); return; }
     if (linking || connect) { setConnect(false); return; }
+    if (selectionMode) { setSelectionMode(false); return; }
     close();
   };
   document.addEventListener('keydown', onKey, true);

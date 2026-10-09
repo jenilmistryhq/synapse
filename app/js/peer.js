@@ -497,11 +497,12 @@ export async function openPeerRoom({ roomCode, peerId, displayName = 'Investigat
   });
   await connected;
   room.publish = () => publishState(snapshot());
-  room.startVoice = async () => {
+  room.startVoice = async ({ deviceId = '' } = {}) => {
     if (voiceActive) return;
     if (!('RTCPeerConnection' in window)) throw new Error('This browser does not support direct voice chat.');
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('Voice chat needs microphone access in a secure browser tab (HTTPS or localhost).');
-    localVoiceStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
+    const audio = { echoCancellation: true, noiseSuppression: true, autoGainControl: true, ...(deviceId ? { deviceId: { exact: deviceId } } : {}) };
+    localVoiceStream = await navigator.mediaDevices.getUserMedia({ audio, video: false });
     if (room.closed) { localVoiceStream.getTracks().forEach(track => track.stop()); localVoiceStream = null; throw new Error('This group room has closed.'); }
     voiceActive = true; voiceMuted = false;
     voiceReadyPeers.add(peerId);
