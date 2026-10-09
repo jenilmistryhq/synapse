@@ -316,7 +316,7 @@ export async function openPeerRoom({ roomCode, peerId, displayName = 'Investigat
     };
     const timeout = setTimeout(() => failJoin(new Error('Room join timed out. Check the network and Supabase Realtime settings.')), 12000);
     ws.onopen = () => {
-      send({ event: 'phx_join', ref: joinRef, payload: { config: { broadcast: { ack: true, self: false }, presence: { enabled: true }, private: false } });
+      send({ event: 'phx_join', ref: joinRef, payload: { config: { broadcast: { ack: true, self: false }, presence: { enabled: true }, private: false } } });
     };
     ws.onerror = () => failJoin(new Error('Could not connect to Supabase Realtime. Check the network or project settings.'));
     ws.onclose = () => {
