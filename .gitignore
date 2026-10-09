@@ -4,3 +4,9 @@ node_modules/
 # Built by the deploy workflow (npm run pdf, node tools/build-site.js), never committed
 _site/
 cases/*/print/pdf/
+
+.security-harness/
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
+.ignore
