@@ -1274,6 +1274,7 @@ export function mountGame(root, m, st, { go }) {
   function coach() {
     if (endTour) return;
     const mobile = matchMedia('(max-width: 760px), (pointer: coarse)').matches;
+    const compactDesk = matchMedia('(max-width: 760px)').matches;
     endTour = runTour([
       { sel: '.memo', title: phased ? 'The memo' : 'Standing orders',
         text: phased ? 'The file opens in phases. Read what the memo names, write your answer on it, then stamp it to unseal the next bundle.'
@@ -1285,10 +1286,11 @@ export function mountGame(root, m, st, { go }) {
       { sel: '.env-tray', title: 'Sealed Authorities', text: `${st.budget} envelopes you may open. Each is one line of inquiry and they do not come back. Spend them on what the file points at.` },
       { sel: '.tool.t-clip', title: 'The Resolution Sheet', text: 'Write each step with a document citation as you establish it. Only what is written, with a citation, scores.' },
       { sel: '.tool.t-note', title: 'Your notebook', text: `Timelines, hunches and quotes. It opens beside the document you are reading.${peerRoom ? ' Notebook edits are shared live; when another investigator is typing, the field shows who has it.' : ''}` },
+      { sel: '.tool.t-calc', title: 'Calculator', text: 'Open the desk calculator for quick sums while you work through times, amounts, or other figures in the file.' },
       { sel: '.tool.t-phone', title: 'Ask the Unit', text: 'Stuck? Phone for a hint. Each one costs points, so try on your own first.' },
       { sel: '.tool.t-bell', title: 'The bell', text: 'Ring it when something clicks. The debrief shows when each breakthrough happened.' },
       { sel: '.watch', title: 'The clock', text: 'It runs while you play and your time goes on the leaderboard. Click it to pause.' },
-      { sel: '.dk-stats', title: 'Case progress', text: 'Keep an eye on the remaining Authorities and accusations here. Your Resolution Sheet tracks the steps and citations you still need before the final charge.' },
+      ...(!compactDesk ? [{ sel: '.dk-stats', title: 'Case progress', text: 'Keep an eye on your remaining Authorities and accusations here. Your Resolution Sheet tracks the steps and citations you still need before the final charge.' }] : []),
       { sel: '.group-room-btn', title: 'Group play', text: 'Invite investigators to work this case together. Board and notebook changes sync live; the board shows each player’s pointer and typing status prevents edits colliding. Group play also has recent activity, reconnect, microphone selection, and voice chat controls.' },
       { sel: '.dk-top .stamp-btn', title: 'Accuse', text: 'When you are sure, stamp an accusation. Two wrong ones are allowed; the third is final. Then Envelope S-1 reveals the truth.' },
       { sel: '.dk-actions .iconbtn[aria-label="Settings"]', title: 'Comfort and access', text: 'Adjust the text and reading experience here. The desk and board support keyboard focus and shortcuts as well as touch controls.' },
